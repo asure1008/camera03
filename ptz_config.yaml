@@ -24,13 +24,13 @@ camera_prim: /World/CameraRig/CamTilt/Camera
 rtsp_url: rtsp://localhost:8554/ptz_cam
 
 # 视频分辨率 [宽, 高]，建议与 PTZ_SecurityDome.usda 中 RenderProduct 分辨率一致
-resolution: [1920, 1080]
+resolution: [1280, 720]
 
 # 输出帧率（fps）
-fps: 25
+fps: 15
 
 # ffmpeg 视频码率
-bitrate: "4M"
+bitrate: "2M"
 
 # 仿真步进频率（Hz），通常保持默认值
 # skip_frames = round(sim_hz / fps)，仿真比流帧率快时自动跳帧

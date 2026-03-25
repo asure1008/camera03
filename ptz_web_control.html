@@ -614,7 +614,7 @@
     min-height: 16px;
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/flv.js@1.8.0/dist/flv.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"></script>
 </head>
 <body>
 
@@ -658,7 +658,7 @@
       </div>
       <div class="hud-tr">
         <div id="hud-time">--:--:--</div>
-        <div>1920 × 1080</div>
+        <div>1280 × 720</div>
       </div>
       <div class="hud-bl">
         <span>ONVIF · :8080/onvif/device_service</span>
@@ -667,7 +667,7 @@
       <div class="video-placeholder" id="placeholder">
         <div class="placeholder-icon">📷</div>
         <div>正在连接视频流...</div>
-        <div style="font-size:.72rem;color:var(--text3)">WS-FLV · ws://localhost:8080/ws-flv</div>
+        <div style="font-size:.72rem;color:var(--text3)" id="placeholder-hint">WS-FLV · :8080/ws-flv</div>
       </div>
     </div>
   </div>
@@ -681,8 +681,8 @@
       <div class="joystick-wrap">
         <div class="joystick-area" id="joystick">
           <div class="joystick-labels">
-            <span class="jl-n">仰 +30°</span>
-            <span class="jl-s">俯 -90°</span>
+            <span class="jl-n">仰 -90°</span>
+            <span class="jl-s">俯 +30°</span>
             <span class="jl-w">-170°</span>
             <span class="jl-e">+170°</span>
           </div>
@@ -700,8 +700,8 @@
           <div class="nudge-grid">
             <button class="nbtn" onclick="nudge('pan',-10)">◀ Pan-10°</button>
             <button class="nbtn" onclick="nudge('pan', 10)">Pan+10° ▶</button>
-            <button class="nbtn" onclick="nudge('tilt', 10)">▲ Tilt+10°</button>
-            <button class="nbtn" onclick="nudge('tilt',-10)">▼ Tilt-10°</button>
+            <button class="nbtn" onclick="nudge('tilt',-10)">▲ Tilt-10°</button>
+            <button class="nbtn" onclick="nudge('tilt', 10)">▼ Tilt+10°</button>
             <button class="reset-btn" onclick="resetPT()">↺ 归中 (Pan=0, Tilt=-45°)</button>
           </div>
         </div>
@@ -732,10 +732,10 @@
       <div class="preset-grid">
         <button class="pbtn home" onclick="go(0,-45,1)">🏠 默认</button>
         <button class="pbtn" onclick="go(0,0,1)">↔ 水平</button>
-        <button class="pbtn" onclick="go(0,-90,1)">⬇ 俯视</button>
+        <button class="pbtn" onclick="go(0,30,1)">⬇ 俯视</button>
         <button class="pbtn" onclick="go(-90,-45,1)">◀ 左90°</button>
         <button class="pbtn" onclick="go(90,-45,1)">▶ 右90°</button>
-        <button class="pbtn" onclick="go(180,-30,4)">↩ 反向</button>
+        <button class="pbtn" onclick="go(170,-30,4)">↩ 后向</button>
         <button class="pbtn" onclick="go(0,-45,8)">🔍 8×</button>
         <button class="pbtn" onclick="go(0,-45,16)">🔍 16×</button>
         <button class="pbtn" onclick="go(0,-45,32)">🔍 32×</button>
@@ -857,14 +857,14 @@ const JW = 176, JH = 176; // joystick pixel size
 
 function stateToPixel() {
   const x = ((state.pan  - (-170)) / 340) * JW;
-  const y = ((30 - state.tilt)     / 120) * JH;
+  const y = ((state.tilt - (-90))  / 120) * JH;
   return { x, y };
 }
 
 function pixelToState(px, py) {
   return {
     pan:  clamp((px / JW) * 340 - 170, -170, 170),
-    tilt: clamp(30 - (py / JH) * 120,  -90,   30),
+    tilt: clamp((py / JH) * 120 - 90,  -90,   30),
   };
 }
 
@@ -1041,6 +1041,8 @@ function _applyIsaacState(st) {
       pill.className   = 'pill ok';
       // 同步场景状态（吊篮 + 工人）
       setTimeout(syncSceneState, 500);
+      // 状态变为 running 时自动（重）连接视频流
+      if (_streamMode !== 'hls') setTimeout(startVideoStream, 500);
       break;
     case 'stopping':
       btn.className   = 'power-btn loading';
@@ -1126,8 +1128,8 @@ document.addEventListener('keydown', e => {
   const map = {
     'ArrowLeft':  () => nudge('pan',  -5),
     'ArrowRight': () => nudge('pan',   5),
-    'ArrowUp':    () => nudge('tilt',  5),
-    'ArrowDown':  () => nudge('tilt', -5),
+    'ArrowUp':    () => nudge('tilt', -5),
+    'ArrowDown':  () => nudge('tilt',  5),
     '+':          () => nudge('zoom',  1),
     '=':          () => nudge('zoom',  1),
     '-':          () => nudge('zoom', -1),
@@ -1147,13 +1149,12 @@ setInterval(tick, 1000); tick();
 // ── 视频流播放器（WS-FLV 优先，降级到快照轮询）──────────
 const video       = document.getElementById('stream-video');
 const placeholder = document.getElementById('placeholder');
-const WS_FLV_URL  = `ws://${HOST}:8080/ws-flv`;
+const WS_FLV_URL  = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${HOST}:${location.protocol === 'https:' ? '8443' : '8080'}/ws-flv`;
 const SNAP_URL    = `http://${HOST}:8080/onvif-snap.jpg`;
 
-let _streamRunning = true;
-let _flvPlayer     = null;
-let _snapTimer     = null;
-let _inFallback    = false;
+let _flvPlayer  = null;
+let _snapTimer  = null;
+let _streamMode = 'none';  // 'flv' | 'snap' | 'none'
 
 function setStreamStatus(ok, msg) {
   const el = document.getElementById('p-stream');
@@ -1162,119 +1163,136 @@ function setStreamStatus(ok, msg) {
   placeholder.style.display = ok ? 'none' : 'flex';
 }
 
-// ── 降级：快照轮询（WS-FLV 不可用时启用）────────────────
-async function _snapshotFallback() {
-  if (_inFallback) return;
-  _inFallback = true;
-  setStreamStatus(false, '快照模式');
-
-  // 用 canvas 替换 video 元素展示快照
-  const canvas = document.createElement('canvas');
-  const ctx    = canvas.getContext('2d');
-  canvas.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;';
-  video.replaceWith(canvas);
-
-  let _fpsFrames = 0, _fpsT0 = performance.now();
-  async function poll() {
-    if (!_streamRunning) return;
-    const t0 = performance.now();
-    try {
-      const res = await fetch(SNAP_URL + '?_t=' + Date.now());
-      if (!res.ok) throw new Error();
-      const buf  = await res.arrayBuffer();
-      const blob = new Blob([buf], { type: 'image/jpeg' });
-      const url  = URL.createObjectURL(blob);
-      const img  = new Image();
-      img.onload = () => {
-        if (canvas.width !== img.width)   canvas.width  = img.width;
-        if (canvas.height !== img.height) canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-        _fpsFrames++;
-        const now = performance.now();
-        if (now - _fpsT0 >= 2000) {
-          document.getElementById('p-fps').textContent =
-            (_fpsFrames / ((now - _fpsT0) / 1000)).toFixed(1) + ' fps';
-          _fpsFrames = 0; _fpsT0 = now;
-        }
-      };
-      img.src = url;
-      setStreamStatus(true, '快照模式');
-      placeholder.style.display = 'none';
-    } catch {
-      setStreamStatus(false, '等待仿真...');
-    }
-    _snapTimer = setTimeout(poll, Math.max(0, 500 - (performance.now() - t0)));
-  }
-  poll();
+function _destroyFlvPlayer() {
+  if (!_flvPlayer) return;
+  try {
+    _flvPlayer.pause();
+    _flvPlayer.unload();
+    _flvPlayer.detachMediaElement();
+    _flvPlayer.destroy();
+  } catch (_) {}
+  _flvPlayer = null;
 }
 
-// ── 主入口：WS-FLV 播放（flv.js），失败降级快照 ──────────
+// ── 快照轮询（WS-FLV 不可用时降级）───────────────────────
+let _snapCanvas = null;
+function _startSnapshotFallback() {
+  if (_streamMode === 'snap') return;
+  _destroyFlvPlayer();
+  _streamMode = 'snap';
+  document.getElementById('placeholder-hint').textContent = '快照轮询 · /onvif-snap.jpg';
+
+  if (!_snapCanvas) {
+    _snapCanvas = document.createElement('canvas');
+    const ctx = _snapCanvas.getContext('2d');
+    _snapCanvas.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;position:absolute;top:0;left:0;';
+    video.parentNode.insertBefore(_snapCanvas, video);
+    video.style.display = 'none';
+
+    let _fpsFrames = 0, _fpsT0 = performance.now();
+    async function poll() {
+      if (_streamMode !== 'snap') return;
+      const t0 = performance.now();
+      try {
+        const res = await fetch(SNAP_URL + '?_t=' + Date.now());
+        if (!res.ok) throw new Error('snap ' + res.status);
+        const buf  = await res.arrayBuffer();
+        const blob = new Blob([buf], { type: 'image/jpeg' });
+        const url  = URL.createObjectURL(blob);
+        const img  = new Image();
+        img.onload = () => {
+          if (_snapCanvas.width !== img.width)   _snapCanvas.width  = img.width;
+          if (_snapCanvas.height !== img.height) _snapCanvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          _fpsFrames++;
+          const now = performance.now();
+          if (now - _fpsT0 >= 2000) {
+            document.getElementById('p-fps').textContent =
+              (_fpsFrames / ((now - _fpsT0) / 1000)).toFixed(1) + ' fps';
+            _fpsFrames = 0; _fpsT0 = now;
+          }
+        };
+        img.src = url;
+        setStreamStatus(true, '快照模式');
+      } catch {
+        setStreamStatus(false, '等待视频流...');
+      }
+      _snapTimer = setTimeout(poll, 300);
+    }
+    poll();
+  }
+}
+
+function _stopSnapshotFallback() {
+  _streamMode = 'none';
+  clearTimeout(_snapTimer);
+  if (_snapCanvas) {
+    _snapCanvas.style.display = 'none';
+    _snapCanvas = null;
+  }
+  video.style.display = 'block';
+  document.getElementById('placeholder-hint').textContent = `WS-FLV · ${WS_FLV_URL}`;
+}
+
+// ── 主入口：WS-FLV 播放（flv.js），失败降级快照 ───────────
 function startVideoStream() {
-  if (!flvjs || !flvjs.isSupported()) {
-    _snapshotFallback();
+  if (_streamMode === 'flv') return;
+  _stopSnapshotFallback();
+
+  if (!window.flvjs || !flvjs.isSupported()) {
+    _startSnapshotFallback();
     return;
   }
 
-  function connect() {
-    if (_flvPlayer) {
-      try { _flvPlayer.destroy(); } catch (e) {}
-      _flvPlayer = null;
+  _destroyFlvPlayer();
+
+  let connected = false;
+  const timeout = setTimeout(() => {
+    if (!connected) {
+      _destroyFlvPlayer();
+      _startSnapshotFallback();
     }
+  }, 8000);
 
-    const player = flvjs.createPlayer({
-      type: 'flv',
-      url: WS_FLV_URL,
-      isLive: true,
-      hasAudio: false,
-      hasVideo: true,
-    }, {
-      enableWorker: false,
-      lazyLoad: false,
-      lazyLoadMaxDuration: 3,
-      seekType: 'range',
-      liveBufferLatencyChasing: true,
-      liveBufferLatencyMaxLatency: 1.5,
-      liveBufferLatencyMinRemain: 0.3,
-    });
+  _flvPlayer = flvjs.createPlayer({
+    type: 'flv',
+    isLive: true,
+    hasAudio: false,
+    url: WS_FLV_URL
+  }, {
+    enableWorker: false,
+    lazyLoad: false,
+    stashInitialSize: 64,
+    autoCleanupSourceBuffer: true
+  });
 
-    _flvPlayer = player;
-    player.attachMediaElement(video);
-    player.load();
+  _flvPlayer.attachMediaElement(video);
+  _flvPlayer.load();
+  _flvPlayer.play().catch(() => {});
 
-    let connected = false;
-    const timeout = setTimeout(() => {
-      if (!connected) { player.destroy(); _snapshotFallback(); }
-    }, 15000);
+  _flvPlayer.on(flvjs.Events.MEDIA_INFO, (info) => {
+    connected = true;
+    clearTimeout(timeout);
+    _streamMode = 'flv';
+    setStreamStatus(true, 'WS-FLV 已连接');
+    document.getElementById('placeholder-hint').textContent = `WS-FLV · ${WS_FLV_URL}`;
+    if (info && info.width && info.height) {
+      document.getElementById('p-fps').textContent = '15 fps';
+    }
+  });
 
-    player.on(flvjs.Events.MEDIA_INFO, () => {
-      connected = true;
-      clearTimeout(timeout);
-      video.play().catch(() => {});
-      setStreamStatus(true, 'WS-FLV 已连接');
-      placeholder.style.display = 'none';
-    });
-
-    player.on(flvjs.Events.STATISTICS_INFO, info => {
-      if (info && info.decodedFrames > 0) {
-        document.getElementById('p-fps').textContent =
-          (info.playerType === 'FlvPlayer' && info.speed
-            ? info.speed.toFixed(1) : '25') + ' fps';
-      }
-    });
-
-    player.on(flvjs.Events.ERROR, (errType, errDetail) => {
-      if (!connected) {
-        clearTimeout(timeout);
-        _snapshotFallback();
-      } else {
-        setStreamStatus(false, '重连中...');
-        setTimeout(connect, 3000);
-      }
-    });
-  }
-
-  connect();
+  _flvPlayer.on(flvjs.Events.ERROR, (type, detail) => {
+    clearTimeout(timeout);
+    _destroyFlvPlayer();
+    if (!connected) {
+      _startSnapshotFallback();
+      return;
+    }
+    setStreamStatus(false, `WS-FLV 重连中...`);
+    _streamMode = 'none';
+    setTimeout(startVideoStream, 1000);
+  });
 }
 
 // ── 场景控制 ──────────────────────────────────────────────

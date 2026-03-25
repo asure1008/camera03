@@ -219,11 +219,11 @@ def _apply_ptz_state(stage) -> None:
     if pan_p.IsValid():
         attr = pan_p.GetAttribute(pan_attr_name)
         if attr and attr.IsValid():
-            attr.Set(float(pan_deg))
+            attr.Set(float(-pan_deg))
     if tilt_p.IsValid():
         attr = tilt_p.GetAttribute(tilt_attr_name)
         if attr and attr.IsValid():
-            attr.Set(float(tilt_deg))
+            attr.Set(float(-tilt_deg))
     if cam_p.IsValid():
         attr = cam_p.GetAttribute("focalLength")
         if attr and attr.IsValid():

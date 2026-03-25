@@ -32,6 +32,7 @@ import argparse
 import base64
 import datetime
 import hashlib
+import io
 import json
 import os
 import signal
@@ -43,6 +44,7 @@ import threading
 import time
 import urllib.request
 import urllib.error
+import uuid as _uuid_mod
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -113,6 +115,13 @@ def start_isaac() -> dict:
     with _proc_lock:
         if _isaac_proc is not None and _isaac_proc.poll() is None:
             return {"ok": False, "error": "Isaac Sim 已在运行"}
+
+        # 端口已被占用说明进程来自上一次 Launcher 会话，直接同步状态
+        if _port_in_use(ISAAC_PORT):
+            _isaac_state = "running"
+            _start_time  = time.time()
+            _isaac_proc  = None  # 无法持有旧进程句柄，置 None
+            return {"ok": True, "pid": -1, "note": "Isaac Sim 已在运行（外部进程），已同步状态"}
 
         log_file = open(ISAAC_LOG, "w", encoding="utf-8", buffering=1)
         cmd = [
@@ -281,10 +290,284 @@ _ONVIF_PROFILE_TOKEN = "Profile_1"
 _ONVIF_PTZ_TOKEN     = "PTZConfig_1"
 _ONVIF_PTZ_NODE      = "PTZNode_1"
 
+# 线程局部变量：记录当前请求的 SOAP 版本，让 _soap_wrap 自动匹配
+# True=SOAP 1.2 (application/soap+xml), False=SOAP 1.1 (text/xml)
+_soap_tls = threading.local()
+
 # 坐标换算常量
-_PAN_SCALE  = 170.0   # ONVIF [-1,1] → Isaac [-170°, 170°]
-_TILT_SCALE = 90.0    # ONVIF [-1,1] → Isaac [-90°,  +30°] (clamp 在 _set_ptz_to_isaac 内)
-_ZOOM_SCALE = 31.0    # ONVIF [0,1]  → Isaac [1×,    32×]
+_PAN_SCALE  = 170.0
+_TILT_SCALE = 90.0
+_ZOOM_SCALE = 31.0
+
+
+def _clamp(v: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, v))
+
+
+def _norm_to_pan(norm: float) -> float:
+    return _clamp(norm, -1.0, 1.0) * _PAN_SCALE
+
+
+def _pan_to_norm(pan_deg: float) -> float:
+    return _clamp(pan_deg, -170.0, 170.0) / _PAN_SCALE
+
+
+def _norm_to_tilt(norm: float) -> float:
+    return _clamp(-_clamp(norm, -1.0, 1.0) * _TILT_SCALE, -90.0, 30.0)
+
+
+def _tilt_to_norm(tilt_deg: float) -> float:
+    return -_clamp(tilt_deg, -90.0, 30.0) / _TILT_SCALE
+
+
+def _norm_to_zoom(norm: float) -> float:
+    return 1.0 + _clamp(norm, 0.0, 1.0) * _ZOOM_SCALE
+
+
+def _zoom_to_norm(zoom_x: float) -> float:
+    return (_clamp(zoom_x, 1.0, 32.0) - 1.0) / _ZOOM_SCALE
+
+# RTSP 端口（来自 mediamtx 配置，默认 8554）
+_RTSP_PORT = cfg.get("mediamtx", {}).get("port", 8554)
+
+
+def _make_offline_jpeg() -> bytes:
+    """
+    生成"仿真未启动"占位 JPEG。
+    优先用 Pillow；不可用时回退内嵌最小 JPEG（8×8 灰色）。
+    确保快照端点永远返回 200 而不是 503，VMS/ODM 才能正常显示 NVT 模块。
+    """
+    try:
+        from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+        img  = _Img.new("RGB", (640, 360), color=(20, 20, 20))
+        draw = _Draw.Draw(img)
+        draw.rectangle([0, 0, 640, 360], fill=(20, 20, 40))
+        draw.text((200, 155), "Simulation Offline", fill=(180, 180, 180))
+        draw.text((250, 185), "请在 Web UI 启动仿真", fill=(120, 120, 120))
+        buf = io.BytesIO()
+        img.save(buf, "JPEG", quality=50)
+        return buf.getvalue()
+    except Exception:
+        pass
+    # 内嵌最小合法 JPEG（8×8 灰色像素，无外部依赖）
+    return base64.b64decode(
+        "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U"
+        "HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAAR"
+        "CAAIAAgDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAA"
+        "AgIDAQADAQAAAAAAAAAAAQIDBAUREiExQf/EABQBAQAAAAAAAAAAAAAAAAAA"
+        "AAD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCw1jiuNZv3"
+        "fVc5bU2rxuTq9NGlfCb9ZVJfGkRQA7tezA7G+rEfFmAAAAAAAAAAAAAAAAAA"
+        "AAAAAAAAAAB//9k="
+    )
+
+
+# 模块启动时预生成离线占位图（非阻塞，尽早缓存）
+_OFFLINE_JPEG: bytes = _make_offline_jpeg()
+
+# ══════════════════════════════════════════════════════════════════════
+# WS-Discovery：局域网 ONVIF 设备发现（UDP 多播 239.255.255.250:3702）
+# ══════════════════════════════════════════════════════════════════════
+
+_WSD_MCAST_ADDR = "239.255.255.250"
+_WSD_PORT       = 3702
+
+# 稳定 UUID：基于主机名 + 端口，重启后不变，客户端可识别同一设备
+_DEVICE_UUID = str(_uuid_mod.uuid5(
+    _uuid_mod.NAMESPACE_DNS,
+    f"onvif-ptz-cam-{socket.gethostname()}-{LAUNCHER_PORT}"
+))
+
+_WSD_SCOPES = (
+    "onvif://www.onvif.org/location/country/china "
+    "onvif://www.onvif.org/name/Isaac-Sim-PTZ-Camera "
+    "onvif://www.onvif.org/hardware/PTZ-Camera-V4 "
+    "onvif://www.onvif.org/type/video_encoder "
+    "onvif://www.onvif.org/Profile/Streaming"
+)
+
+
+def _get_local_ips() -> list:
+    """获取本机所有非 loopback IPv4 地址列表。"""
+    ips: list = []
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+    if not ips:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as _s:
+                _s.connect(("8.8.8.8", 80))
+                ips.append(_s.getsockname()[0])
+        except Exception:
+            ips.append("127.0.0.1")
+    return ips
+
+
+def _get_sender_local_ip(remote_ip: str) -> str:
+    """获取通往 remote_ip 所在网段的本地出口 IP。"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as _s:
+            _s.connect((remote_ip, 1))
+            return _s.getsockname()[0]
+    except Exception:
+        ips = _get_local_ips()
+        return ips[0] if ips else "127.0.0.1"
+
+
+def _wsd_probe_match(msg_id: str, local_ip: str) -> bytes:
+    """构建 WS-Discovery ProbeMatch 单播响应报文。"""
+    xaddr    = f"http://{local_ip}:{LAUNCHER_PORT}/onvif/device_service"
+    reply_id = str(_uuid_mod.uuid4())
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<s:Envelope '
+        'xmlns:s="http://www.w3.org/2003/05/soap-envelope" '
+        'xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" '
+        'xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" '
+        'xmlns:dn="http://www.onvif.org/ver10/network/wsdl">'
+        '<s:Header>'
+        '<wsa:Action>'
+        'http://schemas.xmlsoap.org/ws/2005/04/discovery/ProbeMatches'
+        '</wsa:Action>'
+        f'<wsa:MessageID>urn:uuid:{reply_id}</wsa:MessageID>'
+        f'<wsa:RelatesTo>{msg_id}</wsa:RelatesTo>'
+        '<wsa:To>'
+        'http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous'
+        '</wsa:To>'
+        '</s:Header>'
+        '<s:Body>'
+        '<wsd:ProbeMatches>'
+        '<wsd:ProbeMatch>'
+        '<wsa:EndpointReference>'
+        f'<wsa:Address>urn:uuid:{_DEVICE_UUID}</wsa:Address>'
+        '</wsa:EndpointReference>'
+        '<wsd:Types>dn:NetworkVideoTransmitter</wsd:Types>'
+        f'<wsd:Scopes>{_WSD_SCOPES}</wsd:Scopes>'
+        f'<wsd:XAddrs>{xaddr}</wsd:XAddrs>'
+        '<wsd:MetadataVersion>1</wsd:MetadataVersion>'
+        '</wsd:ProbeMatch>'
+        '</wsd:ProbeMatches>'
+        '</s:Body>'
+        '</s:Envelope>'
+    ).encode()
+
+
+def _wsd_hello(sock: socket.socket) -> None:
+    """服务启动时向多播组广播 Hello，主动宣告设备上线。"""
+    local_ips = _get_local_ips()
+    xaddrs = " ".join(
+        f"http://{ip}:{LAUNCHER_PORT}/onvif/device_service" for ip in local_ips
+    )
+    reply_id = str(_uuid_mod.uuid4())
+    msg = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<s:Envelope '
+        'xmlns:s="http://www.w3.org/2003/05/soap-envelope" '
+        'xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" '
+        'xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" '
+        'xmlns:dn="http://www.onvif.org/ver10/network/wsdl">'
+        '<s:Header>'
+        '<wsa:Action>'
+        'http://schemas.xmlsoap.org/ws/2005/04/discovery/Hello'
+        '</wsa:Action>'
+        f'<wsa:MessageID>urn:uuid:{reply_id}</wsa:MessageID>'
+        '<wsa:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</wsa:To>'
+        '</s:Header>'
+        '<s:Body>'
+        '<wsd:Hello>'
+        '<wsa:EndpointReference>'
+        f'<wsa:Address>urn:uuid:{_DEVICE_UUID}</wsa:Address>'
+        '</wsa:EndpointReference>'
+        '<wsd:Types>dn:NetworkVideoTransmitter</wsd:Types>'
+        f'<wsd:Scopes>{_WSD_SCOPES}</wsd:Scopes>'
+        f'<wsd:XAddrs>{xaddrs}</wsd:XAddrs>'
+        '<wsd:MetadataVersion>1</wsd:MetadataVersion>'
+        '</wsd:Hello>'
+        '</s:Body>'
+        '</s:Envelope>'
+    ).encode()
+    try:
+        sock.sendto(msg, (_WSD_MCAST_ADDR, _WSD_PORT))
+    except Exception:
+        pass
+
+
+def _wsd_listener() -> None:
+    """
+    WS-Discovery UDP 多播监听线程。
+    监听 239.255.255.250:3702，响应局域网 ONVIF 客户端的 Probe 请求。
+    失败时仅打印警告，不影响 ONVIF HTTP 服务正常运行。
+    """
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except (AttributeError, OSError):
+            pass  # 部分内核不支持 SO_REUSEPORT，忽略
+        sock.bind(("", _WSD_PORT))
+
+        # 加入 IPv4 多播组（所有网卡）
+        mreq = struct.pack("4sL", socket.inet_aton(_WSD_MCAST_ADDR),
+                           socket.INADDR_ANY)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        sock.settimeout(5.0)
+
+        print(f"[PTZ-Launcher] WS-Discovery 已启动（{_WSD_MCAST_ADDR}:{_WSD_PORT}），"
+              f"设备 UUID={_DEVICE_UUID}")
+
+        # 启动时广播 Hello，主动宣告上线
+        _wsd_hello(sock)
+
+        while True:
+            try:
+                data, addr = sock.recvfrom(65536)
+            except socket.timeout:
+                continue
+            except OSError:
+                break
+
+            try:
+                text = data.decode("utf-8", errors="replace")
+                # 只处理 Probe 请求
+                if "Probe" not in text or "ProbeMatch" in text:
+                    continue
+
+                # 解析 MessageID 和 Types
+                root   = ET.fromstring(data)
+                msg_id = ""
+                for el in root.iter():
+                    lname = el.tag.split("}")[-1] if "}" in el.tag else el.tag
+                    if lname == "MessageID" and el.text:
+                        msg_id = el.text.strip()
+                        break
+
+                # 检查 Types 过滤：若指定类型中不含 NVT 则跳过
+                accept = True
+                for el in root.iter():
+                    lname = el.tag.split("}")[-1] if "}" in el.tag else el.tag
+                    if lname == "Types" and el.text and el.text.strip():
+                        accept = "NetworkVideoTransmitter" in el.text
+                        break
+
+                if not accept:
+                    continue
+
+                local_ip = _get_sender_local_ip(addr[0])
+                response = _wsd_probe_match(msg_id, local_ip)
+                sock.sendto(response, addr)
+
+            except Exception:
+                pass
+
+    except OSError as exc:
+        print(f"[PTZ-Launcher] ⚠ WS-Discovery 绑定失败（端口 {_WSD_PORT} 可能被占用）："
+              f"{exc}  局域网自动发现不可用，仍可手动填写 IP 连接。")
+    except Exception as exc:
+        print(f"[PTZ-Launcher] ⚠ WS-Discovery 异常退出：{exc}")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -354,13 +637,17 @@ def _flv_broadcaster() -> None:
 
     while True:
         if _isaac_state != "running" or not _port_in_use(8554):
-            time.sleep(2)
+            time.sleep(0.5)
             continue
 
-        time.sleep(2)   # 等待 MediaMTX 稳定
+        time.sleep(0.5)   # 等待 MediaMTX 稳定
 
         cmd = [
             "ffmpeg", "-loglevel", "quiet",
+            "-fflags", "nobuffer",
+            "-flags", "low_delay",
+            "-analyzeduration", "0",
+            "-probesize", "32",
             "-rtsp_transport", "tcp",
             "-i", "rtsp://localhost:8554/ptz_cam",
             "-c:v", "copy",
@@ -431,17 +718,29 @@ def _flv_broadcaster() -> None:
 
 
 def _soap_wrap(body_content: str) -> bytes:
-    """将内容包裹在 SOAP Envelope 中。"""
+    """
+    将内容包裹在 SOAP Envelope 中，自动匹配当前请求的 SOAP 版本：
+      - 请求用 application/soap+xml → SOAP 1.2（_soap_tls.soap12 = True）
+      - 请求用 text/xml 或未指定   → SOAP 1.1（_soap_tls.soap12 = False）
+    这样可以同时兼容：
+      · 中文 ONVIF 工具（SOAP 1.1，text/xml）
+      · .NET WCF / 现代 ONVIF 客户端（SOAP 1.2，application/soap+xml）
+    """
+    if getattr(_soap_tls, "soap12", False):
+        s_ns = "http://www.w3.org/2003/05/soap-envelope"
+    else:
+        s_ns = "http://schemas.xmlsoap.org/soap/envelope/"
     return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        '<s:Envelope '
-        'xmlns:s="http://www.w3.org/2003/05/soap-envelope" '
-        'xmlns:tt="http://www.onvif.org/ver10/schema" '
-        'xmlns:tds="http://www.onvif.org/ver10/device/wsdl" '
-        'xmlns:trt="http://www.onvif.org/ver10/media/wsdl" '
-        'xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl">'
-        '<s:Body>' + body_content + '</s:Body>'
-        '</s:Envelope>'
+        f'<?xml version="1.0" encoding="UTF-8"?>'
+        f'<s:Envelope '
+        f'xmlns:s="{s_ns}" '
+        f'xmlns:tt="http://www.onvif.org/ver10/schema" '
+        f'xmlns:tds="http://www.onvif.org/ver10/device/wsdl" '
+        f'xmlns:trt="http://www.onvif.org/ver10/media/wsdl" '
+        f'xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" '
+        f'xmlns:timg="http://www.onvif.org/ver20/imaging/wsdl">'
+        f'<s:Body>{body_content}</s:Body>'
+        f'</s:Envelope>'
     ).encode()
 
 
@@ -499,9 +798,9 @@ def _get_ptz_from_isaac() -> dict:
 def _set_ptz_to_isaac(pan_deg: float, tilt_deg: float, zoom_x: float) -> None:
     """向 Isaac Sim 发送 PTZ 绝对位置命令。"""
     payload = json.dumps({
-        "pan":  round(max(-170.0, min(170.0, pan_deg)),  3),
-        "tilt": round(max(-90.0,  min(30.0,  tilt_deg)), 3),
-        "zoom": round(max(1.0,    min(32.0,  zoom_x)),   3),
+        "pan":  round(_clamp(pan_deg, -170.0, 170.0), 3),
+        "tilt": round(_clamp(tilt_deg, -90.0, 30.0), 3),
+        "zoom": round(_clamp(zoom_x, 1.0, 32.0), 3),
     }).encode()
     try:
         req = urllib.request.Request(
@@ -550,19 +849,60 @@ def _onvif_device(action: str, el: ET.Element | None, host: str) -> bytes:
     if action == "GetCapabilities":
         return _soap_wrap(f"""<tds:GetCapabilitiesResponse>
   <tds:Capabilities>
-    <tt:Media xaddr="{base}/onvif/media_service">
+    <tt:Device>
+      <tt:XAddr>{base}/onvif/device_service</tt:XAddr>
+      <tt:Network>
+        <tt:IPFilter>false</tt:IPFilter>
+        <tt:ZeroConfiguration>false</tt:ZeroConfiguration>
+        <tt:IPVersion6>false</tt:IPVersion6>
+        <tt:DynDNS>false</tt:DynDNS>
+      </tt:Network>
+      <tt:System>
+        <tt:DiscoveryResolve>true</tt:DiscoveryResolve>
+        <tt:DiscoveryBye>false</tt:DiscoveryBye>
+        <tt:RemoteDiscovery>false</tt:RemoteDiscovery>
+        <tt:SystemBackup>false</tt:SystemBackup>
+        <tt:SystemLogging>false</tt:SystemLogging>
+        <tt:FirmwareUpgrade>false</tt:FirmwareUpgrade>
+      </tt:System>
+      <tt:IO>
+        <tt:InputConnectors>0</tt:InputConnectors>
+        <tt:RelayOutputs>0</tt:RelayOutputs>
+      </tt:IO>
+      <tt:Security>
+        <tt:TLS1.2>false</tt:TLS1.2>
+        <tt:OnboardKeyGeneration>false</tt:OnboardKeyGeneration>
+        <tt:AccessPolicyConfig>false</tt:AccessPolicyConfig>
+        <tt:X.509Token>false</tt:X.509Token>
+        <tt:SAMLToken>false</tt:SAMLToken>
+        <tt:KerberosToken>false</tt:KerberosToken>
+        <tt:RELToken>false</tt:RELToken>
+      </tt:Security>
+    </tt:Device>
+    <tt:Media>
+      <tt:XAddr>{base}/onvif/media_service</tt:XAddr>
       <tt:StreamingCapabilities>
         <tt:RTPMulticast>false</tt:RTPMulticast>
-        <tt:RTP_TCP>false</tt:RTP_TCP>
-        <tt:RTP_RTSP_TCP>false</tt:RTP_RTSP_TCP>
+        <tt:RTP_TCP>true</tt:RTP_TCP>
+        <tt:RTP_RTSP_TCP>true</tt:RTP_RTSP_TCP>
       </tt:StreamingCapabilities>
     </tt:Media>
-    <tt:PTZ xaddr="{base}/onvif/ptz_service"/>
+    <tt:PTZ>
+      <tt:XAddr>{base}/onvif/ptz_service</tt:XAddr>
+    </tt:PTZ>
+    <tt:Imaging>
+      <tt:XAddr>{base}/onvif/imaging_service</tt:XAddr>
+    </tt:Imaging>
   </tds:Capabilities>
 </tds:GetCapabilitiesResponse>""")
 
     if action == "GetServices":
         return _soap_wrap(f"""<tds:GetServicesResponse>
+  <tds:Service>
+    <tds:Namespace>http://www.onvif.org/ver10/device/wsdl</tds:Namespace>
+    <tds:XAddr>{base}/onvif/device_service</tds:XAddr>
+    <tds:Version><tt:Major>2</tt:Major><tt:Minor>6</tt:Minor></tds:Version>
+  </tds:Service>
   <tds:Service>
     <tds:Namespace>http://www.onvif.org/ver10/media/wsdl</tds:Namespace>
     <tds:XAddr>{base}/onvif/media_service</tds:XAddr>
@@ -572,6 +912,11 @@ def _onvif_device(action: str, el: ET.Element | None, host: str) -> bytes:
     <tds:Namespace>http://www.onvif.org/ver20/ptz/wsdl</tds:Namespace>
     <tds:XAddr>{base}/onvif/ptz_service</tds:XAddr>
     <tds:Version><tt:Major>2</tt:Major><tt:Minor>6</tt:Minor></tds:Version>
+  </tds:Service>
+  <tds:Service>
+    <tds:Namespace>http://www.onvif.org/ver20/imaging/wsdl</tds:Namespace>
+    <tds:XAddr>{base}/onvif/imaging_service</tds:XAddr>
+    <tds:Version><tt:Major>2</tt:Major><tt:Minor>0</tt:Minor></tds:Version>
   </tds:Service>
 </tds:GetServicesResponse>""")
 
@@ -584,6 +929,58 @@ def _onvif_device(action: str, el: ET.Element | None, host: str) -> bytes:
   <tds:HardwareId>1.0</tds:HardwareId>
 </tds:GetDeviceInformationResponse>""")
 
+    if action == "GetScopes":
+        return _soap_wrap("""<tds:GetScopesResponse>
+  <tds:Scopes>
+    <tt:ScopeDef>Fixed</tt:ScopeDef>
+    <tt:ScopeItem>onvif://www.onvif.org/location/country/china</tt:ScopeItem>
+  </tds:Scopes>
+  <tds:Scopes>
+    <tt:ScopeDef>Fixed</tt:ScopeDef>
+    <tt:ScopeItem>onvif://www.onvif.org/name/Isaac-Sim-PTZ-Camera</tt:ScopeItem>
+  </tds:Scopes>
+  <tds:Scopes>
+    <tt:ScopeDef>Fixed</tt:ScopeDef>
+    <tt:ScopeItem>onvif://www.onvif.org/hardware/PTZ-Camera-V4</tt:ScopeItem>
+  </tds:Scopes>
+  <tds:Scopes>
+    <tt:ScopeDef>Fixed</tt:ScopeDef>
+    <tt:ScopeItem>onvif://www.onvif.org/type/video_encoder</tt:ScopeItem>
+  </tds:Scopes>
+  <tds:Scopes>
+    <tt:ScopeDef>Fixed</tt:ScopeDef>
+    <tt:ScopeItem>onvif://www.onvif.org/Profile/Streaming</tt:ScopeItem>
+  </tds:Scopes>
+</tds:GetScopesResponse>""")
+
+    if action == "GetNetworkInterfaces":
+        local_ips = _get_local_ips()
+        ifaces_xml = ""
+        for i, ip in enumerate(local_ips):
+            ifaces_xml += f"""  <tds:NetworkInterfaces token="eth{i}">
+    <tt:Enabled>true</tt:Enabled>
+    <tt:Info>
+      <tt:Name>eth{i}</tt:Name>
+      <tt:HwAddress>00:00:00:00:00:0{i}</tt:HwAddress>
+      <tt:MTU>1500</tt:MTU>
+    </tt:Info>
+    <tt:IPv4>
+      <tt:Enabled>true</tt:Enabled>
+      <tt:Config>
+        <tt:Manual>
+          <tt:Address>{ip}</tt:Address>
+          <tt:PrefixLength>24</tt:PrefixLength>
+        </tt:Manual>
+        <tt:DHCP>true</tt:DHCP>
+      </tt:Config>
+    </tt:IPv4>
+  </tds:NetworkInterfaces>
+"""
+        return _soap_wrap(
+            f"<tds:GetNetworkInterfacesResponse>\n{ifaces_xml}"
+            "</tds:GetNetworkInterfacesResponse>"
+        )
+
     return _soap_wrap(f"<tds:{action}Response/>")
 
 
@@ -594,21 +991,45 @@ def _onvif_media(action: str, el: ET.Element | None, host: str) -> bytes:
     snap_url = f"{base}/onvif-snap.jpg"
 
     if action in ("GetProfiles", "GetProfile"):
-        return _soap_wrap(f"""<trt:GetProfilesResponse>
-  <trt:Profiles token="{_ONVIF_PROFILE_TOKEN}" fixed="true">
-    <tt:Name>PTZ Simulation Profile</tt:Name>
+        # GetProfile（单数）返回 GetProfileResponse；GetProfiles（复数）返回 GetProfilesResponse
+        resp_tag  = "GetProfileResponse"  if action == "GetProfile"  else "GetProfilesResponse"
+        item_tag  = "Profile"             if action == "GetProfile"  else "Profiles"
+        profile_xml = f"""<trt:{item_tag} token="{_ONVIF_PROFILE_TOKEN}" fixed="true">
+    <tt:Name>PTZ-Sim-H264-Profile</tt:Name>
     <tt:VideoSourceConfiguration token="VSC_1">
-      <tt:Name>VideoSource</tt:Name>
+      <tt:Name>VideoSource_1</tt:Name>
       <tt:UseCount>1</tt:UseCount>
       <tt:SourceToken>VST_1</tt:SourceToken>
       <tt:Bounds x="0" y="0" width="1920" height="1080"/>
     </tt:VideoSourceConfiguration>
     <tt:VideoEncoderConfiguration token="VEC_1">
-      <tt:Name>JPEG</tt:Name>
+      <tt:Name>H264-1080p-25fps</tt:Name>
       <tt:UseCount>1</tt:UseCount>
       <tt:Encoding>H264</tt:Encoding>
-      <tt:Resolution><tt:Width>1920</tt:Width><tt:Height>1080</tt:Height></tt:Resolution>
+      <tt:Resolution>
+        <tt:Width>1920</tt:Width>
+        <tt:Height>1080</tt:Height>
+      </tt:Resolution>
       <tt:Quality>80</tt:Quality>
+      <tt:RateControl>
+        <tt:FrameRateLimit>25</tt:FrameRateLimit>
+        <tt:EncodingInterval>1</tt:EncodingInterval>
+        <tt:BitrateLimit>4000</tt:BitrateLimit>
+      </tt:RateControl>
+      <tt:H264>
+        <tt:GovLength>50</tt:GovLength>
+        <tt:H264Profile>High</tt:H264Profile>
+      </tt:H264>
+      <tt:Multicast>
+        <tt:Address>
+          <tt:Type>IPv4</tt:Type>
+          <tt:IPv4Address>0.0.0.0</tt:IPv4Address>
+        </tt:Address>
+        <tt:Port>0</tt:Port>
+        <tt:TTL>0</tt:TTL>
+        <tt:AutoStart>false</tt:AutoStart>
+      </tt:Multicast>
+      <tt:SessionTimeout>PT60S</tt:SessionTimeout>
     </tt:VideoEncoderConfiguration>
     <tt:PTZConfiguration token="{_ONVIF_PTZ_TOKEN}">
       <tt:Name>PTZConfig</tt:Name>
@@ -637,12 +1058,12 @@ def _onvif_media(action: str, el: ET.Element | None, host: str) -> bytes:
         </tt:Range>
       </tt:ZoomLimits>
     </tt:PTZConfiguration>
-  </trt:Profiles>
-</trt:GetProfilesResponse>""")
+  </trt:{item_tag}>"""
+        return _soap_wrap(f"<trt:{resp_tag}>{profile_xml}</trt:{resp_tag}>")
 
     if action == "GetStreamUri":
         rtsp_host = host.split(":")[0]
-        rtsp_url  = f"rtsp://{rtsp_host}:8554/ptz_cam"
+        rtsp_url  = f"rtsp://{rtsp_host}:{_RTSP_PORT}/ptz_cam"
         return _soap_wrap(f"""<trt:GetStreamUriResponse>
   <trt:MediaUri>
     <tt:Uri>{rtsp_url}</tt:Uri>
@@ -668,6 +1089,128 @@ def _onvif_media(action: str, el: ET.Element | None, host: str) -> bytes:
     VideoSourceMode="false" OSD="false"/>
 </trt:GetServiceCapabilitiesResponse>""")
 
+    if action == "GetVideoSources":
+        return _soap_wrap("""<trt:GetVideoSourcesResponse>
+  <trt:VideoSources token="VST_1">
+    <tt:Framerate>25</tt:Framerate>
+    <tt:Resolution>
+      <tt:Width>1920</tt:Width>
+      <tt:Height>1080</tt:Height>
+    </tt:Resolution>
+    <tt:Imaging/>
+  </trt:VideoSources>
+</trt:GetVideoSourcesResponse>""")
+
+    if action in ("GetVideoSourceConfigurations", "GetVideoSourceConfiguration"):
+        # VideoSourceConfiguration（软件绑定层）与 VideoSources（物理源）是不同类型
+        resp_tag = ("GetVideoSourceConfigurationResponse"
+                    if action == "GetVideoSourceConfiguration"
+                    else "GetVideoSourceConfigurationsResponse")
+        item_tag = ("Configuration"
+                    if action == "GetVideoSourceConfiguration"
+                    else "Configurations")
+        return _soap_wrap(f"""<trt:{resp_tag}>
+  <trt:{item_tag} token="VSC_1">
+    <tt:Name>VideoSource_1</tt:Name>
+    <tt:UseCount>1</tt:UseCount>
+    <tt:SourceToken>VST_1</tt:SourceToken>
+    <tt:Bounds x="0" y="0" width="1920" height="1080"/>
+  </trt:{item_tag}>
+</trt:{resp_tag}>""")
+
+    if action in ("GetVideoEncoderConfigurations", "GetVideoEncoderConfiguration"):
+        return _soap_wrap("""<trt:GetVideoEncoderConfigurationsResponse>
+  <trt:Configurations token="VEC_1">
+    <tt:Name>H264-1080p</tt:Name>
+    <tt:UseCount>1</tt:UseCount>
+    <tt:Encoding>H264</tt:Encoding>
+    <tt:Resolution>
+      <tt:Width>1920</tt:Width>
+      <tt:Height>1080</tt:Height>
+    </tt:Resolution>
+    <tt:Quality>80</tt:Quality>
+    <tt:RateControl>
+      <tt:FrameRateLimit>25</tt:FrameRateLimit>
+      <tt:EncodingInterval>1</tt:EncodingInterval>
+      <tt:BitrateLimit>4000</tt:BitrateLimit>
+    </tt:RateControl>
+    <tt:H264>
+      <tt:GovLength>50</tt:GovLength>
+      <tt:H264Profile>High</tt:H264Profile>
+    </tt:H264>
+    <tt:Multicast>
+      <tt:Address>
+        <tt:Type>IPv4</tt:Type>
+        <tt:IPv4Address>0.0.0.0</tt:IPv4Address>
+      </tt:Address>
+      <tt:Port>0</tt:Port>
+      <tt:TTL>0</tt:TTL>
+      <tt:AutoStart>false</tt:AutoStart>
+    </tt:Multicast>
+    <tt:SessionTimeout>PT60S</tt:SessionTimeout>
+  </trt:Configurations>
+</trt:GetVideoEncoderConfigurationsResponse>""")
+
+    if action in ("GetVideoEncoderConfigurationOptions",
+                  "GetCompatibleVideoEncoderConfigurationOptions"):
+        return _soap_wrap("""<trt:GetVideoEncoderConfigurationOptionsResponse>
+  <trt:Options>
+    <tt:QualityRange>
+      <tt:Min>1</tt:Min>
+      <tt:Max>100</tt:Max>
+    </tt:QualityRange>
+    <tt:H264>
+      <tt:ResolutionsAvailable>
+        <tt:Width>1920</tt:Width>
+        <tt:Height>1080</tt:Height>
+      </tt:ResolutionsAvailable>
+      <tt:ResolutionsAvailable>
+        <tt:Width>1280</tt:Width>
+        <tt:Height>720</tt:Height>
+      </tt:ResolutionsAvailable>
+      <tt:GovLengthRange>
+        <tt:Min>1</tt:Min>
+        <tt:Max>300</tt:Max>
+      </tt:GovLengthRange>
+      <tt:FrameRateRange>
+        <tt:Min>1</tt:Min>
+        <tt:Max>30</tt:Max>
+      </tt:FrameRateRange>
+      <tt:EncodingIntervalRange>
+        <tt:Min>1</tt:Min>
+        <tt:Max>10</tt:Max>
+      </tt:EncodingIntervalRange>
+      <tt:H264ProfilesSupported>Baseline</tt:H264ProfilesSupported>
+      <tt:H264ProfilesSupported>Main</tt:H264ProfilesSupported>
+      <tt:H264ProfilesSupported>High</tt:H264ProfilesSupported>
+    </tt:H264>
+    <tt:Extension/>
+  </trt:Options>
+</trt:GetVideoEncoderConfigurationOptionsResponse>""")
+
+    if action == "GetCompatibleVideoEncoderConfigurations":
+        return _soap_wrap("""<trt:GetCompatibleVideoEncoderConfigurationsResponse>
+  <trt:Configurations token="VEC_1">
+    <tt:Name>H264-1080p</tt:Name>
+    <tt:UseCount>1</tt:UseCount>
+    <tt:Encoding>H264</tt:Encoding>
+    <tt:Resolution>
+      <tt:Width>1920</tt:Width>
+      <tt:Height>1080</tt:Height>
+    </tt:Resolution>
+    <tt:Quality>80</tt:Quality>
+    <tt:RateControl>
+      <tt:FrameRateLimit>25</tt:FrameRateLimit>
+      <tt:EncodingInterval>1</tt:EncodingInterval>
+      <tt:BitrateLimit>4000</tt:BitrateLimit>
+    </tt:RateControl>
+    <tt:H264>
+      <tt:GovLength>50</tt:GovLength>
+      <tt:H264Profile>High</tt:H264Profile>
+    </tt:H264>
+  </trt:Configurations>
+</trt:GetCompatibleVideoEncoderConfigurationsResponse>""")
+
     return _soap_wrap(f"<trt:{action}Response/>")
 
 
@@ -680,9 +1223,9 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
         pan_y  = float(_find_attr(el, "PanTilt", "y") or 0.0)
         zoom_z = float(_find_attr(el, "Zoom",    "x") or 0.0)
         _set_ptz_to_isaac(
-            pan_x  * _PAN_SCALE,
-            pan_y  * _TILT_SCALE,
-            1.0 + zoom_z * _ZOOM_SCALE,
+            _norm_to_pan(pan_x),
+            _norm_to_tilt(pan_y),
+            _norm_to_zoom(zoom_z),
         )
         return _soap_wrap("<tptz:AbsoluteMoveResponse/>")
 
@@ -692,9 +1235,9 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
         zoom_dz = float(_find_attr(el, "Zoom",    "x") or 0.0)
         cur = _get_ptz_from_isaac()
         _set_ptz_to_isaac(
-            cur["pan"]  + pan_dx  * _PAN_SCALE,
-            cur["tilt"] + pan_dy  * _TILT_SCALE,
-            cur["zoom"] + zoom_dz * _ZOOM_SCALE,
+            cur["pan"]  + _clamp(pan_dx, -1.0, 1.0) * _PAN_SCALE,
+            cur["tilt"] + _clamp(pan_dy, -1.0, 1.0) * _TILT_SCALE,
+            cur["zoom"] + _clamp(zoom_dz, -1.0, 1.0) * _ZOOM_SCALE,
         )
         return _soap_wrap("<tptz:RelativeMoveResponse/>")
 
@@ -731,7 +1274,7 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
   <tptz:Preset token="1">
     <tt:Name>正前方</tt:Name>
     <tt:PTZPosition>
-      <tt:PanTilt x="0" y="-0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
+      <tt:PanTilt x="0" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
       <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
     </tt:PTZPosition>
   </tptz:Preset>
@@ -745,14 +1288,14 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
   <tptz:Preset token="3">
     <tt:Name>右侧90°</tt:Name>
     <tt:PTZPosition>
-      <tt:PanTilt x="0.529" y="-0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
+      <tt:PanTilt x="0.529" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
       <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
     </tt:PTZPosition>
   </tptz:Preset>
   <tptz:Preset token="4">
     <tt:Name>左侧90°</tt:Name>
     <tt:PTZPosition>
-      <tt:PanTilt x="-0.529" y="-0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
+      <tt:PanTilt x="-0.529" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
       <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
     </tt:PTZPosition>
   </tptz:Preset>
@@ -760,9 +1303,9 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
 
     if action == "GetStatus":
         st         = _get_ptz_from_isaac()
-        onvif_pan  = round(st["pan"]  / _PAN_SCALE,  4)
-        onvif_tilt = round(st["tilt"] / _TILT_SCALE, 4)
-        onvif_zoom = round((st["zoom"] - 1.0) / _ZOOM_SCALE, 4)
+        onvif_pan  = round(_pan_to_norm(st["pan"]), 4)
+        onvif_tilt = round(_tilt_to_norm(st["tilt"]), 4)
+        onvif_zoom = round(_zoom_to_norm(st["zoom"]), 4)
         return _soap_wrap(f"""<tptz:GetStatusResponse>
   <tptz:PTZStatus>
     <tt:Position>
@@ -833,6 +1376,93 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
 </tptz:GetConfigurationsResponse>""")
 
     return _soap_wrap(f"<tptz:{action}Response/>")
+
+
+# ── Imaging Service ───────────────────────────────────────────────────
+# NVT 设备的必要服务：ONVIF 客户端通过它确认设备是完整的 NVT 摄像头，
+# 并据此显示 "Live Video" 模块。即使参数是只读存根也必须能正常响应。
+
+def _onvif_imaging(action: str, el: ET.Element | None) -> bytes:
+
+    if action == "GetServiceCapabilities":
+        return _soap_wrap("""<timg:GetServiceCapabilitiesResponse>
+  <timg:Capabilities ImageStabilization="false" Presets="false" AdaptablePreset="false"/>
+</timg:GetServiceCapabilitiesResponse>""")
+
+    if action == "GetImagingSettings":
+        return _soap_wrap("""<timg:GetImagingSettingsResponse>
+  <timg:ImagingSettings>
+    <tt:BacklightCompensation>
+      <tt:Mode>OFF</tt:Mode>
+      <tt:Level>0</tt:Level>
+    </tt:BacklightCompensation>
+    <tt:Brightness>50</tt:Brightness>
+    <tt:ColorSaturation>50</tt:ColorSaturation>
+    <tt:Contrast>50</tt:Contrast>
+    <tt:Exposure>
+      <tt:Mode>AUTO</tt:Mode>
+      <tt:MinExposureTime>1</tt:MinExposureTime>
+      <tt:MaxExposureTime>100000</tt:MaxExposureTime>
+      <tt:MinGain>0</tt:MinGain>
+      <tt:MaxGain>100</tt:MaxGain>
+    </tt:Exposure>
+    <tt:Focus>
+      <tt:AutoFocusMode>AUTO</tt:AutoFocusMode>
+    </tt:Focus>
+    <tt:IrCutFilter>AUTO</tt:IrCutFilter>
+    <tt:Sharpness>50</tt:Sharpness>
+    <tt:WideDynamicRange>
+      <tt:Mode>OFF</tt:Mode>
+      <tt:Level>0</tt:Level>
+    </tt:WideDynamicRange>
+    <tt:WhiteBalance>
+      <tt:Mode>AUTO</tt:Mode>
+    </tt:WhiteBalance>
+  </timg:ImagingSettings>
+</timg:GetImagingSettingsResponse>""")
+
+    if action == "GetOptions":
+        return _soap_wrap("""<timg:GetOptionsResponse>
+  <timg:ImagingOptions>
+    <tt:BacklightCompensation>
+      <tt:Mode>OFF</tt:Mode>
+      <tt:Mode>ON</tt:Mode>
+    </tt:BacklightCompensation>
+    <tt:Brightness>
+      <tt:Min>0</tt:Min>
+      <tt:Max>100</tt:Max>
+    </tt:Brightness>
+    <tt:ColorSaturation>
+      <tt:Min>0</tt:Min>
+      <tt:Max>100</tt:Max>
+    </tt:ColorSaturation>
+    <tt:Contrast>
+      <tt:Min>0</tt:Min>
+      <tt:Max>100</tt:Max>
+    </tt:Contrast>
+    <tt:Sharpness>
+      <tt:Min>0</tt:Min>
+      <tt:Max>100</tt:Max>
+    </tt:Sharpness>
+  </timg:ImagingOptions>
+</timg:GetOptionsResponse>""")
+
+    if action == "GetMoveOptions":
+        return _soap_wrap("""<timg:GetMoveOptionsResponse>
+  <timg:MoveOptions/>
+</timg:GetMoveOptionsResponse>""")
+
+    if action == "GetStatus":
+        return _soap_wrap("""<timg:GetStatusResponse>
+  <timg:Status>
+    <tt:FocusStatus20>
+      <tt:Position>0</tt:Position>
+      <tt:MoveStatus>IDLE</tt:MoveStatus>
+    </tt:FocusStatus20>
+  </timg:Status>
+</timg:GetStatusResponse>""")
+
+    return _soap_wrap(f"<timg:{action}Response/>")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -935,7 +1565,7 @@ class _Handler(BaseHTTPRequestHandler):
         if path in ("/control", "/scene/gondola", "/scene/workers"):
             length = int(self.headers.get("Content-Length", 0))
             body   = self.rfile.read(length)
-            if _isaac_state != "running":
+            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
                 self._json({"ok": False, "error": "Isaac Sim 未就绪"}, 503)
                 return
             self._proxy_post(path, body)
@@ -954,24 +1584,46 @@ class _Handler(BaseHTTPRequestHandler):
             self._onvif_handle("ptz")
             return
 
+        if path == "/onvif/imaging_service":
+            self._onvif_handle("imaging")
+            return
+
         self.send_response(404); self.end_headers()
 
     # ── ONVIF 分发 ───────────────────────────────────────────────────
     def _onvif_handle(self, svc: str) -> None:
         length = int(self.headers.get("Content-Length", 0))
         body   = self.rfile.read(length) if length else b""
+
+        # 检测请求 SOAP 版本，同步到线程局部变量供 _soap_wrap 使用
+        req_ct = self.headers.get("Content-Type", "")
+        _soap_tls.soap12 = "application/soap+xml" in req_ct
+
         action, el = _parse_soap_action(body)
         host = _onvif_host(self)
+
+        # 调试日志：打印每一次 ONVIF 请求，方便排查 NVT 空白问题
+        soap_ver = "SOAP1.2" if _soap_tls.soap12 else "SOAP1.1"
+        client_ip = self.client_address[0]
+        print(f"[ONVIF] {client_ip} → {svc}.{action}  [{soap_ver}]  CT={req_ct[:40] if req_ct else '(none)'}", flush=True)
 
         if svc == "device":
             resp = _onvif_device(action, el, host)
         elif svc == "media":
             resp = _onvif_media(action, el, host)
+        elif svc == "imaging":
+            resp = _onvif_imaging(action, el)
         else:
             resp = _onvif_ptz(action, el)
 
+        # Content-Type 与请求 SOAP 版本保持一致：
+        #   SOAP 1.2 客户端（.NET WCF 等） → application/soap+xml
+        #   SOAP 1.1 客户端（中文 ONVIF 工具等） → text/xml
+        resp_ct = ("application/soap+xml; charset=utf-8"
+                   if _soap_tls.soap12 else "text/xml; charset=utf-8")
+        print(f"[ONVIF] → 响应 {svc}.{action}  {len(resp)}B  CT={resp_ct}", flush=True)
         self.send_response(200)
-        self.send_header("Content-Type",   "application/soap+xml; charset=utf-8")
+        self.send_header("Content-Type",   resp_ct)
         self.send_header("Content-Length", str(len(resp)))
         self._cors()
         self.end_headers()
@@ -1022,6 +1674,10 @@ class _Handler(BaseHTTPRequestHandler):
                 jpeg = _ws_cache.get("jpeg")
 
         if jpeg is None:
+            # 回退到离线占位图，确保 ONVIF 客户端的 NVT 快照接口永远返回 200
+            # 而不是 503（503 会导致部分 VMS 判定设备不可用并隐藏直播模块）
+            jpeg = _OFFLINE_JPEG
+        if not jpeg:
             try:
                 self.send_response(503)
                 self.send_header("Content-Type", "text/plain")
@@ -1159,22 +1815,44 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 # ── 主函数 ───────────────────────────────────────────────────────────
+def _sync_isaac_state_on_startup() -> None:
+    """Launcher 启动时探测 Isaac Sim 是否已在运行，同步内部状态。"""
+    global _isaac_state, _start_time
+    if _port_in_use(ISAAC_PORT):
+        if _is_isaac_http_ready():
+            _isaac_state = "running"
+            _start_time  = time.time()
+            print(f"[PTZ-Launcher] 检测到 Isaac Sim 已运行（端口 {ISAAC_PORT}），状态同步为 running")
+        else:
+            # 端口占用但 HTTP 还没就绪，标记为 starting
+            _isaac_state = "starting"
+            _start_time  = time.time()
+            print(f"[PTZ-Launcher] 检测到 Isaac Sim 正在启动（端口 {ISAAC_PORT} 占用中）")
+
+
 def main():
     global _WS_FPS
     _WS_FPS = cfg.get("fps", 25)
+
+    # Launcher 重启后同步 Isaac Sim 实际运行状态
+    _sync_isaac_state_on_startup()
 
     # 启动 WebSocket JPEG 帧拉取后台线程
     threading.Thread(target=_ws_frame_fetcher, daemon=True, name="ws-fetcher").start()
     # 启动 WebSocket FLV+H.264 广播器线程
     threading.Thread(target=_flv_broadcaster, daemon=True, name="flv-broadcaster").start()
+    # 启动 WS-Discovery UDP 多播监听线程（局域网 ONVIF 自动发现）
+    threading.Thread(target=_wsd_listener, daemon=True, name="wsd-discovery").start()
 
     srv = ThreadingHTTPServer(("0.0.0.0", LAUNCHER_PORT), _Handler)
+    local_ips = _get_local_ips()
+    lan_ip    = local_ips[0] if local_ips else "localhost"
     print(f"[PTZ-Launcher] ONVIF 仿真服务运行中 → http://localhost:{LAUNCHER_PORT}/")
-    print(f"[PTZ-Launcher] ONVIF 设备服务：http://localhost:{LAUNCHER_PORT}/onvif/device_service")
-    print(f"[PTZ-Launcher] ONVIF 快照端点：http://localhost:{LAUNCHER_PORT}/onvif-snap.jpg")
-    print(f"[PTZ-Launcher] RTSP 视频流：rtsp://localhost:8554/ptz_cam  (VLC / NVR)")
-    print(f"[PTZ-Launcher] HLS  视频流：http://localhost:8888/ptz_cam/index.m3u8  (浏览器 hls.js)")
+    print(f"[PTZ-Launcher] ONVIF 设备服务（局域网）：http://{lan_ip}:{LAUNCHER_PORT}/onvif/device_service")
+    print(f"[PTZ-Launcher] ONVIF 快照端点：http://{lan_ip}:{LAUNCHER_PORT}/onvif-snap.jpg")
+    print(f"[PTZ-Launcher] RTSP 视频流：rtsp://{lan_ip}:{_RTSP_PORT}/ptz_cam  (VLC / NVR)")
     print(f"[PTZ-Launcher] WS-FLV 流：ws://localhost:{LAUNCHER_PORT}/ws-flv  (flv.js / jessibuca)")
+    print(f"[PTZ-Launcher] WS-Discovery：{_WSD_MCAST_ADDR}:{_WSD_PORT}（设备 UUID={_DEVICE_UUID}）")
     print(f"[PTZ-Launcher] Isaac Sim 内部端口：{ISAAC_PORT}（按需启动）")
     print(f"[PTZ-Launcher] 在 Web 界面点击 '启动仿真' 启动 Isaac Sim")
     print(f"[PTZ-Launcher] 按 Ctrl-C 停止")

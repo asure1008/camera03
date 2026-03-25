@@ -91,7 +91,21 @@
 
 ```bash
 cd /home/uniubi/xuanyuan/Camera03
-python3 ptz_launcher.py
+
+# 1) 清理旧进程（避免 8080 / 8081 / 8554 被占用）
+pkill -f 'ptz_launcher.py|ptz_stream.py|mediamtx' || true
+sleep 2
+
+# 2) 启动 Camera03 的 ONVIF / Web 入口
+nohup /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 \
+  /home/uniubi/xuanyuan/Camera03/ptz_launcher.py \
+  --config /home/uniubi/xuanyuan/Camera03/ptz_config.yaml \
+  > /tmp/onvif_debug.log 2>&1 &
+
+# 3) 检查 launcher 是否启动成功
+ss -ltnp | grep 8080
+ps -ef | grep ptz_launcher.py | grep -v grep
+tail -n 50 /tmp/onvif_debug.log
 ```
 
 打开浏览器访问：**http://localhost:8080/**
@@ -100,7 +114,61 @@ python3 ptz_launcher.py
 
 点击右上角 **"⏻ 开始推流"** 按钮。
 
+也可以直接用命令启动：
+
+```bash
+curl -X POST http://127.0.0.1:8080/start
+
+# 检查 Isaac Sim / 推流侧是否已起来
+ss -ltnp | grep -E ':8081|:8554|:8888'
+ps -ef | grep -E 'ptz_stream.py|mediamtx' | grep -v grep
+tail -n 100 /home/uniubi/xuanyuan/Camera03/isaac_stream.log
+```
+
 Isaac Sim 首次冷启动约需 **60~120 秒**，加载完成后 Web UI 自动切换为视频画面。
+
+### 2.1 为 `ws-flv` 启动 HTTPS / WSS 代理
+
+当上层页面是 `https://` 时，浏览器通常不能直接连接 `ws://<host>:8080/ws-flv`。  
+可在服务器上额外启动一个 TLS 代理，将 `https://` / `wss://` 转发到本机 `8080`：
+
+```bash
+cd /home/uniubi/xuanyuan/Camera03
+
+# 1) 生成自签名证书（仅首次需要）
+mkdir -p /home/uniubi/xuanyuan/Camera03/certs
+openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+  -keyout /home/uniubi/xuanyuan/Camera03/certs/camera03.key \
+  -out /home/uniubi/xuanyuan/Camera03/certs/camera03.crt \
+  -subj "/CN=192.168.61.171" \
+  -addext "subjectAltName=IP:192.168.61.171"
+
+# 2) 启动 HTTPS / WSS 代理（8443 -> 8080）
+nohup /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 \
+  /home/uniubi/xuanyuan/Camera03/tls_tcp_proxy.py \
+  --listen-host 0.0.0.0 \
+  --listen-port 8443 \
+  --upstream-host 127.0.0.1 \
+  --upstream-port 8080 \
+  --cert /home/uniubi/xuanyuan/Camera03/certs/camera03.crt \
+  --key /home/uniubi/xuanyuan/Camera03/certs/camera03.key \
+  > /tmp/camera03_tls_proxy.log 2>&1 &
+
+# 3) 检查端口与日志
+ss -ltnp | grep 8443
+tail -n 50 /tmp/camera03_tls_proxy.log
+```
+
+启动后可使用：
+
+```text
+https://192.168.61.171:8443/
+wss://192.168.61.171:8443/ws-flv
+```
+
+说明：
+- 自签名证书默认不会被浏览器信任，首次访问需要手动接受证书风险。
+- 当前用户无 `sudo`，因此默认使用 `8443`，不是 `443`。
 
 ### 3. 停止推流释放 GPU
 
@@ -198,10 +266,10 @@ GET /scene/state
 | ONVIF 参数 | 范围 | Camera03 参数 | 换算 |
 |-----------|------|--------------|------|
 | pan（x） | \[-1, 1\] | pan_deg | `× 170.0` → \[-170°, 170°\] |
-| tilt（y） | \[-1, 1\] | tilt_deg | `× 90.0` → \[-90°, 30°\]（clamp） |
+| tilt（y） | \[-1, 1\] | tilt_deg | `- × 90.0` → \[-90°, 30°\]（clamp；向上更小，向下更大） |
 | zoom（x） | \[0, 1\] | zoom_x | `1.0 + × 31.0` → \[1×, 32×\] |
 
-预置位（GotoPreset token）：`"1"` = 正前方 -45°、`"2"` = 右转 90°、`"3"` = 左转 90°、`"home"` = 默认位。
+预置位（GotoPreset token）：`"1"` = 正前方 -45°、`"2"` = 水平正视、`"3"` = 右转 90°、`"4"` = 左转 90°、`"home"` = 默认位。
 
 ---
 

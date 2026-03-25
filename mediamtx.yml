@@ -7,13 +7,8 @@ logDestinations: [stdout]
 rtsp: true
 rtspAddress: :8554
 
-# HLS 服务（浏览器 hls.js 播放）
-hls: true
-hlsAddress: :8888
-hlsVariant: lowLatency
-hlsSegmentDuration: 1s
-hlsPartDuration: 200ms
-hlsAllowOrigin: '*'
+# HLS 服务已关闭（浏览器统一走 WS-FLV）
+hls: false
 
 # 关闭其他协议
 rtmp: false
