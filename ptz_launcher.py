@@ -24,7 +24,7 @@ PTZ 仿真 ONVIF 服务  ptz_launcher.py
 
 坐标换算：
     pan_deg  = onvif_pan  × 170.0        ONVIF[-1,1] → Isaac[-170°,170°]
-    tilt_deg = clamp(onvif_tilt × 90.0, -90°, 30°)
+    tilt_deg = clamp(-60.0 × onvif_tilt - 30.0, -90°, 30°)
     zoom_x   = 1.0 + onvif_zoom × 31.0  ONVIF[0,1]  → Isaac[1×,32×]
 """
 
@@ -47,6 +47,7 @@ import urllib.error
 import uuid as _uuid_mod
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse
 
 import yaml
 
@@ -66,6 +67,131 @@ PYTHON_SH     = cfg.get("python_sh",
                          "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
 STREAM_SCRIPT = os.path.join(script_dir, "ptz_stream.py")
 ISAAC_LOG     = os.path.join(script_dir, "isaac_stream.log")
+CONFIG_PATH   = args.config
+
+_PRESET_LIMIT = 5
+_DEFAULT_PRESETS = {
+    "1": {"name": "默认位",   "pan": -56.0, "tilt": 9.0,   "zoom": 1.0},
+    "2": {"name": "水平正视", "pan": 0.0,   "tilt": 0.0,   "zoom": 1.0},
+    "3": {"name": "左90°",   "pan": -90.0, "tilt": -45.0, "zoom": 1.0},
+    "4": {"name": "右90°",   "pan": 90.0,  "tilt": -45.0, "zoom": 1.0},
+    "5": {"name": "俯视",    "pan": 0.0,   "tilt": 30.0,  "zoom": 1.0},
+}
+_preset_lock = threading.Lock()
+
+
+def _clamp(v: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, v))
+
+
+def _preset_token_order() -> list[str]:
+    return [str(i) for i in range(1, _PRESET_LIMIT + 1)]
+
+
+def _normalize_preset(token: str, item: dict | None) -> dict | None:
+    if token not in _preset_token_order() or not isinstance(item, dict):
+        return None
+    return {
+        "token": token,
+        "name": str(item.get("name") or f"预置位{token}"),
+        "pan": round(_clamp(float(item.get("pan", 0.0)), -170.0, 170.0), 3),
+        "tilt": round(_clamp(float(item.get("tilt", -45.0)), -90.0, 30.0), 3),
+        "zoom": round(_clamp(float(item.get("zoom", 1.0)), 1.0, 32.0), 3),
+    }
+
+
+def _load_presets_from_cfg() -> dict[str, dict]:
+    raw = cfg.get("presets") or {}
+    presets: dict[str, dict] = {}
+    if isinstance(raw, dict):
+        for token in _preset_token_order():
+            norm = _normalize_preset(token, raw.get(token))
+            if norm is not None:
+                presets[token] = norm
+    if not presets:
+        for token, item in _DEFAULT_PRESETS.items():
+            presets[token] = _normalize_preset(token, item)
+    return presets
+
+
+_presets = _load_presets_from_cfg()
+
+
+def _persist_presets() -> None:
+    serializable = {
+        token: {
+            "name": item["name"],
+            "pan": item["pan"],
+            "tilt": item["tilt"],
+            "zoom": item["zoom"],
+        }
+        for token, item in sorted(_presets.items(), key=lambda pair: int(pair[0]))
+    }
+    cfg["presets"] = serializable
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f, allow_unicode=True, sort_keys=False)
+
+
+def _list_presets() -> list[dict]:
+    with _preset_lock:
+        return [dict(_presets[token]) for token in _preset_token_order() if token in _presets]
+
+
+def _get_preset(token: str) -> dict | None:
+    with _preset_lock:
+        item = _presets.get(token)
+        return dict(item) if item else None
+
+
+def _save_preset(token: str | None, name: str | None, ptz: dict) -> dict:
+    with _preset_lock:
+        use_token = token
+        if use_token is None:
+            for candidate in _preset_token_order():
+                if candidate not in _presets:
+                    use_token = candidate
+                    break
+            if use_token is None:
+                use_token = "1"
+        current = _presets.get(use_token, {})
+        preset = _normalize_preset(use_token, {
+            "name": name or current.get("name") or f"预置位{use_token}",
+            "pan": ptz["pan"],
+            "tilt": ptz["tilt"],
+            "zoom": ptz["zoom"],
+        })
+        _presets[use_token] = preset
+        _persist_presets()
+        return dict(preset)
+
+
+def _delete_preset(token: str) -> bool:
+    with _preset_lock:
+        existed = token in _presets
+        if existed:
+            _presets.pop(token, None)
+            _persist_presets()
+        return existed
+
+
+def _preset_to_onvif_xml(preset: dict) -> str:
+    return f"""  <tptz:Preset token="{preset['token']}">
+    <tt:Name>{preset['name']}</tt:Name>
+    <tt:PTZPosition>
+      <tt:PanTilt x="{round(_pan_to_norm(preset['pan']), 4)}" y="{round(_tilt_to_norm(preset['tilt']), 4)}" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
+      <tt:Zoom x="{round(_zoom_to_norm(preset['zoom']), 4)}" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
+    </tt:PTZPosition>
+  </tptz:Preset>"""
+
+
+def _soap_fault(reason: str, code: str = "ter:InvalidArgVal") -> bytes:
+    return _soap_wrap(f"""<s:Fault>
+  <s:Code>
+    <s:Value>s:Sender</s:Value>
+    <s:Subcode><s:Value>{code}</s:Value></s:Subcode>
+  </s:Code>
+  <s:Reason><s:Text xml:lang="zh-CN">{reason}</s:Text></s:Reason>
+</s:Fault>""")
 
 # ── Isaac Sim 子进程管理 ─────────────────────────────────────────────
 _proc_lock  = threading.Lock()
@@ -125,7 +251,7 @@ def start_isaac() -> dict:
 
         log_file = open(ISAAC_LOG, "w", encoding="utf-8", buffering=1)
         cmd = [
-            PYTHON_SH, STREAM_SCRIPT,
+            PYTHON_SH, "-u", STREAM_SCRIPT,
             "--config", args.config,
             "--ctrl-port", str(ISAAC_PORT),
         ]
@@ -313,11 +439,13 @@ def _pan_to_norm(pan_deg: float) -> float:
 
 
 def _norm_to_tilt(norm: float) -> float:
-    return _clamp(-_clamp(norm, -1.0, 1.0) * _TILT_SCALE, -90.0, 30.0)
+    norm = _clamp(norm, -1.0, 1.0)
+    return _clamp(-60.0 * norm - 30.0, -90.0, 30.0)
 
 
 def _tilt_to_norm(tilt_deg: float) -> float:
-    return -_clamp(tilt_deg, -90.0, 30.0) / _TILT_SCALE
+    tilt_deg = _clamp(tilt_deg, -90.0, 30.0)
+    return _clamp(-(2.0 * (tilt_deg - (-90.0)) / (30.0 - (-90.0)) - 1.0), -1.0, 1.0)
 
 
 def _norm_to_zoom(norm: float) -> float:
@@ -792,7 +920,7 @@ def _get_ptz_from_isaac() -> dict:
         ) as r:
             return json.loads(r.read())
     except Exception:
-        return {"pan": 0.0, "tilt": -45.0, "zoom": 1.0}
+        return {"pan": -56.0, "tilt": 9.0, "zoom": 1.0}
 
 
 def _set_ptz_to_isaac(pan_deg: float, tilt_deg: float, zoom_x: float) -> None:
@@ -1236,7 +1364,7 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
         cur = _get_ptz_from_isaac()
         _set_ptz_to_isaac(
             cur["pan"]  + _clamp(pan_dx, -1.0, 1.0) * _PAN_SCALE,
-            cur["tilt"] + _clamp(pan_dy, -1.0, 1.0) * _TILT_SCALE,
+            cur["tilt"] - _clamp(pan_dy, -1.0, 1.0) * 60.0,
             cur["zoom"] + _clamp(zoom_dz, -1.0, 1.0) * _ZOOM_SCALE,
         )
         return _soap_wrap("<tptz:RelativeMoveResponse/>")
@@ -1259,46 +1387,34 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
 
     if action == "GotoPreset":
         token = _find_text(el, "PresetToken") or "1"
-        presets = {
-            "1": (0.0,    -45.0, 1.0),
-            "2": (0.0,      0.0, 1.0),
-            "3": (90.0,  -45.0, 1.0),
-            "4": (-90.0, -45.0, 1.0),
-        }
-        if token in presets:
-            _set_ptz_to_isaac(*presets[token])
+        preset = _get_preset(token)
+        if preset is None:
+            return _soap_fault(f"PresetToken 不存在: {token}")
+        _set_ptz_to_isaac(preset["pan"], preset["tilt"], preset["zoom"])
         return _soap_wrap("<tptz:GotoPresetResponse/>")
 
+    if action == "SetPreset":
+        token = _find_text(el, "PresetToken")
+        name = _find_text(el, "PresetName")
+        if token and token not in _preset_token_order():
+            return _soap_fault(f"PresetToken 超出范围: {token}")
+        preset = _save_preset(token, name, _get_ptz_from_isaac())
+        return _soap_wrap(f"""<tptz:SetPresetResponse>
+  <tptz:PresetToken>{preset["token"]}</tptz:PresetToken>
+</tptz:SetPresetResponse>""")
+
+    if action == "RemovePreset":
+        token = _find_text(el, "PresetToken") or ""
+        if token not in _preset_token_order():
+            return _soap_fault(f"PresetToken 超出范围: {token}")
+        if not _delete_preset(token):
+            return _soap_fault(f"PresetToken 不存在: {token}")
+        return _soap_wrap("<tptz:RemovePresetResponse/>")
+
     if action == "GetPresets":
+        preset_xml = "\n".join(_preset_to_onvif_xml(item) for item in _list_presets())
         return _soap_wrap(f"""<tptz:GetPresetsResponse>
-  <tptz:Preset token="1">
-    <tt:Name>正前方</tt:Name>
-    <tt:PTZPosition>
-      <tt:PanTilt x="0" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
-      <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
-    </tt:PTZPosition>
-  </tptz:Preset>
-  <tptz:Preset token="2">
-    <tt:Name>水平正视</tt:Name>
-    <tt:PTZPosition>
-      <tt:PanTilt x="0" y="0" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
-      <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
-    </tt:PTZPosition>
-  </tptz:Preset>
-  <tptz:Preset token="3">
-    <tt:Name>右侧90°</tt:Name>
-    <tt:PTZPosition>
-      <tt:PanTilt x="0.529" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
-      <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
-    </tt:PTZPosition>
-  </tptz:Preset>
-  <tptz:Preset token="4">
-    <tt:Name>左侧90°</tt:Name>
-    <tt:PTZPosition>
-      <tt:PanTilt x="-0.529" y="0.5" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
-      <tt:Zoom x="0" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
-    </tt:PTZPosition>
-  </tptz:Preset>
+{preset_xml}
 </tptz:GetPresetsResponse>""")
 
     if action == "GetStatus":
@@ -1341,7 +1457,7 @@ def _onvif_ptz(action: str, el: ET.Element | None) -> bytes:
         <tt:YRange><tt:Min>-1</tt:Min><tt:Max>1</tt:Max></tt:YRange>
       </tt:RelativePanTiltTranslationSpace>
     </tt:SupportedPTZSpaces>
-    <tt:MaximumNumberOfPresets>16</tt:MaximumNumberOfPresets>
+    <tt:MaximumNumberOfPresets>5</tt:MaximumNumberOfPresets>
     <tt:HomeSupported>false</tt:HomeSupported>
   </tptz:PTZNode>
 </tptz:GetNodesResponse>""")
@@ -1476,7 +1592,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin",  "*")
-        self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type,SOAPAction")
 
     def _json(self, data: dict, code: int = 200):
@@ -1510,6 +1626,10 @@ class _Handler(BaseHTTPRequestHandler):
 
         if path == "/status":
             self._json(get_status())
+            return
+
+        if path == "/presets":
+            self._json({"items": _list_presets(), "capacity": _PRESET_LIMIT})
             return
 
         if path == "/log":
@@ -1561,6 +1681,10 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(stop_isaac())
             return
 
+        if path.startswith("/presets/"):
+            self._preset_post(path)
+            return
+
         # 透明代理 POST 到 Isaac Sim 的 /control 和 /scene/* 端点（Web UI 用）
         if path in ("/control", "/scene/gondola", "/scene/workers"):
             length = int(self.headers.get("Content-Length", 0))
@@ -1588,6 +1712,18 @@ class _Handler(BaseHTTPRequestHandler):
             self._onvif_handle("imaging")
             return
 
+        self.send_response(404); self.end_headers()
+
+    def do_DELETE(self):
+        path = self.path.split("?")[0]
+        if path.startswith("/presets/"):
+            parts = [p for p in path.split("/") if p]
+            if len(parts) == 2 and parts[0] == "presets" and parts[1] in _preset_token_order():
+                if not _delete_preset(parts[1]):
+                    self._json({"ok": False, "error": "预置位不存在"}, 404)
+                    return
+                self._json({"ok": True, "token": parts[1], "items": _list_presets()})
+                return
         self.send_response(404); self.end_headers()
 
     # ── ONVIF 分发 ───────────────────────────────────────────────────
@@ -1630,6 +1766,48 @@ class _Handler(BaseHTTPRequestHandler):
         self.wfile.write(resp)
 
     # ── 代理工具 ─────────────────────────────────────────────────────
+    def _preset_post(self, path: str) -> None:
+        parts = [p for p in path.split("/") if p]
+        if len(parts) < 2 or parts[0] != "presets":
+            self.send_response(404); self.end_headers(); return
+        token = parts[1]
+        if token not in _preset_token_order():
+            self._json({"ok": False, "error": "token 超出范围"}, 400)
+            return
+
+        if len(parts) == 3 and parts[2] == "goto":
+            preset = _get_preset(token)
+            if preset is None:
+                self._json({"ok": False, "error": "预置位不存在"}, 404)
+                return
+            _set_ptz_to_isaac(preset["pan"], preset["tilt"], preset["zoom"])
+            self._json({"ok": True, "item": preset})
+            return
+
+        if len(parts) != 2:
+            self.send_response(404); self.end_headers(); return
+
+        length = int(self.headers.get("Content-Length", 0))
+        req = {}
+        if length:
+            try:
+                req = json.loads(self.rfile.read(length))
+            except Exception:
+                self._json({"ok": False, "error": "JSON 无效"}, 400)
+                return
+        ptz = req.get("ptz") if isinstance(req.get("ptz"), dict) else _get_ptz_from_isaac()
+        try:
+            ptz_norm = {
+                "pan": float(ptz["pan"]),
+                "tilt": float(ptz["tilt"]),
+                "zoom": float(ptz["zoom"]),
+            }
+        except Exception:
+            self._json({"ok": False, "error": "ptz 参数无效"}, 400)
+            return
+        preset = _save_preset(token, req.get("name"), ptz_norm)
+        self._json({"ok": True, "item": preset, "items": _list_presets()})
+
     def _proxy_post(self, path: str, body: bytes) -> None:
         try:
             req = urllib.request.Request(
@@ -1837,10 +2015,15 @@ def main():
     # Launcher 重启后同步 Isaac Sim 实际运行状态
     _sync_isaac_state_on_startup()
 
-    # 启动 WebSocket JPEG 帧拉取后台线程
-    threading.Thread(target=_ws_frame_fetcher, daemon=True, name="ws-fetcher").start()
-    # 启动 WebSocket FLV+H.264 广播器线程
-    threading.Thread(target=_flv_broadcaster, daemon=True, name="flv-broadcaster").start()
+    # preview_enabled=false 时关闭预览线程，减少不必要的轮询与 GIL 竞争
+    _preview_enabled = cfg.get("preview_enabled", True)
+    if _preview_enabled:
+        # 启动 WebSocket JPEG 帧拉取后台线程
+        threading.Thread(target=_ws_frame_fetcher, daemon=True, name="ws-fetcher").start()
+        # 启动 WebSocket FLV+H.264 广播器线程
+        threading.Thread(target=_flv_broadcaster, daemon=True, name="flv-broadcaster").start()
+    else:
+        print("[PTZ-Launcher] preview_enabled=false，ws-fetcher 和 flv-broadcaster 已禁用")
     # 启动 WS-Discovery UDP 多播监听线程（局域网 ONVIF 自动发现）
     threading.Thread(target=_wsd_listener, daemon=True, name="wsd-discovery").start()
 

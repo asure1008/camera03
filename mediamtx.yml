@@ -15,6 +15,9 @@ rtmp: false
 webrtc: false
 srt: false
 
+# 增大读缓冲，减少帧率不稳时的服务端丢包
+readBufferCount: 1024
+
 # 明确允许推流路径（不设认证）
 paths:
   ptz_cam:

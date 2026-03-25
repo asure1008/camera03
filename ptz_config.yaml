@@ -23,14 +23,16 @@ camera_prim: /World/CameraRig/CamTilt/Camera
 # 输出 RTSP 流地址
 rtsp_url: rtsp://localhost:8554/ptz_cam
 
-# 视频分辨率 [宽, 高]，建议与 PTZ_SecurityDome.usda 中 RenderProduct 分辨率一致
-resolution: [1280, 720]
+# 视频分辨率 [宽, 高]
+# 性能优先档：960x540；质量档：1280x720；高质量：1920x1080
+resolution: [960, 540]
 
 # 输出帧率（fps）
-fps: 15
+# 性能优先先用 10，稳定后可逐步回升到 15/25
+fps: 10
 
 # ffmpeg 视频码率
-bitrate: "2M"
+bitrate: "1M"
 
 # 仿真步进频率（Hz），通常保持默认值
 # skip_frames = round(sim_hz / fps)，仿真比流帧率快时自动跳帧
@@ -40,9 +42,33 @@ sim_hz: 60
 # 关闭后无需 ffmpeg 和 MediaMTX，启动更快，延迟更低
 rtsp_enabled: true
 
+# 预览链开关
+# false = 关闭 MJPEG 编码、ws-flv 广播、ws-fetcher 轮询，仅保留 RTSP + ONVIF/PTZ
+# true  = 同时开启网页预览（ws-flv / MJPEG）和 RTSP，资源占用更高
+preview_enabled: false
+
 # MJPEG 画质（50~95，越高越清晰但带宽越大）
 # 本地网络建议 75~85；局域网可提高到 90
 mjpeg_quality: 80
+
+# 渲染器模式（仅 ptz_stream.py 使用）
+# RaytracedLighting：光线追踪，画质最好，GPU 压力最大
+# 若 RTSP 仍不流畅，可切换到 PathTracing 并降低 spp，或联系 NVIDIA 支持
+renderer: "RaytracedLighting"
+
+# OSD 时间戳叠加（叠加在 ffmpeg 编码阶段，零 Python 开销）
+# enabled: 是否显示时间戳
+# fmt:     时间格式，支持 strftime 格式字符串
+# x/y:     文字位置（像素，支持表达式：W=视频宽，H=视频高）
+# size:    字体大小（像素）
+# font:    字体文件路径（需系统存在该字体）
+osd_time:
+  enabled: true
+  fmt: "%Y-%m-%d %H:%M:%S"
+  x: 10
+  y: 10
+  size: 28
+  font: "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 # 1× 广角基准焦距（mm），与场景中 Camera 的 focalLength 一致
 # 32× 变焦时焦距 = focal_length_1x * 32
@@ -58,3 +84,31 @@ mediamtx:
   auto_download: true
   # GitHub Release 版本标签
   version: "v1.17.0"
+
+# PTZ 预置位（固定 1~5 槽位，launcher 保存后会回写本文件）
+presets:
+  "1":
+    name: 默认位
+    pan: -56.0
+    tilt: 9.0
+    zoom: 1.0
+  "2":
+    name: 水平正视
+    pan: 0.0
+    tilt: 0.0
+    zoom: 1.0
+  "3":
+    name: 左90°
+    pan: -90.0
+    tilt: -45.0
+    zoom: 1.0
+  "4":
+    name: 右90°
+    pan: 90.0
+    tilt: -45.0
+    zoom: 1.0
+  "5":
+    name: 俯视
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.0

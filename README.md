@@ -194,7 +194,7 @@ ffplay rtsp://localhost:8554/ptz_cam -rtsp_transport tcp
 |------|------|------|
 | 2D 摇杆 | 同时控制水平角（Pan）和俯仰角（Tilt） | Pan: -170°~+170°，Tilt: -90°~+30° |
 | 变焦滑条 | 光学变焦倍数 | 1× ~ 32× |
-| 预设按钮 | 快捷跳转到预设角度 | — |
+| 预置位面板 | 调用 / 保存 / 删除 1~5 槽位 | 5 个固定槽位 |
 | 键盘 | ← → 调 Pan，↑ ↓ 调 Tilt，+/- 调 Zoom | — |
 
 ### 场景控制（吊篮 + 工人）
@@ -258,18 +258,23 @@ GET /scene/state
 |------|------|------|
 | POST | `/onvif/device_service` | ONVIF 设备服务（GetCapabilities / GetSystemDateAndTime / GetServices） |
 | POST | `/onvif/media_service` | ONVIF 媒体服务（GetProfiles / GetSnapshotUri / GetServiceCapabilities） |
-| POST | `/onvif/ptz_service` | ONVIF PTZ 控制服务（AbsoluteMove / RelativeMove / GotoPreset / GetStatus / GetNodes / GetConfigurations） |
+| POST | `/onvif/ptz_service` | ONVIF PTZ 控制服务（AbsoluteMove / RelativeMove / SetPreset / GetPresets / GotoPreset / RemovePreset / GetStatus / GetNodes / GetConfigurations） |
 | GET | `/onvif-snap.jpg` | 单帧快照（ONVIF GetSnapshotUri 返回的 URL，代理到 Isaac Sim 内部快照） |
+| GET | `/presets` | 返回当前 1~5 预置位槽位 |
+| POST | `/presets/{token}` | 保存当前或指定 PTZ 到槽位 |
+| POST | `/presets/{token}/goto` | 调用槽位 |
+| DELETE | `/presets/{token}` | 删除槽位 |
 
 坐标单位转换（ONVIF 归一化 → Camera03）：
 
 | ONVIF 参数 | 范围 | Camera03 参数 | 换算 |
 |-----------|------|--------------|------|
 | pan（x） | \[-1, 1\] | pan_deg | `× 170.0` → \[-170°, 170°\] |
-| tilt（y） | \[-1, 1\] | tilt_deg | `- × 90.0` → \[-90°, 30°\]（clamp；向上更小，向下更大） |
+| tilt（y） | \[-1, 1\] | tilt_deg | `-60.0 × norm - 30.0` → \[-90°, 30°\]（与 Java 仿射公式一致） |
 | zoom（x） | \[0, 1\] | zoom_x | `1.0 + × 31.0` → \[1×, 32×\] |
 
-预置位（GotoPreset token）：`"1"` = 正前方 -45°、`"2"` = 水平正视、`"3"` = 右转 90°、`"4"` = 左转 90°、`"home"` = 默认位。
+预置位默认槽位：`1`=默认位、`2`=水平正视、`3`=左90°、`4`=右90°、`5`=俯视。  
+预置位保存后会回写 `ptz_config.yaml` 的 `presets` 段，重启后仍保留。
 
 ---
 

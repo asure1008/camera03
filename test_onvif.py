@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 验证脚本：用 python-onvif-zeep 连接 Camera03 的 ONVIF 端口，
-测试 PTZ 控制（AbsoluteMove、RelativeMove、GotoPreset）和 GetSnapshotUri。
+测试 PTZ 控制（AbsoluteMove、RelativeMove、SetPreset、GetPresets、GotoPreset、RemovePreset）和 GetSnapshotUri。
 """
 
 import sys
@@ -95,16 +95,50 @@ except Exception as e:
     print(f"    ✗ RelativeMove 失败: {e}")
     traceback.print_exc()
 
-# ── 6. GotoPreset ───────────────────────────────────────────────────
-print("\n[6] GotoPreset(token='1') …")
+# ── 6. SetPreset / GetPresets / GotoPreset / RemovePreset ───────────
+print("\n[6] SetPreset(token='1', name='测试位1') …")
+try:
+    req = ptz.create_type("SetPreset")
+    req.ProfileToken = profile_token
+    req.PresetToken  = "1"
+    req.PresetName   = "测试位1"
+    resp = ptz.SetPreset(req)
+    print(f"    ✓ SetPreset 返回 OK  token={getattr(resp, 'PresetToken', '1')}")
+except Exception as e:
+    print(f"    ✗ SetPreset 失败: {e}")
+    traceback.print_exc()
+
+print("\n[7] GetPresets …")
+try:
+    resp = ptz.GetPresets({"ProfileToken": profile_token})
+    presets = resp if isinstance(resp, list) else getattr(resp, "Preset", resp)
+    if not isinstance(presets, list):
+        presets = [presets]
+    print(f"    ✓ GetPresets 返回 {len([p for p in presets if p])} 项")
+except Exception as e:
+    print(f"    ✗ GetPresets 失败: {e}")
+    traceback.print_exc()
+
+print("\n[8] GotoPreset(token='1') …")
 try:
     req = ptz.create_type("GotoPreset")
     req.ProfileToken = profile_token
     req.PresetToken  = "1"
     ptz.GotoPreset(req)
-    print("    ✓ GotoPreset 返回 OK  (归位: pan=0°, tilt=-45°, zoom=1x)")
+    print("    ✓ GotoPreset 返回 OK")
 except Exception as e:
     print(f"    ✗ GotoPreset 失败: {e}")
+    traceback.print_exc()
+
+print("\n[9] RemovePreset(token='1') …")
+try:
+    req = ptz.create_type("RemovePreset")
+    req.ProfileToken = profile_token
+    req.PresetToken  = "1"
+    ptz.RemovePreset(req)
+    print("    ✓ RemovePreset 返回 OK")
+except Exception as e:
+    print(f"    ✗ RemovePreset 失败: {e}")
     traceback.print_exc()
 
 print(f"\n{'='*60}")

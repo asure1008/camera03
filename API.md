@@ -62,8 +62,10 @@ curl -X POST http://localhost:8080/stop
 | `RelativeMove` | 相对位移控制 |
 | `ContinuousMove` | 连续运动（单步近似） |
 | `Stop` | 停止运动（无操作，直接返回） |
-| `GotoPreset` | 跳转到预置位（token 1~4） |
-| `GetPresets` | 返回 4 个预置位 |
+| `SetPreset` | 保存当前 PTZ 到预置位（token 1~5） |
+| `GotoPreset` | 跳转到预置位（token 1~5） |
+| `GetPresets` | 返回当前已保存的预置位 |
+| `RemovePreset` | 删除预置位 |
 | `GetStatus` | 返回当前 Pan/Tilt/Zoom（ONVIF 坐标系） |
 | `GetNodes` | 返回 PTZ 节点能力描述 |
 | `GetConfigurations` | 返回 PTZ 配置信息 |
@@ -75,14 +77,14 @@ ONVIF 使用归一化坐标，Isaac Sim 使用物理单位（度 / 倍率）。
 | 维度 | ONVIF 范围 | Isaac 范围 | 换算公式 |
 |------|-----------|-----------|---------|
 | Pan（水平）  | [-1, 1]  | [-170°, 170°] | `pan_deg = onvif_pan × 170.0` |
-| Tilt（俯仰） | [-1, 1]  | [-90°, +30°]  | `tilt_deg = clamp(-onvif_tilt × 90.0, -90, 30)` |
+| Tilt（俯仰） | [-1, 1]  | [-90°, +30°]  | `tilt_deg = clamp(-60.0 × onvif_tilt - 30.0, -90, 30)` |
 | Zoom（变焦） | [0, 1]   | [1×, 32×]     | `zoom_x = 1.0 + onvif_zoom × 31.0` |
 
 反向换算（GetStatus 输出）：
 
 ```
 onvif_pan  = pan_deg  / 170.0
-onvif_tilt = -tilt_deg / 90.0
+onvif_tilt = -(2.0 * (tilt_deg - (-90.0)) / (30.0 - (-90.0)) - 1.0)
 onvif_zoom = (zoom_x - 1.0) / 31.0
 ```
 
@@ -90,10 +92,13 @@ onvif_zoom = (zoom_x - 1.0) / 31.0
 
 | Token | 名称 | Pan | Tilt | Zoom |
 |-------|------|-----|------|------|
-| `1` | 正前方   | 0°    | -45° | 1× |
+| `1` | 默认位   | -56°  | 9°   | 1× |
 | `2` | 水平正视 | 0°    |   0° | 1× |
-| `3` | 右侧90°  | +90°  | -45° | 1× |
-| `4` | 左侧90°  | -90°  | -45° | 1× |
+| `3` | 左90°    | -90°  | -45° | 1× |
+| `4` | 右90°    | +90°  | -45° | 1× |
+| `5` | 俯视     | 0°    |  30° | 1× |
+
+预置位持久化在 `ptz_config.yaml` 的 `presets` 段；Web 保存与 ONVIF `SetPreset` 使用同一份数据。
 
 ### 3.7 ONVIF 客户端连接示例
 
@@ -156,7 +161,7 @@ Web UI 功能：
   "isaac_state": "running",
   "isaac_port": 8081,
   "uptime_s": 120,
-  "ptz": { "pan": 0.0, "tilt": -45.0, "zoom": 1.0 }
+  "ptz": { "pan": -56.0, "tilt": 9.0, "zoom": 1.0 }
 }
 ```
 

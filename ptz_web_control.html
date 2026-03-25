@@ -483,7 +483,36 @@
   /* ─── Presets ──────────────────────────────────────────── */
   .preset-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .preset-card {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    display: grid;
+    gap: 6px;
+  }
+  .preset-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .preset-name {
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .preset-meta {
+    font-size: 0.66rem;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+  }
+  .preset-actions {
+    display: grid;
+    grid-template-columns: 1.2fr .8fr .8fr;
     gap: 5px;
   }
   .pbtn {
@@ -500,7 +529,10 @@
     overflow: hidden;
   }
   .pbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--glow); }
-  .pbtn.home { border-color: var(--accent2); color: var(--accent2); }
+  .pbtn.goto { border-color: var(--accent2); color: var(--accent2); }
+  .pbtn.save { border-color: var(--accent); color: var(--accent); }
+  .pbtn.del  { border-color: #aa5566; color: #ff8ea1; }
+  .preset-empty { color: var(--text3); font-size: 0.68rem; }
 
   /* ─── Info table ───────────────────────────────────────── */
   .info-table {
@@ -702,7 +734,7 @@
             <button class="nbtn" onclick="nudge('pan', 10)">Pan+10° ▶</button>
             <button class="nbtn" onclick="nudge('tilt',-10)">▲ Tilt-10°</button>
             <button class="nbtn" onclick="nudge('tilt', 10)">▼ Tilt+10°</button>
-            <button class="reset-btn" onclick="resetPT()">↺ 归中 (Pan=0, Tilt=-45°)</button>
+            <button class="reset-btn" onclick="resetPT()">↺ 默认位 (Pan=-56, Tilt=9°)</button>
           </div>
         </div>
       </div>
@@ -728,18 +760,8 @@
 
     <!-- Presets -->
     <div class="card">
-      <div class="card-title">快捷预设</div>
-      <div class="preset-grid">
-        <button class="pbtn home" onclick="go(0,-45,1)">🏠 默认</button>
-        <button class="pbtn" onclick="go(0,0,1)">↔ 水平</button>
-        <button class="pbtn" onclick="go(0,30,1)">⬇ 俯视</button>
-        <button class="pbtn" onclick="go(-90,-45,1)">◀ 左90°</button>
-        <button class="pbtn" onclick="go(90,-45,1)">▶ 右90°</button>
-        <button class="pbtn" onclick="go(170,-30,4)">↩ 后向</button>
-        <button class="pbtn" onclick="go(0,-45,8)">🔍 8×</button>
-        <button class="pbtn" onclick="go(0,-45,16)">🔍 16×</button>
-        <button class="pbtn" onclick="go(0,-45,32)">🔍 32×</button>
-      </div>
+      <div class="card-title">预置位（1~5）</div>
+      <div class="preset-grid" id="preset-grid"></div>
     </div>
 
     <!-- Stream info -->
@@ -842,8 +864,9 @@ const FOCAL_1X = 18.14756;
 let isaacState = 'stopped';
 
 // ── PTZ State ─────────────────────────────────────────────
-const state = { pan: 0, tilt: -45, zoom: 1 };
+const state = { pan: -56, tilt: 9, zoom: 1 };
 const LIMITS = { pan: [-170, 170], tilt: [-90, 30], zoom: [1, 32] };
+const presetStore = new Map();
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
@@ -956,6 +979,100 @@ function updateAll() {
   document.getElementById('hud-fl').textContent = `FL: ${fl}mm`;
 }
 
+function presetLabel(token) {
+  return `预置位${token}`;
+}
+
+function renderPresets() {
+  const root = document.getElementById('preset-grid');
+  root.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const token = String(i);
+    const item = presetStore.get(token);
+    const card = document.createElement('div');
+    card.className = 'preset-card';
+    card.innerHTML = `
+      <div class="preset-head">
+        <div class="preset-name">${item?.name || presetLabel(token)}</div>
+        <div class="preset-meta">#${token}</div>
+      </div>
+      <div class="preset-meta">${item
+        ? `P ${item.pan.toFixed(1)}° | T ${item.tilt.toFixed(1)}° | Z ${item.zoom.toFixed(1)}×`
+        : '<span class="preset-empty">空槽位</span>'}
+      </div>
+      <div class="preset-actions">
+        <button class="pbtn goto" ${item ? '' : 'disabled'} onclick="gotoPreset('${token}')">调用</button>
+        <button class="pbtn save" onclick="savePreset('${token}')">保存</button>
+        <button class="pbtn del" ${item ? '' : 'disabled'} onclick="deletePreset('${token}')">删除</button>
+      </div>
+    `;
+    root.appendChild(card);
+  }
+}
+
+async function loadPresets() {
+  try {
+    const r = await fetch(`${API}/presets`, { signal: AbortSignal.timeout(2000) });
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    presetStore.clear();
+    for (const item of (data.items || [])) presetStore.set(String(item.token), item);
+  } catch (_) {
+    presetStore.clear();
+  }
+  renderPresets();
+}
+
+async function savePreset(token) {
+  const current = presetStore.get(token);
+  const name = window.prompt(`保存到预置位 ${token}，请输入名称：`, current?.name || presetLabel(token));
+  if (name === null) return;
+  try {
+    const r = await fetch(`${API}/presets/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, ptz: state }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadPresets();
+    setApiStatus(true);
+  } catch (e) {
+    console.error('[Preset] save failed', e);
+    setApiStatus(false);
+  }
+}
+
+async function gotoPreset(token) {
+  try {
+    const r = await fetch(`${API}/presets/${token}/goto`, { method: 'POST' });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    if (data.item) {
+      state.pan = data.item.pan;
+      state.tilt = data.item.tilt;
+      state.zoom = data.item.zoom;
+      updateAll();
+    }
+    setApiStatus(true);
+  } catch (e) {
+    console.error('[Preset] goto failed', e);
+    setApiStatus(false);
+  }
+}
+
+async function deletePreset(token) {
+  if (!window.confirm(`确认删除预置位 ${token}？`)) return;
+  try {
+    const r = await fetch(`${API}/presets/${token}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error(await r.text());
+    await loadPresets();
+    setApiStatus(true);
+  } catch (e) {
+    console.error('[Preset] delete failed', e);
+    setApiStatus(false);
+  }
+}
+
 // ── API communication ─────────────────────────────────────
 let sendTimer = null;
 
@@ -1041,6 +1158,7 @@ function _applyIsaacState(st) {
       pill.className   = 'pill ok';
       // 同步场景状态（吊篮 + 工人）
       setTimeout(syncSceneState, 500);
+      setTimeout(loadPresets, 200);
       // 状态变为 running 时自动（重）连接视频流
       if (_streamMode !== 'hls') setTimeout(startVideoStream, 500);
       break;
@@ -1095,6 +1213,7 @@ async function pollStatus() {
   } catch { /* ignore */ }
 }
 setInterval(pollStatus, 3000);
+loadPresets();
 
 // ── Utility controls ──────────────────────────────────────
 function nudge(axis, delta) {
@@ -1111,7 +1230,7 @@ function setZoom(z) {
 }
 
 function resetPT() {
-  state.pan = 0; state.tilt = -45;
+  state.pan = -56; state.tilt = 9;
   updateAll();
   sendControl();
 }
@@ -1133,7 +1252,7 @@ document.addEventListener('keydown', e => {
     '+':          () => nudge('zoom',  1),
     '=':          () => nudge('zoom',  1),
     '-':          () => nudge('zoom', -1),
-    'Home':       () => go(0, -45, 1),
+    'Home':       () => go(-56, 9, 1),
   };
   if (map[e.key]) { e.preventDefault(); map[e.key](); }
 });

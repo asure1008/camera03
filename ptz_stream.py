@@ -75,17 +75,22 @@ def _resolve_path(p):
         return os.path.join(script_dir, p)
     return p
 
-scene_path   = _resolve_path(args.scene   or cfg["scene_path"])
-camera_prim  = args.camera  or cfg["camera_prim"]
-rtsp_url     = args.rtsp    or cfg["rtsp_url"]
-fps          = args.fps     or cfg.get("fps", 25)
-resolution   = tuple(cfg.get("resolution", [1920, 1080]))
-bitrate      = cfg.get("bitrate", "4M")
-sim_hz       = cfg.get("sim_hz", 60)
-mediamtx_cfg  = cfg.get("mediamtx", {})
+scene_path      = _resolve_path(args.scene   or cfg["scene_path"])
+camera_prim     = args.camera  or cfg["camera_prim"]
+rtsp_url        = args.rtsp    or cfg["rtsp_url"]
+fps             = args.fps     or cfg.get("fps", 25)
+resolution      = tuple(cfg.get("resolution", [1920, 1080]))
+bitrate         = cfg.get("bitrate", "4M")
+sim_hz          = cfg.get("sim_hz", 60)
+mediamtx_cfg    = cfg.get("mediamtx", {})
 rtsp_enabled    = cfg.get("rtsp_enabled",    True)
 mjpeg_quality   = cfg.get("mjpeg_quality",   80)
 FOCAL_LENGTH_1X = float(cfg.get("focal_length_1x", 18.14756))
+# 新增配置项
+preview_enabled = cfg.get("preview_enabled", True)   # false=关闭 MJPEG/ws-flv，仅 RTSP
+renderer_mode   = cfg.get("renderer", "RaytracedLighting")  # 可切换为更轻量模式
+_osd_cfg        = cfg.get("osd_time", {})
+osd_enabled     = _osd_cfg.get("enabled", False)
 
 W, H = resolution
 skip_frames = max(1, round(sim_hz / fps))
@@ -93,13 +98,15 @@ skip_frames = max(1, round(sim_hz / fps))
 print(f"[PTZ-RTSP] 配置：场景={scene_path}")
 print(f"[PTZ-RTSP]       相机Prim={camera_prim}")
 print(f"[PTZ-RTSP]       RTSP URL={rtsp_url}  分辨率={W}x{H}  fps={fps}")
+print(f"[PTZ-RTSP]       renderer={renderer_mode}  preview_enabled={preview_enabled}")
+print(f"[PTZ-RTSP]       sim_hz={sim_hz}  skip_frames={skip_frames}")
 
 # 启动 SimulationApp（headless 模式）
 from isaacsim import SimulationApp
 
 sim_app = SimulationApp({
     "headless": True,
-    "renderer": "RaytracedLighting",
+    "renderer": renderer_mode,
     "width": W,
     "height": H,
 })
@@ -109,6 +116,7 @@ sim_app = SimulationApp({
 # ============================================================
 import io as _io
 import json
+import queue
 import signal
 import subprocess
 import tarfile
@@ -130,8 +138,8 @@ from isaacsim.core.api import World
 _CTRL_PORT = args.ctrl_port or cfg.get("ctrl_port", 8080)
 
 _ptz_state = {
-    "pan":  0.0,     # -170 ~ +170 度
-    "tilt": -45.0,   # -90 ~ +30 度
+    "pan":  -56.0,   # -170 ~ +170 度
+    "tilt": 9.0,     # -90 ~ +30 度
     "zoom": 1.0,     # 1× ~ 32×
 }
 _ptz_lock    = threading.Lock()
@@ -562,49 +570,139 @@ def _start_mediamtx(mtx_path: str) -> subprocess.Popen:
 
 
 # ============================================================
-# ffmpeg 管道管理
+# ffmpeg 管道管理（NVENC 优先，自动回退 libx264）
 # ============================================================
 
-def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+def _get_ffmpeg_version() -> str:
+    """获取 ffmpeg 版本字符串，失败时返回空字符串。"""
+    try:
+        out = subprocess.check_output(
+            ["ffmpeg", "-version"], stderr=subprocess.STDOUT, timeout=5
+        ).decode(errors="replace")
+        first_line = out.splitlines()[0] if out else ""
+        return first_line
+    except Exception:
+        return ""
+
+
+def _build_osd_filter() -> str | None:
+    """根据配置生成 ffmpeg drawtext 滤镜字符串，不启用时返回 None。
+    使用 expansion=strftime 模式：% 由 ffmpeg 解释为 strftime 指令，
+    冒号需转义为 \\: 以避免被 drawtext 解析为选项分隔符。
     """
-    启动 ffmpeg 进程，通过 stdin 接受 rawvideo RGBA 帧，
-    编码为 H.264 并以 RTSP 推流到 MediaMTX。
-    """
-    cmd = [
+    if not osd_enabled:
+        return None
+    fmt      = _osd_cfg.get("fmt",  "%Y-%m-%d %H:%M:%S")
+    x        = _osd_cfg.get("x",    10)
+    y        = _osd_cfg.get("y",    10)
+    size     = _osd_cfg.get("size", 28)
+    fontfile = _osd_cfg.get("font", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    # expansion=strftime 模式：% 直接作为 strftime 指令；冒号转义为 \:
+    escaped_fmt = fmt.replace(":", "\\:")
+    return (
+        f"drawtext=fontfile={fontfile}"
+        f":text='{escaped_fmt}'"
+        f":expansion=strftime"
+        f":fontcolor=white:fontsize={size}"
+        f":box=1:boxcolor=black@0.5:boxborderw=4"
+        f":x={x}:y={y}"
+    )
+
+
+def _build_nvenc_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 h264_nvenc 低延迟参数列表。"""
+    gop = fps * 2  # GOP = 2 秒
+    osd = _build_osd_filter()
+    # nvenc 需要 yuv420p，OSD 存在时拼接 drawtext，再做 format 转换
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
         "ffmpeg",
         "-loglevel", "warning",
-        # 输入：原始视频（来自 stdin）
         "-f", "rawvideo",
         "-pix_fmt", "rgba",
         "-s", f"{width}x{height}",
         "-r", str(fps),
         "-i", "pipe:0",
-        # 无音频
         "-an",
-        # 编码：H.264，超快预设 + 零延迟调优
+        "-vf", vf,
+        "-c:v", "h264_nvenc",
+        "-preset", "p1",       # 最快预设（ffmpeg 5.x/6.x+）
+        "-tune", "ll",         # low-latency 模式
+        "-rc", "cbr",          # 固定码率，避免 VBR 帧率波动
+        "-bf", "0",            # 禁用 B 帧，降延迟
+        "-g", str(gop),        # GOP 大小
+        "-delay", "0",
+        "-b:v", bitrate,
+        "-f", "rtsp",
+        rtsp_url,
+    ]
+
+
+def _build_x264_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 libx264 低延迟参数列表（NVENC 不可用时的回退方案）。"""
+    osd = _build_osd_filter()
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
+        "ffmpeg",
+        "-loglevel", "warning",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{width}x{height}",
+        "-r", str(fps),
+        "-i", "pipe:0",
+        "-an",
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-tune", "zerolatency",
         "-b:v", bitrate,
-        # 强制转换到 yuv420p（标准 H.264 High Profile，兼容所有播放器）
-        "-vf", "format=yuv420p",
-        # 输出：RTSP（推流默认使用 TCP ANNOUNCE）
+        "-vf", vf,
         "-f", "rtsp",
         rtsp_url,
     ]
-    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-    # 异步打印 ffmpeg 错误输出，不阻塞主线程
-    def _log_stderr():
-        for line in proc.stderr:
-            txt = line.decode(errors="replace").rstrip()
-            if txt:
-                print(f"[ffmpeg] {txt}")
-    threading.Thread(target=_log_stderr, daemon=True).start()
 
+
+def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+    """
+    启动 ffmpeg 进程，通过 stdin 接受 rawvideo RGBA 帧，编码为 H.264 并推流。
+    策略：优先尝试 h264_nvenc；若 2 秒内进程退出说明 NVENC 不可用，自动回退 libx264。
+    bufsize=0：跳过 Python 内部 BufferedWriter 层，大帧写入直通 OS pipe fd。
+    """
+    # 打印 ffmpeg 版本，方便排查参数兼容性
+    ver = _get_ffmpeg_version()
+    print(f"[PTZ-RTSP] {ver or 'ffmpeg 版本未知'}")
+
+    def _launch(cmd: list, label: str) -> subprocess.Popen:
+        import os as _os
+        _env = _os.environ.copy()
+        _env.setdefault("TZ", "Asia/Shanghai")  # OSD strftime 时区，系统未配置时兜底
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                bufsize=0, env=_env)
+        # 异步打印 ffmpeg 错误输出，不阻塞主线程
+        def _log_stderr():
+            for line in proc.stderr:
+                txt = line.decode(errors="replace").rstrip()
+                if txt:
+                    print(f"[ffmpeg/{label}] {txt}")
+        threading.Thread(target=_log_stderr, daemon=True).start()
+        return proc
+
+    # 先试 NVENC
+    nvenc_cmd = _build_nvenc_cmd(rtsp_url, width, height, fps, bitrate)
+    print(f"[PTZ-RTSP] 尝试 h264_nvenc 编码器...")
+    proc = _launch(nvenc_cmd, "nvenc")
+    time.sleep(2.0)
+    if proc.poll() is None:
+        print(f"[PTZ-RTSP] h264_nvenc 编码器可用，已启动（pid={proc.pid}）")
+        return proc
+
+    # NVENC 失败，回退 libx264
+    print("[PTZ-RTSP] h264_nvenc 不可用，回退到 libx264...")
+    x264_cmd = _build_x264_cmd(rtsp_url, width, height, fps, bitrate)
+    proc = _launch(x264_cmd, "x264")
     time.sleep(0.5)
     if proc.poll() is not None:
-        raise RuntimeError("ffmpeg 进程意外退出，请检查 rtsp_url 和 mediamtx 是否正常运行。")
-    print(f"[PTZ-RTSP] ffmpeg 推流进程已启动（pid={proc.pid}）")
+        raise RuntimeError("ffmpeg 进程意外退出（libx264），请检查 rtsp_url 和 mediamtx 是否正常运行。")
+    print(f"[PTZ-RTSP] libx264 编码器已启动（pid={proc.pid}）")
     return proc
 
 
@@ -634,12 +732,15 @@ def _bind_camera(camera_prim_path: str, width: int, height: int):
 
 
 # ============================================================
-# 优雅退出处理
+# 优雅退出 + 帧队列写入线程
 # ============================================================
 
 _running = True
 _ffmpeg_proc = None
 _mediamtx_proc = None
+
+# 帧队列：主线程生产，写入线程消费。maxsize=2 保证实时性，满时丢旧帧。
+_frame_queue: queue.Queue = queue.Queue(maxsize=2)
 
 
 def _shutdown(signum=None, frame=None):
@@ -653,7 +754,13 @@ signal.signal(signal.SIGTERM, _shutdown)
 
 
 def _cleanup():
-    """关闭 ffmpeg 和 mediamtx 子进程。"""
+    """关闭写入线程（通过哨兵），再关闭 ffmpeg 和 mediamtx 子进程。"""
+    # 放 None 哨兵让写入线程退出
+    try:
+        _frame_queue.put_nowait(None)
+    except Exception:
+        pass
+
     if _ffmpeg_proc and _ffmpeg_proc.poll() is None:
         try:
             _ffmpeg_proc.stdin.close()
@@ -675,6 +782,45 @@ def _cleanup():
         print("[PTZ-RTSP] mediamtx 进程已退出。")
 
 
+def _pipe_writer(proc: subprocess.Popen) -> None:
+    """
+    后台写入线程：从 _frame_queue 取帧写入 ffmpeg stdin。
+    与渲染主线程解耦，阻塞在 ffmpeg 消费速度上，不影响 Isaac 渲染循环。
+    None 哨兵表示退出。
+    """
+    t_write_total = 0.0
+    write_count   = 0
+    last_stat_t   = time.monotonic()
+
+    while True:
+        frame = _frame_queue.get()
+        if frame is None:   # 哨兵，退出
+            break
+        if proc.poll() is not None:
+            break
+        t0 = time.monotonic()
+        try:
+            proc.stdin.write(frame)
+            proc.stdin.flush()
+        except (BrokenPipeError, OSError):
+            print("[PTZ-RTSP] ffmpeg 管道已断开（写入线程退出）")
+            break
+        t_write_total += time.monotonic() - t0
+        write_count   += 1
+
+        # 写入线程侧每 5 秒打印一次 push_fps 和平均写入耗时
+        now = time.monotonic()
+        if now - last_stat_t >= 5.0:
+            elapsed  = now - last_stat_t
+            push_fps = write_count / elapsed
+            avg_write_ms = (t_write_total / write_count * 1000) if write_count else 0
+            print(f"[PTZ-RTSP][write] push_fps={push_fps:.1f}  "
+                  f"avg_write={avg_write_ms:.1f}ms")
+            t_write_total = 0.0
+            write_count   = 0
+            last_stat_t   = now
+
+
 # ============================================================
 # 主流程
 # ============================================================
@@ -682,8 +828,11 @@ def _cleanup():
 def main():
     global _ffmpeg_proc, _mediamtx_proc, _jpeg_encode_fn
 
-    # --- 初始化 MJPEG JPEG 编码器 ---
-    _jpeg_encode_fn = _init_jpeg_encoder(mjpeg_quality)
+    # --- 初始化 MJPEG JPEG 编码器（preview_enabled=false 时跳过）---
+    if preview_enabled:
+        _jpeg_encode_fn = _init_jpeg_encoder(mjpeg_quality)
+    else:
+        print("[PTZ-RTSP] preview_enabled=false，MJPEG 编码已禁用")
 
     # --- 启动 PTZ 控制 HTTP API（含 MJPEG 端点）---
     _start_control_server()
@@ -693,6 +842,12 @@ def main():
         mtx_bin = _ensure_mediamtx()
         _mediamtx_proc = _start_mediamtx(mtx_bin)
         _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+        # 启动帧队列写入线程，与渲染主线程解耦
+        _writer = threading.Thread(
+            target=_pipe_writer, args=(_ffmpeg_proc,),
+            daemon=True, name="frame-writer"
+        )
+        _writer.start()
     else:
         print(f"[PTZ-RTSP] RTSP 已禁用，仅 MJPEG 预览")
         print(f"[PTZ-RTSP] 预览地址：http://localhost:{_CTRL_PORT}/stream.mjpeg")
@@ -743,15 +898,31 @@ def main():
 
     print(f"[PTZ-RTSP] 开始推流 → {rtsp_url}")
     print(f"[PTZ-RTSP] 客户端命令：vlc {rtsp_url}  或  ffplay {rtsp_url} -rtsp_transport tcp")
+    print(f"[PTZ-RTSP] preview_enabled={preview_enabled}  renderer={renderer_mode}")
     print("[PTZ-RTSP] 按 Ctrl-C 停止。\n")
 
-    # --- 主仿真 + 推流循环 ---
-    frame_idx = 0
-    last_stat_time = time.time()
-    pushed_frames = 0
+    # ── 分段耗时统计（Baseline 与优化后共用）────────────────────
+    frame_idx        = 0
+    last_stat_time   = time.monotonic()
+
+    # 主线程侧计数器
+    t_step_total     = 0.0   # world.step() 累计耗时
+    t_get_total      = 0.0   # annotator.get_data() 累计耗时
+    t_jpeg_total     = 0.0   # JPEG 编码累计耗时
+    t_tobytes_total  = 0.0   # rgba.tobytes() 累计耗时
+    render_count     = 0     # render=True 帧数
+    capture_count    = 0     # 执行采集的帧数
+    drop_count       = 0     # 队列满导致的丢帧数
 
     while _running and sim_app.is_running():
-        world.step(render=True)
+        # 只在推流帧时渲染，其余帧跳过 GPU 渲染节省资源
+        do_render = (frame_idx % skip_frames == 0)
+
+        t0 = time.monotonic()
+        world.step(render=do_render)
+        t_step_total += time.monotonic() - t0
+        if do_render:
+            render_count += 1
 
         # 应用来自 Web UI 的 PTZ 指令（检测到脏标志时写入 USD Stage）
         if _ptz_dirty.is_set():
@@ -763,12 +934,15 @@ def main():
             _scene_dirty.clear()
             _apply_scene_state(omni.usd.get_context().get_stage())
 
-        # 按 skip_frames 跳帧，使推流帧率 ≈ fps
-        if frame_idx % skip_frames == 0:
+        # 推流帧：采集并输出
+        if do_render:
             # 触发 Replicator 更新 annotator 数据
             rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=False)
 
+            t0 = time.monotonic()
             rgba = annotator.get_data()  # shape (H, W, 4), dtype uint8
+            t_get_total += time.monotonic() - t0
+            capture_count += 1
 
             if rgba is not None and rgba.size > 0:
                 # 验证 shape 与配置分辨率一致，不一致时 resize 避免花屏
@@ -777,39 +951,69 @@ def main():
                         np.resize(rgba, (H, W, rgba.shape[2] if rgba.ndim == 3 else 4))
                     )
 
-                # ① MJPEG 帧缓冲更新（低延迟浏览器预览）
-                if _jpeg_encode_fn is not None:
+                # ① MJPEG 帧缓冲更新（仅 preview_enabled=true 时执行）
+                if preview_enabled and _jpeg_encode_fn is not None:
+                    t0 = time.monotonic()
                     jpg = _jpeg_encode_fn(rgba)
+                    t_jpeg_total += time.monotonic() - t0
                     if jpg:
                         with _mjpeg_lock:
                             _mjpeg["jpeg"]     = jpg
                             _mjpeg["frame_id"] += 1
 
                 # ② RTSP 推流（可选，供 VLC / NVR 外部接入）
+                # 丢旧保新：直接 tobytes()，省去 ascontiguousarray 的冗余拷贝
                 if rtsp_enabled and _ffmpeg_proc is not None \
                         and _ffmpeg_proc.poll() is None:
-                    raw = np.ascontiguousarray(rgba, dtype=np.uint8).tobytes()
-                    try:
-                        _ffmpeg_proc.stdin.write(raw)
-                        _ffmpeg_proc.stdin.flush()
-                        pushed_frames += 1
-                    except BrokenPipeError:
-                        print("[PTZ-RTSP] ffmpeg 管道已断开（RTSP 停止，MJPEG 继续）")
-                        _ffmpeg_proc = None
+                    t0 = time.monotonic()
+                    raw = rgba.tobytes()
+                    t_tobytes_total += time.monotonic() - t0
 
-                # 每 5 秒打印一次统计
-                now = time.time()
-                if now - last_stat_time >= 5.0:
-                    elapsed = now - last_stat_time
-                    actual_fps = pushed_frames / elapsed if rtsp_enabled else \
-                        _mjpeg["frame_id"] / elapsed
-                    print(f"[PTZ-RTSP] 运行中... 帧率={actual_fps:.1f} fps  仿真帧={frame_idx}")
-                    pushed_frames = 0
-                    last_stat_time = now
+                    # 非阻塞放入队列，满时丢旧帧保新帧
+                    try:
+                        _frame_queue.put_nowait(raw)
+                    except queue.Full:
+                        try:
+                            _frame_queue.get_nowait()  # 丢旧帧
+                        except queue.Empty:
+                            pass
+                        try:
+                            _frame_queue.put_nowait(raw)  # 放新帧
+                        except queue.Full:
+                            pass
+                        drop_count += 1
+
+            # 每 5 秒打印一次主线程分段耗时统计
+            now = time.monotonic()
+            if now - last_stat_time >= 5.0:
+                elapsed = now - last_stat_time
+                render_fps = render_count / elapsed
+                avg_step_ms    = (t_step_total  / render_count   * 1000) if render_count   else 0
+                avg_get_ms     = (t_get_total   / capture_count  * 1000) if capture_count  else 0
+                avg_jpeg_ms    = (t_jpeg_total  / capture_count  * 1000) if capture_count  else 0
+                avg_tobytes_ms = (t_tobytes_total / capture_count * 1000) if capture_count else 0
+
+                print(
+                    f"[PTZ-RTSP][main] render_fps={render_fps:.1f}  "
+                    f"step={avg_step_ms:.1f}ms  "
+                    f"get_data={avg_get_ms:.1f}ms  "
+                    f"tobytes={avg_tobytes_ms:.1f}ms  "
+                    f"jpeg={avg_jpeg_ms:.1f}ms  "
+                    f"drop={drop_count}  sim_frame={frame_idx}"
+                )
+                # 重置计数器
+                t_step_total    = 0.0
+                t_get_total     = 0.0
+                t_jpeg_total    = 0.0
+                t_tobytes_total = 0.0
+                render_count    = 0
+                capture_count   = 0
+                drop_count      = 0
+                last_stat_time  = now
 
         frame_idx += 1
 
-    # ffmpeg 管道可能已关闭，不再写入
+    # 主循环退出：发哨兵让写入线程退出，再清理子进程
     _cleanup()
     sim_app.close()
     print("[PTZ-RTSP] 已退出。")
