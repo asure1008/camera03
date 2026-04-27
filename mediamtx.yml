@@ -1,0 +1,24 @@
+# MediaMTX v1.x 配置 - PTZ RTSP + LL-HLS 流输出
+
+logLevel: warn
+logDestinations: [stdout]
+
+# RTSP 服务（ffmpeg 推流端）
+rtsp: true
+rtspAddress: :8554
+
+# HLS 服务已关闭（浏览器统一走 WS-FLV）
+hls: false
+
+# 关闭其他协议
+rtmp: false
+webrtc: false
+srt: false
+
+# 增大读缓冲，减少帧率不稳时的服务端丢包
+readBufferCount: 1024
+
+# 明确允许推流路径（不设认证）
+paths:
+  ptz_cam:
+    source: publisher

@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+venv/
+.env
+.env.*
+
+# 日志与临时
+*.log
+*.tmp
+*.bak
+
+# 大体积二进制（可选：需时再移出忽略）
+*.usdz
+mediamtx
+
+# --- local-only oversized assets (backup push exclusions 2026-04-22) ---
+# Paths below exceed GitHub file limits or are local-only large binaries; files stay on disk.
+/Environments_NVD@10012.zip
+/archive/black_model_source_locate_20260422_034020/usdz_extract/GongRen01.usdc
+/changjing/farm_road_8k.hdr
+/changjing/minedump_flats_8k.hdr
+/changjing/sky_sun.hdr
+/changjing/sunny_rose_garden_8k.hdr
+/_hdr_compare_20260410_020850/from_current/sunny_rose_garden_8k.hdr
+/_hdr_compare_20260410_020850/from_01_1/sunny_rose_garden_8k.hdr
+/textures/8983330_a78a207ba38d6bedb7ca108b828fcf0d.hdr
+/textures/Ground037_4K-PNG_NormalGL.png
+/DiaoLan_ChangJing_2026.03.18_unpacked/SubUSDs/DiaoLan.usd
+/DiaoLan_ChangJing_2026.03.18_unpacked/SubUSDs/Changjing_AlgorithmVerification_2026.03.usd
+/_archive/tmp/.usdz_patch_tmp_check_76116/SubUSDs/Changjing_AlgorithmVerification_2026.03.usd
+/DiaoLan_ChangJing_2026.03.18_unpacked/SubUSDs/textures/8983330_a78a207ba38d6bedb7ca108b828fcf0d.hdr
+
+# Large simulation assets / runtime artifacts (minimal add 2026-04-27)
+*.usd
+*.usda
+*.hdr
+*.exr
+*.mp4
+*.mov
+*.avi
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.pyc
+
+# Images / textures / generated captures
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.tif
+*.tiff
+textures/
+materials/
+changjing/
+dynamic_sky_pkg/
+
+# Local evidence / backups
+archive/
+backup_cursor/
+backup_codex/
+

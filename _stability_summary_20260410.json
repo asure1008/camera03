@@ -1,0 +1,246 @@
+{
+  "start_response": {
+    "ok": true,
+    "ctrl_port": 8081,
+    "port_busy": false,
+    "existing_pid": -1,
+    "pid": 80530,
+    "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+    "action_taken": "spawned"
+  },
+  "metrics": [
+    {
+      "minute": 1,
+      "status": {
+        "isaac_state": "running",
+        "has_ptz": true,
+        "pan": -165.8966094023415,
+        "tilt": -32.481464702471214,
+        "zoom": 1.5,
+        "ffmpeg_alive": true,
+        "mediamtx_started": false,
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+      },
+      "ps": [
+        {
+          "pid": 27162,
+          "nlwp": 25,
+          "rss_kb": 29544,
+          "etime": "55:33",
+          "cmd": "/home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml"
+        },
+        {
+          "pid": 67239,
+          "nlwp": 3,
+          "rss_kb": 46788,
+          "etime": "12:48",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 /home/uniubi/xuanyuan/camera05/camera03/ptz_launcher.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml"
+        },
+        {
+          "pid": 80530,
+          "nlwp": 139,
+          "rss_kb": 19907276,
+          "etime": "01:08",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+        }
+      ],
+      "ports": [
+        "LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:((\"python3\",pid=67239,fd=4))  ",
+        "LISTEN 0      64                         0.0.0.0:8081       0.0.0.0:*    users:((\"python3\",pid=80530,fd=280))",
+        "LISTEN 0      4096                             *:8554             *:*    users:((\"mediamtx\",pid=27162,fd=7))"
+      ]
+    },
+    {
+      "minute": 3,
+      "status": {
+        "isaac_state": "running",
+        "has_ptz": true,
+        "pan": -165.8966094023415,
+        "tilt": -32.481464702471214,
+        "zoom": 1.5,
+        "ffmpeg_alive": true,
+        "mediamtx_started": false,
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+      },
+      "ps": [
+        {
+          "pid": 27162,
+          "nlwp": 25,
+          "rss_kb": 30408,
+          "etime": "57:34",
+          "cmd": "/home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml"
+        },
+        {
+          "pid": 67239,
+          "nlwp": 3,
+          "rss_kb": 55868,
+          "etime": "14:49",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 /home/uniubi/xuanyuan/camera05/camera03/ptz_launcher.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml"
+        },
+        {
+          "pid": 80530,
+          "nlwp": 139,
+          "rss_kb": 19987868,
+          "etime": "03:09",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+        }
+      ],
+      "ports": [
+        "LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:((\"python3\",pid=67239,fd=4))  ",
+        "LISTEN 0      64                         0.0.0.0:8081       0.0.0.0:*    users:((\"python3\",pid=80530,fd=280))",
+        "LISTEN 0      4096                             *:8554             *:*    users:((\"mediamtx\",pid=27162,fd=7))"
+      ]
+    },
+    {
+      "minute": 5,
+      "status": {
+        "isaac_state": "running",
+        "has_ptz": true,
+        "pan": -165.8966094023415,
+        "tilt": -32.481464702471214,
+        "zoom": 1.5,
+        "ffmpeg_alive": true,
+        "mediamtx_started": false,
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+      },
+      "ps": [
+        {
+          "pid": 27162,
+          "nlwp": 25,
+          "rss_kb": 29924,
+          "etime": "59:35",
+          "cmd": "/home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml"
+        },
+        {
+          "pid": 67239,
+          "nlwp": 3,
+          "rss_kb": 55940,
+          "etime": "16:50",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 /home/uniubi/xuanyuan/camera05/camera03/ptz_launcher.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml"
+        },
+        {
+          "pid": 80530,
+          "nlwp": 139,
+          "rss_kb": 19963288,
+          "etime": "05:10",
+          "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+        }
+      ],
+      "ports": [
+        "LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:((\"python3\",pid=67239,fd=4))  ",
+        "LISTEN 0      64                         0.0.0.0:8081       0.0.0.0:*    users:((\"python3\",pid=80530,fd=280))",
+        "LISTEN 0      4096                             *:8554             *:*    users:((\"mediamtx\",pid=27162,fd=7))"
+      ]
+    }
+  ],
+  "load_test": {
+    "before": [
+      {
+        "pid": 27162,
+        "nlwp": 25,
+        "rss_kb": 30788,
+        "etime": "56:33",
+        "cmd": "/home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml"
+      },
+      {
+        "pid": 67239,
+        "nlwp": 3,
+        "rss_kb": 46936,
+        "etime": "13:48",
+        "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 /home/uniubi/xuanyuan/camera05/camera03/ptz_launcher.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml"
+      },
+      {
+        "pid": 80530,
+        "nlwp": 139,
+        "rss_kb": 19911488,
+        "etime": "02:08",
+        "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+      }
+    ],
+    "after_10s": [
+      {
+        "pid": 27162,
+        "nlwp": 25,
+        "rss_kb": 30516,
+        "etime": "56:44",
+        "cmd": "/home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml"
+      },
+      {
+        "pid": 67239,
+        "nlwp": 3,
+        "rss_kb": 54992,
+        "etime": "13:59",
+        "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 /home/uniubi/xuanyuan/camera05/camera03/ptz_launcher.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml"
+      },
+      {
+        "pid": 80530,
+        "nlwp": 139,
+        "rss_kb": 19986212,
+        "etime": "02:19",
+        "cmd": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+      }
+    ],
+    "status_ok": 30,
+    "snap_ok": 1,
+    "snap_sources": [
+      "isaac-snapshot"
+    ],
+    "errors": [
+      {
+        "ok": false,
+        "err": "<HTTPError 503: 'Service Unavailable'>",
+        "dt": 0.015
+      },
+      {
+        "ok": false,
+        "err": "<HTTPError 503: 'Service Unavailable'>",
+        "dt": 0.004
+      },
+      {
+        "ok": false,
+        "err": "<HTTPError 503: 'Service Unavailable'>",
+        "dt": 0.019
+      },
+      {
+        "ok": false,
+        "err": "<HTTPError 503: 'Service Unavailable'>",
+        "dt": 0.019
+      },
+      {
+        "ok": false,
+        "err": "<HTTPError 503: 'Service Unavailable'>",
+        "dt": 0.001
+      }
+    ]
+  },
+  "kill_check": {
+    "target_pid": 80527,
+    "status_after_kill": {
+      "isaac_state": "running",
+      "has_ptz": true,
+      "pan": -165.8966094023415,
+      "tilt": -32.481464702471214,
+      "zoom": 1.5,
+      "ffmpeg_alive": true,
+      "mediamtx_started": false,
+      "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+    },
+    "port_8081_after_kill": true,
+    "updated_in_time": false
+  },
+  "restart_response": {
+    "ok": false,
+    "error": "Isaac Sim 已在运行"
+  },
+  "restart_status": {
+    "isaac_state": "running",
+    "has_ptz": true,
+    "pan": -165.8966094023415,
+    "tilt": -32.481464702471214,
+    "zoom": 1.5,
+    "ffmpeg_alive": true,
+    "mediamtx_started": false,
+    "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+  },
+  "error_matches": []
+}

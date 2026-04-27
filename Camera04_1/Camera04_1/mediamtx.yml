@@ -1,0 +1,23 @@
+# MediaMTX v1.x 配置 - PTZ RTSP 流输出专用
+
+logLevel: warn
+logDestinations: [stdout]
+
+# RTSP 服务（ffmpeg 推流端）
+rtsp: true
+rtspAddress: :8554
+
+# HLS 服务（浏览器 Web 控制台用）
+hls: true
+hlsAddress: :8888
+hlsAllowOrigin: '*'
+
+# 关闭其他协议（避免端口占用）
+rtmp: false
+webrtc: false
+srt: false
+
+# 明确允许推流路径（不设认证）
+paths:
+  ptz_cam:
+    source: publisher

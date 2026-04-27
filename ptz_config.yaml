@@ -1,0 +1,111 @@
+bitrate: 1M
+camera_prim: /World/CameraRig/CamTilt/Camera
+camera_rig_translate_xyz:
+- -48.0
+- 22.0
+- 16.5
+ctrl_port: 8081
+diaolan_camera_sampling_enabled: true
+focal_length_1x: 6
+fps: 10
+hydra_c_branch_geometry_only: false
+hydra_target_material_mode: formal
+initial_pan: 0.0
+initial_tilt: -15.0
+initial_zoom: 1.5
+launcher_port: 8080
+mediamtx:
+  auto_download: true
+  path: ./mediamtx
+  port: 8554
+  version: v1.17.0
+mjpeg_quality: 80
+onvif_rtsp_host: ''
+osd_time:
+  enabled: false
+preview_enabled: false
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+renderer: RTXRealTime
+hdri_fill_exposure_nominal: 1.0
+hdri_whitelist:
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+resolution:
+- 960
+- 540
+rtsp_enabled: true
+rtsp_url: rtsp://localhost:8554/ptz_cam
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+environment_mode: hdri
+dynamic_sky_enabled: false
+dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+dynamic_sky_root_prim: /World/DynamicSkyRoot
+sim_hz: 60
+force_active_diaolan_path: /World/Diaolan/Diaolan
+force_workers_count: 1
+changjing_prim_path: /World/JiKeng_ChangJing01
+lookat_target_prim_path: /World/JiKeng_ChangJing01/Architecture_High
+camera_height_wall_prim_path: /World/JiKeng_ChangJing01/JiKeng_BeiJing/JiKeng_BeiJing/group1/Mesh267/Mesh267
+wall_constraint_prim_path: /World/JiKeng_ChangJing01/JiKeng_BeiJing/JiKeng_BeiJing/group1/Mesh267/Mesh267
+wall_collection_mode: global_wall_candidates
+wall_collection_root_path: /World/JiKeng_ChangJing01
+wall_constraint_xy_margin: 0.005
+wall_constraint_z_margin: 0.05
+camera_orientation_mode: dynamic_lookat
+camera_lookat_target_xyz:
+- -21.285
+- 38.651
+- 18.18
+preset_left_pan_offset_deg: 90.0
+preset_right_pan_offset_deg: -90.0
+preset_overlook_tilt_deg: 30.0
+presets:
+  '1':
+    name: Preset639111737191581468
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '2':
+    name: Front
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '3':
+    name: Right90
+    pan: 90.0
+    tilt: -15.0
+    zoom: 1.5
+  '4':
+    name: Left90
+    pan: -90.0
+    tilt: -15.0
+    zoom: 1.5
+  '5':
+    name: TopDown
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.2
+dynamic_startup_pan_offset_deg: 0.0
+dynamic_startup_tilt_offset_deg: 0.0
+perception_migration:
+  include_projection_in_observation: true
+  min_target_area_ratio: 0.001
+  min_worker_area_ratio: 0.00012
+  occlusion:
+    enabled: false
+random_config:
+  auto_random_on_start: true
+  auto_random_timer_enabled: true
+  random_hdri: true
+capture_source_prefer_viewport_delegate_for_snapshot: false
+
+# RTX Global Volumetric Effects（体积雾）控制：默认关闭，避免影响当前画面
+volumetric:
+  enabled: false
+  densityMult: 1.2
+  maxDistance: 500.0
+  atmosphereHeight: 50.0
+  transmittanceMeasurementDistance: 10000.0
+  fogHeightFallOff: 10.0

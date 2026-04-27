@@ -1,0 +1,77 @@
+launcher_port: 8080
+ctrl_port: 18081
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_6diaolan_ptz.usda
+camera_prim: /World/CameraRig/CamTilt/Camera
+rtsp_url: rtsp://localhost:18554/ptz_cam
+resolution:
+- 960
+- 540
+fps: 10
+bitrate: 1M
+sim_hz: 60
+rtsp_enabled: true
+preview_enabled: false
+mjpeg_quality: 80
+renderer: HydraStorm
+hydra_target_material_mode: none
+hydra_c_branch_geometry_only: false
+osd_time:
+  enabled: true
+  fmt: '%Y-%m-%d %H:%M:%S'
+  x: 10
+  y: 10
+  size: 28
+  font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+focal_length_1x: 6
+camera_rig_translate_xyz:
+- 88.41
+- -79.39
+- 33.94
+diaolan_camera_sampling_enabled: false
+force_active_diaolan_path: /World/DiaoLan_03
+diaolan_camera_sample_box:
+  x_min: 72
+  x_max: 96
+  y_min: -90
+  y_max: -55
+  z_min: 20
+  z_max: 32
+diaolan_ambient_boost_intensity: 0
+initial_pan: 10.0
+initial_tilt: 0.0
+initial_zoom: 1.5
+mediamtx:
+  path: ./mediamtx
+  port: 18554
+  auto_download: true
+  version: v1.17.0
+onvif_rtsp_host: ''
+presets:
+  '1':
+    name: 默认
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '2':
+    name: 水平正视
+    pan: 0.0
+    tilt: -6.0
+    zoom: 1.4
+  '3':
+    name: 左90°
+    pan: -90.0
+    tilt: -6.0
+    zoom: 1.5
+  '4':
+    name: 右90°
+    pan: 90.0
+    tilt: -6.0
+    zoom: 1.5
+  '5':
+    name: 俯视
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.2
+force_gondola_height: 24.98
+force_workers_count: 1

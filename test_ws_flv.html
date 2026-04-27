@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera03 WS-FLV Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button.stop {
+      background: #dc2626;
+    }
+    video {
+      width: 100%;
+      background: black;
+      border-radius: 12px;
+    }
+    pre {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #0b1220;
+      border: 1px solid #374151;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+  <script
+    src="https://cdn.jsdelivr.net/npm/flv.js@1.6.2/dist/flv.min.js"
+    onload="window.__flv_loaded__=true"
+    onerror="window.__flv_load_error__=true"
+  ></script>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Camera03 WS-FLV 测试</h1>
+    <div class="row">
+      <input id="url" value="ws://192.168.61.171:8080/ws-flv" />
+      <button id="play">播放</button>
+      <button id="probe">探测</button>
+      <button id="stop" class="stop">停止</button>
+    </div>
+    <video id="video" controls autoplay muted playsinline></video>
+    <pre id="log"></pre>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    const video = document.getElementById('video');
+    const urlEl = document.getElementById('url');
+    let player = null;
+
+    function log(message) {
+      const line = `[${new Date().toLocaleTimeString('zh-CN', { hour12: false })}] ${message}`;
+      logEl.textContent = line + '\n' + logEl.textContent;
+      console.log(message);
+    }
+
+    function destroyPlayer() {
+      if (!player) return;
+      try {
+        player.pause();
+        player.unload();
+        player.detachMediaElement();
+        player.destroy();
+      } catch (error) {
+        log(`销毁播放器异常: ${error.message}`);
+      }
+      player = null;
+    }
+
+    function play() {
+      destroyPlayer();
+
+      if (!window.flvjs || !flvjs.isSupported()) {
+        log(`flv.js 不可用 loaded=${!!window.__flv_loaded__} load_error=${!!window.__flv_load_error__}`);
+        return;
+      }
+
+      const url = urlEl.value.trim();
+      player = flvjs.createPlayer({
+        type: 'flv',
+        isLive: true,
+        url
+      }, {
+        enableWorker: false,
+        lazyLoad: false,
+        stashInitialSize: 128
+      });
+
+      player.attachMediaElement(video);
+      player.load();
+      player.play().catch(error => {
+        log(`播放失败: ${error.message}`);
+      });
+
+      player.on(flvjs.Events.ERROR, (type, detail, info) => {
+        log(`ERROR type=${type} detail=${detail} info=${JSON.stringify(info)}`);
+      });
+
+      player.on(flvjs.Events.LOADING_COMPLETE, () => {
+        log('流结束');
+      });
+
+      player.on(flvjs.Events.RECOVERED_EARLY_EOF, () => {
+        log('已恢复 Early EOF');
+      });
+
+      video.addEventListener('loadedmetadata', () => {
+        log(`loadedmetadata: ${video.videoWidth}x${video.videoHeight}`);
+      }, { once: true });
+
+      video.addEventListener('playing', () => {
+        log('video playing');
+      });
+
+      video.addEventListener('waiting', () => {
+        log('video waiting');
+      });
+
+      log(`开始播放: ${url}`);
+      if (location.protocol === 'https:' && url.startsWith('ws://')) {
+        log('警告: 当前页面是 https，浏览器通常会拦截 ws://，请改用 wss://');
+      }
+    }
+
+    function probe() {
+      const url = urlEl.value.trim();
+      log(`开始探测: ${url}`);
+      let ws;
+      try {
+        ws = new WebSocket(url);
+      } catch (error) {
+        log(`WebSocket 构造失败: ${error.message}`);
+        return;
+      }
+
+      ws.binaryType = 'arraybuffer';
+
+      const timer = setTimeout(() => {
+        log('探测超时：10 秒内未收到数据');
+        try { ws.close(); } catch {}
+      }, 10000);
+
+      ws.onopen = () => log('WebSocket 已连接');
+      ws.onerror = (error) => log(`WebSocket error: ${error.type || 'unknown'}`);
+      ws.onclose = (event) => log(`WebSocket 关闭 code=${event.code} reason=${event.reason || '-'}`);
+      ws.onmessage = (event) => {
+        clearTimeout(timer);
+        if (event.data instanceof ArrayBuffer) {
+          const bytes = new Uint8Array(event.data.slice(0, 16));
+          const hex = Array.from(bytes).map(v => v.toString(16).padStart(2, '0')).join('');
+          const ascii = Array.from(bytes).map(v => (v >= 32 && v <= 126 ? String.fromCharCode(v) : '.')).join('');
+          log(`收到二进制帧 len=${event.data.byteLength} hex=${hex} ascii=${ascii}`);
+        } else {
+          log(`收到文本帧: ${String(event.data).slice(0, 120)}`);
+        }
+        ws.close();
+      };
+    }
+
+    document.getElementById('play').addEventListener('click', play);
+    document.getElementById('probe').addEventListener('click', probe);
+    document.getElementById('stop').addEventListener('click', () => {
+      destroyPlayer();
+      log('已停止');
+    });
+
+    log(`页面协议: ${location.protocol}`);
+    log(`flv.js loaded=${!!window.__flv_loaded__} load_error=${!!window.__flv_load_error__}`);
+  </script>
+</body>
+</html>
