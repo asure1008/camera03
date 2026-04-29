@@ -1145,11 +1145,6 @@
           <button type="button" class="scene-btn warn" onclick="applySafetyComponent('safety_rope','non_compliant')">非单人挂</button>
         </div>
         <div class="scene-input-row" style="margin-top:6px;flex-wrap:wrap;gap:6px;">
-          <span class="scene-label" style="min-width:52px;">安全锁</span>
-          <button type="button" class="scene-btn" onclick="applySafetyComponent('fallarrestor','compliant')">合规</button>
-          <button type="button" class="scene-btn warn" onclick="applySafetyComponent('fallarrestor','non_compliant')">不合规</button>
-        </div>
-        <div class="scene-input-row" style="margin-top:6px;flex-wrap:wrap;gap:6px;">
           <span class="scene-label" style="min-width:52px;">限位</span>
           <button type="button" class="scene-btn" onclick="applySafetyComponent('limitstop','show')">显示</button>
           <button type="button" class="scene-btn" onclick="applySafetyComponent('limitstop','hide')">隐藏</button>
@@ -1175,7 +1170,6 @@
           <label class="scene-toggle"><span>随机护栏</span><input type="checkbox" id="random-guardrail" onchange="saveRandomConfig()"></label>
           <label class="scene-toggle"><span>随机安全绳</span><input type="checkbox" id="random-safety-rope" onchange="saveRandomConfig()"></label>
           <label class="scene-toggle"><span>随机限位</span><input type="checkbox" id="random-limitstop" onchange="saveRandomConfig()"></label>
-          <label class="scene-toggle"><span>随机安全锁</span><input type="checkbox" id="random-fallarrestor" onchange="saveRandomConfig()"></label>
         </div>
         <div class="scene-input-row" style="margin-top:8px;flex-wrap:wrap;gap:8px;">
           <label class="scene-label" for="guardrail-mode" style="min-width:auto;">护栏随机</label>
@@ -1196,17 +1190,8 @@
             <option value="intact">完整</option>
             <option value="missing">缺失</option>
           </select>
-          <label class="scene-label" for="fallarrestor-mode" style="min-width:auto;">安全锁</label>
-          <select id="fallarrestor-mode" class="scene-num" onchange="saveRandomConfig()">
-            <option value="weighted_random">概率随机</option>
-            <option value="force_compliant">强制合规</option>
-            <option value="force_noncompliant">强制不合规</option>
-            <option value="manual">手动控制</option>
-          </select>
         </div>
         <div class="scene-input-row" style="margin-top:6px;flex-wrap:wrap;gap:6px;">
-          <label class="scene-label" for="fallarrestor-prob" style="min-width:auto;">安全锁不合规概率</label>
-          <input type="number" id="fallarrestor-prob" class="scene-num" min="0" max="1" step="0.1" value="0.5" onchange="saveRandomConfig()">
           <label class="scene-label" for="overexposure-prob" style="min-width:auto;">过曝概率</label>
           <input type="number" id="overexposure-prob" class="scene-num" min="0" max="1" step="0.1" value="0.2" onchange="saveRandomConfig()">
           <label class="scene-label" for="random-overexposure-enable" style="min-width:auto;">启用过曝事件</label>
@@ -1831,13 +1816,11 @@ const DEFAULT_RANDOM_CONFIG = {
   random_guardrail: false,
   random_safety_rope: false,
   random_limitstop: false,
-  random_fallarrestor: false,
   random_overexposure_event: false,
   random_overexposure_event_probability: 0.2,
   guardrail_mode: 'random',
   safety_rope_mode: 'random',
   limitstop_mode: 'random',
-  fallarrestor_mode: 'weighted_random',
   keep_target_visible: true,
   keep_wall_install_constraint: true,
   auto_look_at_target: true,
@@ -2344,12 +2327,9 @@ function getRandomConfigFromDom() {
     random_guardrail: document.getElementById('random-guardrail')?.checked ?? false,
     random_safety_rope: document.getElementById('random-safety-rope')?.checked ?? false,
     random_limitstop: document.getElementById('random-limitstop')?.checked ?? false,
-    random_fallarrestor: document.getElementById('random-fallarrestor')?.checked ?? false,
     guardrail_mode: document.getElementById('guardrail-mode')?.value || 'random',
     safety_rope_mode: document.getElementById('safety-rope-mode')?.value || 'random',
     limitstop_mode: document.getElementById('limitstop-mode')?.value || 'random',
-    fallarrestor_mode: document.getElementById('fallarrestor-mode')?.value || 'weighted_random',
-    fallarrestor_noncompliant_probability: parseFloat(document.getElementById('fallarrestor-prob')?.value || 0.5),
     random_overexposure_event: !!document.getElementById('random-overexposure-enable')?.checked,
     random_overexposure_event_probability: parseFloat(document.getElementById('overexposure-prob')?.value || 0.2),
     hdri_candidates: normalizeHdriCandidates(document.getElementById('hdri-candidates')?.value || ''),
@@ -2413,19 +2393,12 @@ function applyRandomConfig(cfg = {}) {
   if (rs) rs.checked = !!sceneState.random_config.random_safety_rope;
   const rl = document.getElementById('random-limitstop');
   if (rl) rl.checked = !!sceneState.random_config.random_limitstop;
-  const rf = document.getElementById('random-fallarrestor');
-  if (rf) rf.checked = !!sceneState.random_config.random_fallarrestor;
   const gm = document.getElementById('guardrail-mode');
   if (gm) gm.value = sceneState.random_config.guardrail_mode || 'random';
   const sm = document.getElementById('safety-rope-mode');
   if (sm) sm.value = sceneState.random_config.safety_rope_mode || 'random';
   const lm = document.getElementById('limitstop-mode');
   if (lm) lm.value = sceneState.random_config.limitstop_mode || 'random';
-  const fm = document.getElementById('fallarrestor-mode');
-  if (fm) fm.value = sceneState.random_config.fallarrestor_mode || 'weighted_random';
-
-  const fp = document.getElementById('fallarrestor-prob');
-  if (fp) fp.value = sceneState.random_config.fallarrestor_noncompliant_probability ?? 0.5;
   const op = document.getElementById('overexposure-prob');
   if (op) op.value = sceneState.random_config.random_overexposure_event_probability ?? 0.2;
   const oe = document.getElementById('random-overexposure-enable');
@@ -2544,7 +2517,7 @@ function renderRandomResult(result = sceneState.last_random_result, error = '') 
     `保持墙面约束: ${flags.keep_wall_install_constraint ? '是' : '否'}`,
     `自动朝向目标: ${flags.auto_look_at_target ? '是' : '否'}`,
     `随机吊篮/工人/相机/HDRI: ${flags.random_gondola ? '是' : '否'} / ${flags.random_workers ? '是' : '否'} / ${flags.random_camera ? '是' : '否'} / ${flags.random_hdri ? '是' : '否'}`,
-    `随机护栏/安全绳/限位/安全锁: ${flags.random_guardrail ? '是' : '否'} / ${flags.random_safety_rope ? '是' : '否'} / ${flags.random_limitstop ? '是' : '否'} / ${flags.random_fallarrestor ? '是' : '否'}`,
+    `随机护栏/安全绳/限位: ${flags.random_guardrail ? '是' : '否'} / ${flags.random_safety_rope ? '是' : '否'} / ${flags.random_limitstop ? '是' : '否'}`,
   ];
   const scr = result.safety_components_randomize;
   if (scr && Array.isArray(scr.steps) && scr.steps.length) {
@@ -2783,14 +2756,12 @@ async function refreshSafetyComponentStatus() {
     const g = d.guardrail || {};
     const s = d.safety_rope || {};
     const l = d.limitstop || {};
-    const f = d.fallarrestor || {};
     el.textContent = [
       `active: ${d.active_diaolan_path || '-'}`,
       `resolved: ${d.resolved_instance_root || '-'}`,
       `护栏 hazard=${g.has_hazard} (${g.reason || '-'})`,
       `安全绳 hazard=${s.has_hazard} 有效绳=${s.safety_rope_count ?? '-'} workers=${d.workers_count ?? '-'}`,
       `限位 hazard=${l.has_hazard} (${l.reason || '-'})`,
-      `安全锁 hazard=${f.has_hazard} (${f.reason || '-'})`,
     ].join('\n');
   } catch (e) {
     if (el) el.textContent = '读取失败: ' + (e.message || e);
