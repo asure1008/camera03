@@ -14,6 +14,8 @@
 ## 2. 快速启动
 
 ```bash
+cd /home/uniubi/xuanyuan/camera05/camera03
+
 # 启动 Launcher（始终运行，GPU 占用≈0%）
 python3 ptz_launcher.py --config ./ptz_config.yaml
 
@@ -172,7 +174,7 @@ Web UI 功能：
 | 路径 | 方法 | Body | 说明 |
 |------|------|------|------|
 | `/control` | POST | `{"pan":0,"tilt":-45,"zoom":1}` | 直接设置 PTZ（度 / 倍率） |
-| `/scene/gondola` | POST | `{"y": 1650}` | 设置吊篮高度（0~3300 cm） |
+| `/scene/gondola` | POST | `{"y": 1650}` | 设置吊篮高度（文档中 0~3300 cm 为历史典型范围，**需按目标机场景与 API 实际行为核对**） |
 | `/scene/workers` | POST | `{"count": 2}` | 设置工人数量（0 / 1 / 2） |
 
 ---
@@ -184,7 +186,7 @@ Web UI 功能：
 | `launcher_port` | 8080 | Launcher 监听端口 |
 | `ctrl_port` | 8081 | Isaac Sim 内部 HTTP 端口 |
 | `python_sh` | — | Isaac Sim Python 可执行文件路径 |
-| `scene_path` | `./V4.0.usd` | USD 场景文件路径 |
+| `scene_path` | `./scene_4diaolan_ptz.usda` | USD 主场景文件路径（部署时请改为本机绝对路径） |
 | `camera_prim` | `/World/CameraRig/CamTilt/Camera` | 相机 Prim 路径 |
 | `resolution` | `[1920, 1080]` | 渲染分辨率 |
 | `fps` | 25 | 渲染帧率 |
@@ -194,18 +196,16 @@ Web UI 功能：
 
 ## 8. 集成流程
 
-1. 启动 Launcher：`python3 ptz_launcher.py`
-2. 调用 `POST /start` 启动 Isaac Sim（首次约需 60~120 秒加载场景）
-3. 轮询 `GET /status` 直到 `isaac_state == "running"`
-4. ONVIF 客户端连接 `http://<host>:8080/onvif/device_service`，正常调用 ONVIF API
+1. 进入仓库根目录并启动 Launcher：`cd /home/uniubi/xuanyuan/camera05/camera03` 后执行 `python3 ptz_launcher.py --config ./ptz_config.yaml`（解释器路径需与目标机 Isaac 环境一致）。
+2. 通过 Web UI 或 `POST /start` 启动 Isaac Sim（首次约需 60~120 秒加载场景；**本文档仅描述接口，不代为发起请求**）。
+3. 轮询 `GET /status` 直到 `isaac_state == "running"`。
+4. ONVIF 客户端连接 `http://<host>:8080/onvif/device_service`，正常调用 ONVIF API。
 
 ---
 
 ## 9. 变更说明
 
 **v4.0（当前版本）**：
-- 接入方式由 RTSP + MJPEG 改为标准 **ONVIF**（Profile S）
-- 新增内置 ONVIF SOAP 服务器（无需外部 onvif 库）
-- 已移除：RTSP 推流（ffmpeg + MediaMTX）、MJPEG 流、HLS
-- 配置文件重命名：`ptz_rtsp_config.yaml` → `ptz_config.yaml`
-- 流脚本重命名：`ptz_rtsp_stream.py` → `ptz_stream.py`
+- 对外对接以 **ONVIF**（Profile S）为主；launcher **:8080** 内置 ONVIF SOAP 与 Web UI。
+- 仓库仍包含 **ptz_stream.py**、**mediamtx** 等与 **:8081 / :8554** 相关的单元；RTSP / MJPEG / HLS 等是否参与运行由 **`ptz_config.yaml`**（例如 `rtsp_enabled`）及当前代码路径决定，**勿凭旧文档假设“已整体移除推流”**。
+- 配置文件与流脚本命名为 `ptz_config.yaml`、`ptz_stream.py`；主场景文件为 `scene_4diaolan_ptz.usda`。完整部署步骤见仓库根目录 **DEPLOY.md**。
