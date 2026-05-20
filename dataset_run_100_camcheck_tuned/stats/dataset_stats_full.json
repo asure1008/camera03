@@ -1,0 +1,721 @@
+{
+  "total_samples": 100,
+  "target_scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "height_relation_counts": {
+    "different_level": 33,
+    "same_level": 0,
+    "not_applicable": 67
+  },
+  "basket_state_counts": {
+    "ground_empty": 100,
+    "air_with_person": 100,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 50,
+    "fail": 50,
+    "skip": 0
+  },
+  "visibility_failed_samples": [
+    {
+      "sample_id": "single_airborne_0001",
+      "seed": 2026,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0001.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0002",
+      "seed": 2027,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0002.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_81.9deg",
+        "basket2_offaxis_87.3deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0005",
+      "seed": 2030,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0005.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0007",
+      "seed": 2032,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0007.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket2_offaxis_87.1deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0010",
+      "seed": 2035,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0010.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_94.6deg",
+        "basket2_offaxis_90.6deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0012",
+      "seed": 2037,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0012.usd",
+      "failed_rules": [
+        "basket1_offaxis_86.2deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0013",
+      "seed": 2038,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0013.usd",
+      "failed_rules": [
+        "basket1_offaxis_89.8deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0014",
+      "seed": 2039,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0014.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0015",
+      "seed": 2040,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0015.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0016",
+      "seed": 2041,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0016.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_83.8deg",
+        "basket2_offaxis_90.8deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0017",
+      "seed": 2042,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0017.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0023",
+      "seed": 2048,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0023.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0027",
+      "seed": 2052,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0027.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0028",
+      "seed": 2053,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0028.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0030",
+      "seed": 2055,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0030.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0031",
+      "seed": 2056,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0031.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0033",
+      "seed": 2058,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0033.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_87.5deg",
+        "basket2_offaxis_86.8deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0034",
+      "seed": 2059,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_single_airborne_0034.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_100.1deg",
+        "basket2_offaxis_97.6deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0003",
+      "seed": 2062,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0003.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0004",
+      "seed": 2063,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0004.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0005",
+      "seed": 2064,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0005.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_85.0deg",
+        "basket2_offaxis_86.4deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0006",
+      "seed": 2065,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0006.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0007",
+      "seed": 2066,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0007.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0009",
+      "seed": 2068,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0009.usd",
+      "failed_rules": [
+        "basket2_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0010",
+      "seed": 2069,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0010.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_82.4deg",
+        "basket2_offaxis_86.3deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0011",
+      "seed": 2070,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0011.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0014",
+      "seed": 2073,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0014.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0015",
+      "seed": 2074,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0015.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_84.2deg",
+        "basket2_offaxis_87.2deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0017",
+      "seed": 2076,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0017.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0020",
+      "seed": 2079,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0020.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_105.2deg",
+        "basket2_offaxis_97.9deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0022",
+      "seed": 2081,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0022.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_80.9deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0023",
+      "seed": 2082,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0023.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0024",
+      "seed": 2083,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0024.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0027",
+      "seed": 2086,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0027.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0029",
+      "seed": 2088,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0029.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0030",
+      "seed": 2089,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0030.usd",
+      "failed_rules": [
+        "basket1_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0032",
+      "seed": 2091,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0032.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0033",
+      "seed": 2092,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_double_airborne_0033.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0002",
+      "seed": 2094,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0002.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0005",
+      "seed": 2097,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0005.usd",
+      "failed_rules": [
+        "basket1_offaxis_150.5deg",
+        "basket2_offaxis_150.5deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0009",
+      "seed": 2101,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0009.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_90.3deg",
+        "basket2_offaxis_90.3deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0011",
+      "seed": 2103,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0011.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0013",
+      "seed": 2105,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0013.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_92.3deg",
+        "basket2_offaxis_92.3deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0015",
+      "seed": 2107,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0015.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0020",
+      "seed": 2112,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0020.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0026",
+      "seed": 2118,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0026.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0027",
+      "seed": 2119,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0027.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0028",
+      "seed": 2120,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0028.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0029",
+      "seed": 2121,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0029.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0032",
+      "seed": 2124,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/usd/scene_generated_dataset_all_ground_0032.usd",
+      "failed_rules": [
+        "basket1_offaxis_117.6deg",
+        "basket2_offaxis_117.6deg"
+      ]
+    }
+  ],
+  "failed_rule_counts": {
+    "target_far_from_basket_center": 46,
+    "basket1_offaxis_100.1deg": 1,
+    "basket1_offaxis_105.2deg": 1,
+    "basket1_offaxis_117.6deg": 1,
+    "basket1_offaxis_150.5deg": 1,
+    "basket1_offaxis_80.9deg": 1,
+    "basket1_offaxis_81.9deg": 1,
+    "basket1_offaxis_82.4deg": 1,
+    "basket1_offaxis_83.8deg": 1,
+    "basket1_offaxis_84.2deg": 1,
+    "basket1_offaxis_85.0deg": 1,
+    "basket1_offaxis_86.2deg": 1,
+    "basket1_offaxis_87.5deg": 1,
+    "basket1_offaxis_89.8deg": 1,
+    "basket1_offaxis_90.3deg": 1,
+    "basket1_offaxis_92.3deg": 1,
+    "basket1_offaxis_94.6deg": 1,
+    "basket1_too_far": 1,
+    "basket2_offaxis_117.6deg": 1,
+    "basket2_offaxis_150.5deg": 1,
+    "basket2_offaxis_86.3deg": 1,
+    "basket2_offaxis_86.4deg": 1,
+    "basket2_offaxis_86.8deg": 1,
+    "basket2_offaxis_87.1deg": 1,
+    "basket2_offaxis_87.2deg": 1,
+    "basket2_offaxis_87.3deg": 1,
+    "basket2_offaxis_90.3deg": 1,
+    "basket2_offaxis_90.6deg": 1,
+    "basket2_offaxis_90.8deg": 1,
+    "basket2_offaxis_92.3deg": 1,
+    "basket2_offaxis_97.6deg": 1,
+    "basket2_offaxis_97.9deg": 1,
+    "basket2_too_far": 1
+  },
+  "failed_rule_sample_ids": {
+    "basket1_offaxis_100.1deg": [
+      "single_airborne_0034"
+    ],
+    "basket1_offaxis_105.2deg": [
+      "double_airborne_0020"
+    ],
+    "basket1_offaxis_117.6deg": [
+      "all_ground_0032"
+    ],
+    "basket1_offaxis_150.5deg": [
+      "all_ground_0005"
+    ],
+    "basket1_offaxis_80.9deg": [
+      "double_airborne_0022"
+    ],
+    "basket1_offaxis_81.9deg": [
+      "single_airborne_0002"
+    ],
+    "basket1_offaxis_82.4deg": [
+      "double_airborne_0010"
+    ],
+    "basket1_offaxis_83.8deg": [
+      "single_airborne_0016"
+    ],
+    "basket1_offaxis_84.2deg": [
+      "double_airborne_0015"
+    ],
+    "basket1_offaxis_85.0deg": [
+      "double_airborne_0005"
+    ],
+    "basket1_offaxis_86.2deg": [
+      "single_airborne_0012"
+    ],
+    "basket1_offaxis_87.5deg": [
+      "single_airborne_0033"
+    ],
+    "basket1_offaxis_89.8deg": [
+      "single_airborne_0013"
+    ],
+    "basket1_offaxis_90.3deg": [
+      "all_ground_0009"
+    ],
+    "basket1_offaxis_92.3deg": [
+      "all_ground_0013"
+    ],
+    "basket1_offaxis_94.6deg": [
+      "single_airborne_0010"
+    ],
+    "basket1_too_far": [
+      "double_airborne_0030"
+    ],
+    "basket2_offaxis_117.6deg": [
+      "all_ground_0032"
+    ],
+    "basket2_offaxis_150.5deg": [
+      "all_ground_0005"
+    ],
+    "basket2_offaxis_86.3deg": [
+      "double_airborne_0010"
+    ],
+    "basket2_offaxis_86.4deg": [
+      "double_airborne_0005"
+    ],
+    "basket2_offaxis_86.8deg": [
+      "single_airborne_0033"
+    ],
+    "basket2_offaxis_87.1deg": [
+      "single_airborne_0007"
+    ],
+    "basket2_offaxis_87.2deg": [
+      "double_airborne_0015"
+    ],
+    "basket2_offaxis_87.3deg": [
+      "single_airborne_0002"
+    ],
+    "basket2_offaxis_90.3deg": [
+      "all_ground_0009"
+    ],
+    "basket2_offaxis_90.6deg": [
+      "single_airborne_0010"
+    ],
+    "basket2_offaxis_90.8deg": [
+      "single_airborne_0016"
+    ],
+    "basket2_offaxis_92.3deg": [
+      "all_ground_0013"
+    ],
+    "basket2_offaxis_97.6deg": [
+      "single_airborne_0034"
+    ],
+    "basket2_offaxis_97.9deg": [
+      "double_airborne_0020"
+    ],
+    "basket2_too_far": [
+      "double_airborne_0009"
+    ],
+    "target_far_from_basket_center": [
+      "single_airborne_0001",
+      "single_airborne_0002",
+      "single_airborne_0005",
+      "single_airborne_0007",
+      "single_airborne_0010",
+      "single_airborne_0014",
+      "single_airborne_0015",
+      "single_airborne_0016",
+      "single_airborne_0017",
+      "single_airborne_0023",
+      "single_airborne_0027",
+      "single_airborne_0028",
+      "single_airborne_0030",
+      "single_airborne_0031",
+      "single_airborne_0033",
+      "single_airborne_0034",
+      "double_airborne_0003",
+      "double_airborne_0004",
+      "double_airborne_0005",
+      "double_airborne_0006"
+    ]
+  },
+  "sample_id_list": [
+    "single_airborne_0001",
+    "single_airborne_0002",
+    "single_airborne_0003",
+    "single_airborne_0004",
+    "single_airborne_0005",
+    "single_airborne_0006",
+    "single_airborne_0007",
+    "single_airborne_0008",
+    "single_airborne_0009",
+    "single_airborne_0010",
+    "single_airborne_0011",
+    "single_airborne_0012",
+    "single_airborne_0013",
+    "single_airborne_0014",
+    "single_airborne_0015",
+    "single_airborne_0016",
+    "single_airborne_0017",
+    "single_airborne_0018",
+    "single_airborne_0019",
+    "single_airborne_0020",
+    "single_airborne_0021",
+    "single_airborne_0022",
+    "single_airborne_0023",
+    "single_airborne_0024",
+    "single_airborne_0025",
+    "single_airborne_0026",
+    "single_airborne_0027",
+    "single_airborne_0028",
+    "single_airborne_0029",
+    "single_airborne_0030",
+    "single_airborne_0031",
+    "single_airborne_0032",
+    "single_airborne_0033",
+    "single_airborne_0034",
+    "double_airborne_0001",
+    "double_airborne_0002",
+    "double_airborne_0003",
+    "double_airborne_0004",
+    "double_airborne_0005",
+    "double_airborne_0006",
+    "double_airborne_0007",
+    "double_airborne_0008",
+    "double_airborne_0009",
+    "double_airborne_0010",
+    "double_airborne_0011",
+    "double_airborne_0012",
+    "double_airborne_0013",
+    "double_airborne_0014",
+    "double_airborne_0015",
+    "double_airborne_0016",
+    "double_airborne_0017",
+    "double_airborne_0018",
+    "double_airborne_0019",
+    "double_airborne_0020",
+    "double_airborne_0021",
+    "double_airborne_0022",
+    "double_airborne_0023",
+    "double_airborne_0024",
+    "double_airborne_0025",
+    "double_airborne_0026",
+    "double_airborne_0027",
+    "double_airborne_0028",
+    "double_airborne_0029",
+    "double_airborne_0030",
+    "double_airborne_0031",
+    "double_airborne_0032",
+    "double_airborne_0033",
+    "all_ground_0001",
+    "all_ground_0002",
+    "all_ground_0003",
+    "all_ground_0004",
+    "all_ground_0005",
+    "all_ground_0006",
+    "all_ground_0007",
+    "all_ground_0008",
+    "all_ground_0009",
+    "all_ground_0010",
+    "all_ground_0011",
+    "all_ground_0012",
+    "all_ground_0013",
+    "all_ground_0014",
+    "all_ground_0015",
+    "all_ground_0016",
+    "all_ground_0017",
+    "all_ground_0018",
+    "all_ground_0019",
+    "all_ground_0020",
+    "all_ground_0021",
+    "all_ground_0022",
+    "all_ground_0023",
+    "all_ground_0024",
+    "all_ground_0025",
+    "all_ground_0026",
+    "all_ground_0027",
+    "all_ground_0028",
+    "all_ground_0029",
+    "all_ground_0030",
+    "all_ground_0031",
+    "all_ground_0032",
+    "all_ground_0033"
+  ],
+  "generated_files": [
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/logs/dataset_batch_summary.json",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/manifests/dataset_manifest_full.jsonl",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_tuned/stats/dataset_stats_full.json"
+  ]
+}

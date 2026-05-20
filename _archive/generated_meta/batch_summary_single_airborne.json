@@ -1,0 +1,105 @@
+{
+  "input_usd": "/home/uniubi/xuanyuan/camera05/camera03/V4.0.usd",
+  "camera_prim": "/World/CameraRig/CamTilt/Camera",
+  "basket_prims": [
+    "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+    "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2"
+  ],
+  "sampling_mode": "independent_per_basket",
+  "target_scene_pattern": "single_airborne",
+  "results": [
+    {
+      "seed": 1,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/scene_generated_single_airborne_seed1.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 1,
+          "final_y": 22.78969479914738,
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": [
+        35.3041415443653,
+        -35.22824564540295,
+        27.474553239436908
+      ],
+      "camera_target": [
+        49.095578363365775,
+        -0.5638324432243422,
+        4.22368140484057
+      ]
+    },
+    {
+      "seed": 2,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/scene_generated_single_airborne_seed2.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 3,
+          "final_y": 3.70881225683269,
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": [
+        70.12993268776697,
+        -23.201500546573833,
+        38.48652007201105
+      ],
+      "camera_target": [
+        28.48818745534865,
+        -9.702791716076877,
+        27.306078013837705
+      ]
+    },
+    {
+      "seed": 3,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/scene_generated_single_airborne_seed3.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 2,
+          "final_y": 23.72600437955527,
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": [
+        42.197309992884755,
+        -29.803998070190275,
+        36.286015205402705
+      ],
+      "camera_target": [
+        13.931731554388787,
+        -39.34160042225629,
+        37.686108694340696
+      ]
+    }
+  ]
+}

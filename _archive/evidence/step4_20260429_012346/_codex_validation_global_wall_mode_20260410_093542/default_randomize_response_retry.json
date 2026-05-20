@@ -1,0 +1,17 @@
+[
+  {
+    "try": 1,
+    "ok": false,
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "try": 2,
+    "ok": false,
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "try": 3,
+    "ok": false,
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  }
+]

@@ -1,0 +1,200 @@
+{
+  "total_samples": 100,
+  "target_scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "height_relation_counts": {
+    "different_level": 30,
+    "same_level": 3,
+    "not_applicable": 67
+  },
+  "basket_state_counts": {
+    "ground_empty": 87,
+    "air_with_person": 100,
+    "ground_with_person": 13,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 0,
+    "fail": 0,
+    "skip": 100
+  },
+  "visibility_failed_samples": [],
+  "failed_rule_counts": {},
+  "failed_rule_sample_ids": {},
+  "abnormal_summary": {
+    "schema_version": "abnormal_v1",
+    "implemented_labels": [
+      "person_count_abnormal",
+      "height_abnormal",
+      "dual_basket_risk"
+    ],
+    "requested": {
+      "schema_version": "abnormal_v1",
+      "implemented_labels": [
+        "person_count_abnormal",
+        "height_abnormal",
+        "dual_basket_risk"
+      ],
+      "requested": {
+        "normal": 70,
+        "person_count_abnormal": 10,
+        "height_abnormal": 10,
+        "dual_basket_risk": 10,
+        "safety_violation_reserved": 0
+      },
+      "plan_size": 100
+    },
+    "actual_distribution": {
+      "normal": 70,
+      "person_count_abnormal": 12,
+      "height_abnormal": 5,
+      "dual_basket_risk": 13,
+      "safety_violation_reserved": 0
+    },
+    "actual_abnormal_count": 30,
+    "actual_abnormal_ratio": 0.3,
+    "legacy_missing_abnormal_label_count": 0
+  },
+  "abnormal_x_visibility": {
+    "normal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 70
+    },
+    "person_count_abnormal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 12
+    },
+    "height_abnormal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 5
+    },
+    "dual_basket_risk": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 13
+    },
+    "safety_violation_reserved": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "sample_id_list": [
+    "single_airborne_0001",
+    "single_airborne_0002",
+    "single_airborne_0003",
+    "single_airborne_0004",
+    "single_airborne_0005",
+    "single_airborne_0006",
+    "single_airborne_0007",
+    "single_airborne_0008",
+    "single_airborne_0009",
+    "single_airborne_0010",
+    "single_airborne_0011",
+    "single_airborne_0012",
+    "single_airborne_0013",
+    "single_airborne_0014",
+    "single_airborne_0015",
+    "single_airborne_0016",
+    "single_airborne_0017",
+    "single_airborne_0018",
+    "single_airborne_0019",
+    "single_airborne_0020",
+    "single_airborne_0021",
+    "single_airborne_0022",
+    "single_airborne_0023",
+    "single_airborne_0024",
+    "single_airborne_0025",
+    "single_airborne_0026",
+    "single_airborne_0027",
+    "single_airborne_0028",
+    "single_airborne_0029",
+    "single_airborne_0030",
+    "single_airborne_0031",
+    "single_airborne_0032",
+    "single_airborne_0033",
+    "single_airborne_0034",
+    "double_airborne_0001",
+    "double_airborne_0002",
+    "double_airborne_0003",
+    "double_airborne_0004",
+    "double_airborne_0005",
+    "double_airborne_0006",
+    "double_airborne_0007",
+    "double_airborne_0008",
+    "double_airborne_0009",
+    "double_airborne_0010",
+    "double_airborne_0011",
+    "double_airborne_0012",
+    "double_airborne_0013",
+    "double_airborne_0014",
+    "double_airborne_0015",
+    "double_airborne_0016",
+    "double_airborne_0017",
+    "double_airborne_0018",
+    "double_airborne_0019",
+    "double_airborne_0020",
+    "double_airborne_0021",
+    "double_airborne_0022",
+    "double_airborne_0023",
+    "double_airborne_0024",
+    "double_airborne_0025",
+    "double_airborne_0026",
+    "double_airborne_0027",
+    "double_airborne_0028",
+    "double_airborne_0029",
+    "double_airborne_0030",
+    "double_airborne_0031",
+    "double_airborne_0032",
+    "double_airborne_0033",
+    "all_ground_0001",
+    "all_ground_0002",
+    "all_ground_0003",
+    "all_ground_0004",
+    "all_ground_0005",
+    "all_ground_0006",
+    "all_ground_0007",
+    "all_ground_0008",
+    "all_ground_0009",
+    "all_ground_0010",
+    "all_ground_0011",
+    "all_ground_0012",
+    "all_ground_0013",
+    "all_ground_0014",
+    "all_ground_0015",
+    "all_ground_0016",
+    "all_ground_0017",
+    "all_ground_0018",
+    "all_ground_0019",
+    "all_ground_0020",
+    "all_ground_0021",
+    "all_ground_0022",
+    "all_ground_0023",
+    "all_ground_0024",
+    "all_ground_0025",
+    "all_ground_0026",
+    "all_ground_0027",
+    "all_ground_0028",
+    "all_ground_0029",
+    "all_ground_0030",
+    "all_ground_0031",
+    "all_ground_0032",
+    "all_ground_0033"
+  ],
+  "generated_files": [
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_100/logs/dataset_batch_summary.json",
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_100/manifests/dataset_manifest_full.jsonl",
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_100/stats/dataset_stats_full.json"
+  ]
+}

@@ -1,0 +1,144 @@
+=== poll 1 2026-04-29T11:16:37+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:16:37", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 2 2026-04-29T11:16:42+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:16:42", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 3 2026-04-29T11:16:47+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:16:48", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 4 2026-04-29T11:16:53+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:16:53", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 5 2026-04-29T11:16:58+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:16:58", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 6 2026-04-29T11:17:03+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:03", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 7 2026-04-29T11:17:08+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:08", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 8 2026-04-29T11:17:13+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:13", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 9 2026-04-29T11:17:18+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:18", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 10 2026-04-29T11:17:23+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:23", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 11 2026-04-29T11:17:28+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:28", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 12 2026-04-29T11:17:33+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:33", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 13 2026-04-29T11:17:38+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:38", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 14 2026-04-29T11:17:43+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:43", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 15 2026-04-29T11:17:48+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:48", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 16 2026-04-29T11:17:53+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:53", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 17 2026-04-29T11:17:58+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:17:59", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 18 2026-04-29T11:18:04+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:04", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 19 2026-04-29T11:18:09+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:09", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 20 2026-04-29T11:18:14+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:14", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 21 2026-04-29T11:18:19+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:19", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 22 2026-04-29T11:18:24+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:24", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 23 2026-04-29T11:18:29+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:29", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 24 2026-04-29T11:18:34+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:34", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 25 2026-04-29T11:18:39+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:39", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 26 2026-04-29T11:18:44+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:44", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 27 2026-04-29T11:18:49+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:49", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 28 2026-04-29T11:18:54+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:54", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 29 2026-04-29T11:18:59+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:18:59", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 30 2026-04-29T11:19:04+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:04", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 31 2026-04-29T11:19:09+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:10", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 32 2026-04-29T11:19:15+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:15", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 33 2026-04-29T11:19:20+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:20", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 34 2026-04-29T11:19:25+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:25", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 35 2026-04-29T11:19:30+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:30", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":
+=== poll 36 2026-04-29T11:19:35+08:00 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+{"ok": true, "timestamp": "2026-04-29T11:19:35", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening":

@@ -1,0 +1,10 @@
+=== hostname date whoami pwd ===
+uniubi
+Wed Apr 29 11:22:53 CST 2026
+uniubi
+/home/uniubi
+=== command -v which type ffmpeg ===
+exit:1
+exit:1
+bash: line 1: type: ffmpeg: not found
+exit:1

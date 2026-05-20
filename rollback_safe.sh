@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="/home/uniubi/xuanyuan/camera05/camera03"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CFG_BAK="${ROOT_DIR}/ptz_config.yaml.bak_safe_20260326094631"
 SCENE_BAK="${ROOT_DIR}/scene_single_with_ptz.usda.bak_camfix_20260326095640"
 

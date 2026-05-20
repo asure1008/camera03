@@ -1,0 +1,72 @@
+{
+  "Phase2.5D": {
+    "phase": "2.5D",
+    "HydraStorm": {
+      "renderer": "HydraStorm",
+      "active_path": "/World/Diaolan_Ver1_0_2026_01",
+      "cam_xyz": [
+        88.0,
+        -55.0,
+        33.0
+      ],
+      "frame_path": "/home/uniubi/xuanyuan/camera05/camera03/_test_4diaolan_phase25_ab_hydrastorm_20260402_071652.jpg",
+      "image_quality": {
+        "file_kb": 54.8,
+        "mean_luma": 26.72,
+        "black_ratio": 0.7731,
+        "center_black": 0.8565,
+        "center_crop_std": 42.3,
+        "center_edge_grad": 1.38,
+        "非整帧黑": true,
+        "轮廓基本可见": false
+      }
+    },
+    "RaytracedLighting": {
+      "renderer": "RaytracedLighting",
+      "active_path": "/World/Diaolan_Ver1_0_2026_01",
+      "cam_xyz": [
+        88.0,
+        -55.0,
+        33.0
+      ],
+      "frame_path": "/home/uniubi/xuanyuan/camera05/camera03/_test_4diaolan_phase25_ab_raytracedlighting_20260402_071736.jpg",
+      "image_quality": {
+        "file_kb": 55.8,
+        "mean_luma": 26.7,
+        "black_ratio": 0.7731,
+        "center_black": 0.8566,
+        "center_crop_std": 42.31,
+        "center_edge_grad": 1.42,
+        "非整帧黑": true,
+        "轮廓基本可见": false
+      }
+    },
+    "对比摘要": {
+      "HydraStorm": {
+        "file_kb": 54.8,
+        "mean_luma": 26.72,
+        "black_ratio": 0.7731,
+        "center_black": 0.8565,
+        "center_crop_std": 42.3,
+        "center_edge_grad": 1.38,
+        "非整帧黑": true,
+        "轮廓基本可见": false
+      },
+      "RaytracedLighting": {
+        "file_kb": 55.8,
+        "mean_luma": 26.7,
+        "black_ratio": 0.7731,
+        "center_black": 0.8566,
+        "center_crop_std": 42.31,
+        "center_edge_grad": 1.42,
+        "非整帧黑": true,
+        "轮廓基本可见": false
+      },
+      "文件大小差(kb)": 1.0,
+      "平均亮度差": -0.02,
+      "黑像素占比差": 0.0,
+      "中心裁剪标准差差": 0.01,
+      "轮廓梯度差": 0.04
+    }
+  }
+}

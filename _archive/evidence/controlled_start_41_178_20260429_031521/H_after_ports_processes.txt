@@ -1,0 +1,13 @@
+=== ss ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+
+=== ps ===
+   1500       1 29-17:41:35 /usr/libexec/rtkit-daemon
+   2773    2550 29-17:41:25 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 18 20
+   2803    2550 29-17:41:25 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 26 23 25
+ 560720       1       12:37 python3 ptz_launcher.py --config ./ptz_config.yaml
+ 564456       1       03:52 /home/uniubi/xuanyuan/camera03/./mediamtx /home/uniubi/xuanyuan/camera03/mediamtx.yml
+1236262 1236169 15-23:56:59 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 30 33
+1236271 1236169 15-23:56:59 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 4 36 40
+2313635       1 13-04:40:58 /usr/lib/polkit-1/polkitd --no-debug

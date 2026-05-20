@@ -1,0 +1,134 @@
+{
+  "total_samples": 10,
+  "target_scene_pattern_counts": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "scene_pattern_counts": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "height_relation_counts": {
+    "different_level": 3,
+    "same_level": 0,
+    "not_applicable": 7
+  },
+  "basket_state_counts": {
+    "ground_empty": 10,
+    "air_with_person": 10,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 0,
+    "fail": 10,
+    "skip": 0
+  },
+  "visibility_failed_samples": [
+    {
+      "sample_id": "single_airborne_0001",
+      "seed": 2026,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_single_airborne_0001.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0002",
+      "seed": 2027,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_single_airborne_0002.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_81.9deg",
+        "basket2_offaxis_87.3deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0003",
+      "seed": 2028,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_single_airborne_0003.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0004",
+      "seed": 2029,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_single_airborne_0004.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0001",
+      "seed": 2030,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_double_airborne_0001.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0002",
+      "seed": 2031,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_double_airborne_0002.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0003",
+      "seed": 2032,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_double_airborne_0003.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_71.1deg",
+        "basket2_offaxis_73.1deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0001",
+      "seed": 2033,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_all_ground_0001.usd",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_96.6deg",
+        "basket2_offaxis_96.6deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0002",
+      "seed": 2034,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_all_ground_0002.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0003",
+      "seed": 2035,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/usd/scene_generated_dataset_all_ground_0003.usd",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    }
+  ],
+  "sample_id_list": [
+    "single_airborne_0001",
+    "single_airborne_0002",
+    "single_airborne_0003",
+    "single_airborne_0004",
+    "double_airborne_0001",
+    "double_airborne_0002",
+    "double_airborne_0003",
+    "all_ground_0001",
+    "all_ground_0002",
+    "all_ground_0003"
+  ],
+  "generated_files": [
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/logs/dataset_batch_summary.json",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/manifests/dataset_manifest_full.jsonl",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/stats/dataset_stats_full.json"
+  ]
+}

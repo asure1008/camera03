@@ -1,0 +1,18 @@
+=== B: hostname ===
+uniubi
+=== B: date ===
+Wed Apr 29 10:55:35 CST 2026
+=== B: ss 8080/8081/8554 ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=407177,fd=4))      
+=== B: ps ===
+rtkit       1500       1  0 Mar30 ?        00:00:24 /usr/libexec/rtkit-daemon
+uniubi      2773    2550  0 Mar30 ?        00:00:40 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 18 20
+uniubi      2803    2550  0 Mar30 ?        00:18:55 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 26 23 25
+uniubi    407177       1  0 Apr28 ?        00:01:11 /home/uniubi/miniconda3/bin/python3 ptz_launcher.py --config ./ptz_config.yaml
+uniubi   1236262 1236169  0 Apr13 ?        00:01:13 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 30 33
+uniubi   1236271 1236169  3 Apr13 ?        12:11:12 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 4 36 40
+polkitd  2313635       1  0 Apr16 ?        00:00:20 /usr/lib/polkit-1/polkitd --no-debug
+=== B: curl health ===
+{"ok": true, "timestamp": "2026-04-29T10:55:35", "launcher": {"listen": "0.0.0.0", "port": 8080}, "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "isaac": {"ctrl_port": 8081, "port_listening": false, "http_ready": false, "ctrl_health_ok": false, "degraded_stream_not_ready": false, "stream_init_ready": false, "isaac_state": "stopped", "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null, "ctrl_probe": {"health_http": null, "health_err": "skipped_port_free", "stream_ready_http": null, "stream_ready_err": "skipped_port_free", "snapshot_jpeg_probe": null}}}
+=== B: curl status ===
+{"isaac_state": "stopped", "isaac_port": 8081, "uptime_s": 0, "ptz": null, "config_path": "/home/uniubi/xuanyuan/camera03/ptz_config.yaml", "stream_config": {"scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda", "scene_basename": "scene_4diaolan_ptz.usda", "camera_prim": "/World/CameraRig/CamTilt/Camera", "rtsp_url": "rtsp://localhost:8554/ptz_cam", "preview_enabled": false, "renderer": "RTXRealTime", "read_error": null}, "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。", "isaac_process_running": false, "isaac_port_listening": false, "isaac_ctrl_ready": false, "isaac_ctrl_degraded": false, "isaac_ctrl_degraded_reason": null}

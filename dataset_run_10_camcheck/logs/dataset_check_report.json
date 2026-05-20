@@ -1,0 +1,91 @@
+{
+  "manifest_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/manifests/dataset_manifest_full.jsonl",
+  "stats_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck/stats/dataset_stats_full.json",
+  "total_samples": 10,
+  "scene_pattern_counts": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "basket_state_counts": {
+    "ground_empty": 10,
+    "air_with_person": 10,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 0,
+    "fail": 10,
+    "skip": 0
+  },
+  "visibility_failed_samples": [
+    {
+      "sample_id": "single_airborne_0001",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0002",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_81.9deg",
+        "basket2_offaxis_87.3deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0003",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0004",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0001",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0002",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0003",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_71.1deg",
+        "basket2_offaxis_73.1deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0001",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_96.6deg",
+        "basket2_offaxis_96.6deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0002",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0003",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    }
+  ],
+  "failed_samples": 0,
+  "failures": []
+}

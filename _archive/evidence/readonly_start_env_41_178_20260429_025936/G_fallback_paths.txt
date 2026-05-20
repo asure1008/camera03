@@ -1,0 +1,4 @@
+=== projects/issac default path ===
+ls: cannot access '/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh': No such file or directory
+xuanyuan_python_sh_ok
+xuanyuan_kit_python_sh_ok

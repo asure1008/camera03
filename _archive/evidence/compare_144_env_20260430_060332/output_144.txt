@@ -1,0 +1,973 @@
+===== HOST =====
+2026-04-30T06:03:32+00:00
+uniubi
+192.168.46.144 100.120.42.75 172.17.0.1 fd7a:115c:a1e0::f001:2aa2 
+/home/uniubi/xuanyuan/camera05/camera03
+
+===== PROCESS_PORTS =====
+LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=2310848,fd=6))     
+LISTEN 0      96                         0.0.0.0:8081       0.0.0.0:*    users:(("python3",pid=2701356,fd=269))   
+LISTEN 0      4096                             *:8554             *:*    users:(("mediamtx",pid=1576480,fd=7))    
+1576480       1 Thu Apr 23 01:05:22 2026  7-04:58:10 Sl   /home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml
+2310848 2310846 Mon Apr 27 07:28:59 2026  2-22:34:33 Sl   python3 ptz_launcher.py
+2701356 2310848 Wed Apr 29 04:07:47 2026  1-01:55:45 Ssl  /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+2701771 2701356 Wed Apr 29 04:07:58 2026  1-01:55:34 SLl  ffmpeg -loglevel warning -f rawvideo -pix_fmt rgba -s 960x540 -r 10 -i pipe:0 -an -vf format=yuv420p -c:v h264_nvenc -preset p1 -tune ll -rc cbr -bf 0 -g 20 -delay 0 -b:v 1M -f rtsp rtsp://localhost:8554/ptz_cam
+
+===== KEY_FILE_STAT =====
+2026-04-27 07:28:40.290976133 +0000 150149 ptz_launcher.py
+2026-04-27 07:04:09.059734546 +0000 567688 ptz_stream.py
+2026-04-27 03:08:36.798787815 +0000 3088 ptz_config.yaml
+2026-04-29 00:27:07.200877100 +0000 134487 ptz_web_control.html
+2026-04-22 00:39:25.769976913 +0000 1492 scene_4diaolan_ptz.usda
+2026-03-26 07:30:32.005145859 +0000 150 DiaoLan_ChangJing_2026.03.18.usd
+2026-03-27 05:59:12.314227207 +0000 68 scene_generated_dataset_all_ground_0001.usd
+2026-03-27 05:59:12.314227207 +0000 68 scene_generated_dataset_all_ground_0002.usd
+2026-03-27 05:59:12.312227218 +0000 73 scene_generated_dataset_double_airborne_0001.usd
+2026-03-27 05:59:12.313227212 +0000 73 scene_generated_dataset_double_airborne_0002.usd
+2026-03-27 02:49:20.575467639 +0000 955 scene_generated_dataset_single_airborne_0001.usd
+2026-03-27 05:59:12.311227224 +0000 73 scene_generated_dataset_single_airborne_0002.usd
+2026-03-31 02:45:42.042503502 +0000 31359 Shigongchangjing_Diaolan_Jikeng2026.03.30.usd
+2026-03-30 04:43:40.221332231 +0000 16123 V4.0.usd
+2026-03-25 09:35:43.132563594 +0000 3974 PTZ_Camera_Rig.usda
+2026-04-02 09:06:12.547299938 +0000 1588 scene_2diaolan_test.usda
+2026-04-22 00:39:25.769976913 +0000 1492 scene_4diaolan_ptz.usda
+2026-04-02 02:44:22.651008444 +0000 1408 scene_6diaolan_ptz.usda
+2026-04-02 02:44:22.651008444 +0000 1342 scene_diaolan_20260318_with_ptz.usda
+2026-04-02 02:44:22.684007781 +0000 1359 scene_single_with_ptz.usda
+2026-03-26 07:26:27.291350368 +0000 487480090 DiaoLan_ChangJing_2026.03.18.usdz
+2026-04-10 01:20:42.504791146 +0000 3028757583 Diaolanchangjing_2026.04.01_1.usdz
+2026-04-01 06:48:10.486032464 +0000 3028757583 Diaolanchangjing_2026.04.01.usdz
+2026-04-20 01:37:39.535330245 +0000 2740912063 GaochuzuoyeDiaolan_04.17.usdz
+2026-03-31 02:41:11.312230994 +0000 2818335161 Shigongchangjing_Diaolan_Jikeng2026.03.30.usdz
+
+===== KEY_FILE_HASH =====
+8429709f286d29b4766b42af50728be292f9327491de4a43dfd9e8d63809a39b  ptz_launcher.py
+b0e363324eaa6adb04f9ac8b0464c2120c28eb4f89d06d364c76aa5cde5d23f7  ptz_stream.py
+f9a60beb7f94976f59299005b5886c11174f3a48be8b0d84bcf90f20d7a7b223  ptz_config.yaml
+f2ca67e760d3f12d96d64ad3ec4040acb3cc39e11453bb1f71e1981fdd429284  ptz_web_control.html
+f471cad72caeba56a2a93b6362942d6d8237a0b1e8f8fc377c00aa018992aefb  scene_4diaolan_ptz.usda
+ec898520106f4ae5b58b4272121b5219cb67ac473956f256510bf186357b4aab  DiaoLan_ChangJing_2026.03.18.usd
+66c8874cf3898e32c3a9f10939fb86b22ffa1bf2cbd2eaa4c1dad37770dd7055  scene_generated_dataset_all_ground_0001.usd
+ce9e53b8bc3f8e3383afb78fb71a61b97f370c3f2ef8aef45635c1fda18e5654  scene_generated_dataset_all_ground_0002.usd
+71ca28a21004ffc23d8213636074f22f1e84f07bf5288e50c213c2a866e8979c  scene_generated_dataset_double_airborne_0001.usd
+58ed0c5386c92a110a47491fe966d489115892427bfe02e440a1ffdf647f6ebd  scene_generated_dataset_double_airborne_0002.usd
+526e4bdbb700e71c6e52423700933034af268fe6afd9dfef606b82a4a8cfe7f2  scene_generated_dataset_single_airborne_0001.usd
+8180d43fbdf24a90ede5bb7c23e5f9aff8581a5a1ac17c8973bae4d472f1c922  scene_generated_dataset_single_airborne_0002.usd
+006b811bb75917549c4ca310a54da5aa6658ae242405976b7cdd99ba0460d1c4  Shigongchangjing_Diaolan_Jikeng2026.03.30.usd
+7ad0ac8060b25c23aeaf1e670bfa1eef21b140cb9228047bca456c506dd8ed35  V4.0.usd
+65fcde50e388d89599b27b107c203c9baac6e842116cadd6e0c09f79e2a18504  PTZ_Camera_Rig.usda
+cccad7ba3c091ab4516802850fcf78ec777fbf61365ca84eacd0e33519d50014  scene_2diaolan_test.usda
+f471cad72caeba56a2a93b6362942d6d8237a0b1e8f8fc377c00aa018992aefb  scene_4diaolan_ptz.usda
+cb4e765c0a4bdf7edf6926c8389c4f258fb3cc90b3877c144de5bb04f37a1014  scene_6diaolan_ptz.usda
+139dd2f3a7ebea3123ff1a619ebce7710c435558e08ffd94d6d64cb3c664d558  scene_diaolan_20260318_with_ptz.usda
+7f34d4c7674c5ddd3ef6784486038d56137f976d7f071a2bfba87d0094f85b41  scene_single_with_ptz.usda
+b1da2359b6ea0ce6813d7bca05d40a4f1524c72dfa46174187598fe994a4691e  DiaoLan_ChangJing_2026.03.18.usdz
+f0e74ea6f16ac3196ab0b6daa889faf806a288672adaa00a9d259cc1134ade67  Diaolanchangjing_2026.04.01_1.usdz
+f0e74ea6f16ac3196ab0b6daa889faf806a288672adaa00a9d259cc1134ade67  Diaolanchangjing_2026.04.01.usdz
+fbdcf4114d42a627c4e4f96e4bc515700e0b485259edddc52d3cb42b3605f4f6  GaochuzuoyeDiaolan_04.17.usdz
+22f0438d796a4b480b5fe7123a24fa9d62efde43f05468ae71eac1da01c2604d  Shigongchangjing_Diaolan_Jikeng2026.03.30.usdz
+
+===== USD_ABSOLUTE_PATHS =====
+./fix_ptz_orientation.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh fix_ptz_orientation.py [options]
+./fix_ptz_orientation.py:31:    "/home/uniubi/projects/issac/.isaac_sim_unzip/"
+./fix_ptz_orientation.py:37:    "/home/uniubi/projects/issac/.isaac_sim_unzip/omni.usd.libs:"
+./fix_ptz_orientation.py:38:    "/home/uniubi/projects/issac/.isaac_sim_unzip/kit/python/lib:"
+./fix_ptz_orientation.py:71:        refs = prim.GetMetadata("references")
+./fix_ptz_orientation.py:74:                if "PTZ" in str(r.assetPath):
+./fix_ptz_orientation.py:76:                    print(f"[fix]   发现：{ptz_path}  →  {r.assetPath}")
+./ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./ptz_launcher.py:70:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./ptz_stream.py:3722:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./setup_camera_v4.py:19:    "/home/uniubi/projects/issac/.isaac_sim_unzip/"
+./setup_camera_v4.py:25:    "/home/uniubi/projects/issac/.isaac_sim_unzip/omni.usd.libs:"
+./setup_camera_v4.py:26:    "/home/uniubi/projects/issac/.isaac_sim_unzip/kit/python/lib:"
+./DiaoLan_ChangJing_2026.03.18.usd:7:    references = [
+./DiaoLan_ChangJing_2026.03.18_unpacked/SubUSDs/Architectur_2026.03.usd:7:    references = [
+./scene_single_with_ptz.usda:10:        references = [
+./scene_6diaolan_ptz.usda:5:    subLayers = [
+./run_constrained_random_acceptance.py:16:CFG_PATH = Path("/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml")
+./run_constrained_random_acceptance.py:17:OUT_DIR = Path("/home/uniubi/xuanyuan/camera05/camera03")
+./generate_scene_usd.py:12:    --input /home/uniubi/xuanyuan/scene.usd \\
+./generate_scene_usd.py:13:    --output /home/uniubi/xuanyuan/scene_generated.usd \\
+./generate_scene_usd.py:1047:    base_dir = "/home/uniubi/xuanyuan/camera05/camera03"
+./generate_scene_usd.py:1292:    base_dir = "/home/uniubi/xuanyuan/camera05/camera03"
+./generate_scene_usd.py:2769:        default="/home/uniubi/xuanyuan/scene.usd",
+./generate_scene_usd.py:2774:        default="/home/uniubi/xuanyuan/scene_generated.usd",
+./phase25_ab_test.py:13:CFG_PATH = Path("/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml")
+./phase25_ab_test.py:14:OUT_DIR  = Path("/home/uniubi/xuanyuan/camera05/camera03")
+./phase25_ab_test.py:81:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+./phase25_ab_test.py:82:    log_file = open(f"/home/uniubi/xuanyuan/camera05/camera03/_ptz_stream_{tag}.log", "w")
+./phase25_ab_test.py:83:    proc = subprocess.Popen(cmd, stdout=log_file, stderr=subprocess.STDOUT, cwd="/home/uniubi/xuanyuan/camera05/camera03")
+./scene_diaolan_20260318_with_ptz.usda:10:        references = [
+./ptz_stream_novis.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./ptz_stream_novis.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./ptz_stream_novis.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/step4_20260429_012346/.backup_20260414_073857/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/step4_20260429_012346/.backup_cursor_fix_diaolan_enum_20260414_081956/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/step4_20260429_012346/.backup_cursor_fix_diaolan_enum_20260414_081956/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/step4_20260429_012346/.backup_cursor_fix_diaolan_enum_20260414_081956/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/step4_20260429_012346/.backup_round_diaolan_chain_20260414/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/step4_20260429_012346/.backup_round_diaolan_chain_20260414/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/step4_20260429_012346/.backup_round_diaolan_chain_20260414/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/step4_20260429_012346/backup_round_multi_diaolan_20260413/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/step4_20260429_012346/backup_round_multi_diaolan_20260413/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/step4_20260429_012346/backup_round_multi_diaolan_20260413/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_launcher.py:67:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/dual_version_baseline_20260409_104613/ptz_config.yaml:34:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_launcher.py:67:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/stable_a_passed_20260409_105637/ptz_config.yaml:34:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_launcher.py:67:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_20260409_051141/ptz_config.yaml:34:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_launcher.py:67:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/ptz_config.yaml:34:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/scene_4diaolan_ptz.usda:5:    subLayers = [
+./_archive/backups/backup_codex/stable_web_0408_restored_20260409_132427/scene_4diaolan_ptz.usda:46:        asset inputs:texture:file = @/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr@
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/stable_before_global_wall_random_20260410_091001/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/stable_before_global_wall_candidates_mode_20260410_093413/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:35:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:41:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/web_blackmodel_takeover_20260421_060056/ptz_config.yaml:45:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023148/ptz_launcher.py:69:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023148/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023148/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023148/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023148/ptz_stream.py:2489:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023300/ptz_launcher.py:69:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023300/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023300/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023300/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/readonly_workers_snap_diag_20260423_023300/ptz_stream.py:2489:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_stream.py:2512:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_launcher.py:69:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/blackmodel_fakealive_fix_20260423_061923/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_stream.py:2524:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_launcher.py:69:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/rtsp_snapshot_black_rootcause_20260423_092851/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_stream.py:2524:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/replicator_black_fix_20260423_181609/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_stream.py:2524:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/snapshot_stoploss_revert_20260423_104153/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/disable_snapshot_viewport_delegate_20260424_005322/ptz_stream.py:2524:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_stream.py:2524:    fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_codex/black_model_fix_20260424_010803/ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/perception_migration_20260415_005022/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/perception_finalize_20260415_010710/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/perception_auto_align_20260415_021042/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/perception_auto_align_20260415_021042/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/perception_auto_align_20260415_021042/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013033/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/launcher_restart_and_default_random_on_20260420_013135/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/model_replace_20260420_023553/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/model_replace_20260420_023553/scene_4diaolan_ptz.usda:5:    subLayers = [
+./_archive/backups/backup_cursor/model_replace_20260420_023553/scene_4diaolan_ptz.usda:46:        asset inputs:texture:file = @/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr@
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/scene_4diaolan_ptz.usda:5:    subLayers = [
+./_archive/backups/backup_cursor/finalize_model_replace_20260420_031743/scene_4diaolan_ptz.usda:46:        asset inputs:texture:file = @/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr@
+./_archive/backups/backup_cursor/fix_hdri_and_random_camera_after_model_replace_20260420_033042/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/fix_hdri_and_random_camera_after_model_replace_20260420_033042/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/fix_hdri_and_random_camera_after_model_replace_20260420_033042/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/restore_global_wall_camera_random_after_model_replace_20260420_034434/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/fix_global_wall_candidates_restore_20260420_051512/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/hazard_new_model_20260420_055021/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:30:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_config.yaml:39:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+./_archive/backups/backup_cursor/web_scene_controls_20260420_071323/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_cursor/startup_exit55_fix_20260420_082355/ptz_launcher.py:68:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+./_archive/backups/backup_cursor/startup_exit55_fix_20260420_082355/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+./_archive/backups/backup_cursor/startup_exit55_fix_20260420_082355/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+./_archive/backups/backup_cursor/startup_exit55_fix_20260420_082355/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+./_archive/backups/backup_cursor/startup_exit55_fix_20260420_082355/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+
+===== CONFIG_EFFECTIVE_LINES =====
+ptz_config.yaml:2:camera_prim: /World/CameraRig/CamTilt/Camera
+ptz_config.yaml:3:camera_rig_translate_xyz:
+ptz_config.yaml:7:ctrl_port: 8081
+ptz_config.yaml:8:diaolan_camera_sampling_enabled: true
+ptz_config.yaml:12:hydra_target_material_mode: formal
+ptz_config.yaml:16:launcher_port: 8080
+ptz_config.yaml:18:  auto_download: true
+ptz_config.yaml:20:  port: 8554
+ptz_config.yaml:23:onvif_rtsp_host: ''
+ptz_config.yaml:28:renderer: RTXRealTime
+ptz_config.yaml:29:hdri_fill_exposure_nominal: 1.0
+ptz_config.yaml:30:hdri_whitelist:
+ptz_config.yaml:31:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+ptz_config.yaml:32:- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+ptz_config.yaml:33:- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+ptz_config.yaml:34:- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+ptz_config.yaml:38:rtsp_enabled: true
+ptz_config.yaml:39:rtsp_url: rtsp://localhost:8554/ptz_cam
+ptz_config.yaml:40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+ptz_config.yaml:41:environment_mode: hdri
+ptz_config.yaml:42:dynamic_sky_enabled: false
+ptz_config.yaml:43:dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd
+ptz_config.yaml:44:dynamic_sky_root_prim: /World/DynamicSkyRoot
+ptz_config.yaml:50:camera_height_wall_prim_path: /World/JiKeng_ChangJing01/JiKeng_BeiJing/JiKeng_BeiJing/group1/Mesh267/Mesh267
+ptz_config.yaml:56:camera_orientation_mode: dynamic_lookat
+ptz_config.yaml:57:camera_lookat_target_xyz:
+ptz_config.yaml:90:dynamic_startup_pan_offset_deg: 0.0
+ptz_config.yaml:91:dynamic_startup_tilt_offset_deg: 0.0
+ptz_config.yaml:98:random_config:
+ptz_config.yaml:99:  auto_random_on_start: true
+ptz_config.yaml:100:  auto_random_timer_enabled: true
+ptz_config.yaml:101:  random_hdri: true
+ptz_config.yaml:102:capture_source_prefer_viewport_delegate_for_snapshot: false
+ptz_launcher.py:6:通过 Web UI 按需启动 / 停止 Isaac Sim 仿真进程（ptz_stream.py）。
+ptz_launcher.py:31:import argparse
+ptz_launcher.py:32:import base64
+ptz_launcher.py:33:import datetime
+ptz_launcher.py:34:import errno
+ptz_launcher.py:35:import hashlib
+ptz_launcher.py:36:import http.client
+ptz_launcher.py:37:import io
+ptz_launcher.py:38:import json
+ptz_launcher.py:39:import os
+ptz_launcher.py:40:import signal
+ptz_launcher.py:41:import socket
+ptz_launcher.py:42:import struct
+ptz_launcher.py:43:import subprocess
+ptz_launcher.py:44:import sys
+ptz_launcher.py:45:import threading
+ptz_launcher.py:46:import time
+ptz_launcher.py:47:from concurrent.futures import ThreadPoolExecutor
+ptz_launcher.py:48:import urllib.request
+ptz_launcher.py:49:import urllib.error
+ptz_launcher.py:50:import uuid as _uuid_mod
+ptz_launcher.py:51:import xml.etree.ElementTree as ET
+ptz_launcher.py:52:from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+ptz_launcher.py:53:from urllib.parse import urlparse, parse_qs
+ptz_launcher.py:55:import yaml
+ptz_launcher.py:67:LAUNCHER_PORT = cfg.get("launcher_port", 8080)
+ptz_launcher.py:68:ISAAC_PORT    = cfg.get("ctrl_port",     8081)
+ptz_launcher.py:71:STREAM_SCRIPT = os.path.join(script_dir, "ptz_stream.py")
+ptz_launcher.py:72:ISAAC_LOG     = os.path.join(script_dir, "isaac_stream.log")
+ptz_launcher.py:78:    _ISAAC_LITE_HTTP_TIMEOUT_S, float(cfg.get("isaac_startup_ctrl_http_timeout_s", 4.0))
+ptz_launcher.py:111:    """启动失败时摘取 isaac_stream.log 末尾若干行（仅 ASCII/UTF-8 文本）。"""
+ptz_launcher.py:136:    """只读：从 isaac_stream.log 尾部扫描显存/OOM/驱动崩溃相关关键词，供诊断字段使用。"""
+ptz_launcher.py:150:def _env_for_ptz_stream_subprocess() -> dict:
+ptz_launcher.py:151:    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+ptz_launcher.py:175:# 与 ptz_stream._resolve_orientation_profile 中 default_initial 一致：启动/随机后「可见中性朝向」相对几何 look-at 的偏置
+ptz_launcher.py:176:_DYNAMIC_STARTUP_PAN_OFFSET_DEG = float(cfg.get("dynamic_startup_pan_offset_deg", 0.0))
+ptz_launcher.py:177:_DYNAMIC_STARTUP_TILT_OFFSET_DEG = float(cfg.get("dynamic_startup_tilt_offset_deg", 0.0))
+ptz_launcher.py:180:def _read_stream_config_from_disk(config_path: str) -> dict:
+ptz_launcher.py:181:    """从磁盘读取 ptz 推流相关字段（与 ptz_stream 启动时读取一致；用于诊断/确认样本 USD）。"""
+ptz_launcher.py:183:        "scene_path": None,
+ptz_launcher.py:184:        "scene_basename": None,
+ptz_launcher.py:185:        "camera_prim": None,
+ptz_launcher.py:186:        "rtsp_url": None,
+ptz_launcher.py:188:        "renderer": None,
+ptz_launcher.py:195:        sp = y.get("scene_path")
+ptz_launcher.py:200:            out["scene_path"] = sp_abs
+ptz_launcher.py:201:            out["scene_basename"] = os.path.basename(sp_abs)
+ptz_launcher.py:202:        out["camera_prim"] = y.get("camera_prim")
+ptz_launcher.py:203:        out["rtsp_url"] = y.get("rtsp_url")
+ptz_launcher.py:205:        out["renderer"] = y.get("renderer")
+ptz_launcher.py:212:_STARTUP_PRESET_TOKEN = "startup"
+ptz_launcher.py:271:def _build_startup_preset() -> dict | None:
+ptz_launcher.py:273:    startup_view = status.get("startup_view") if isinstance(status, dict) else None
+ptz_launcher.py:274:    if not isinstance(startup_view, dict):
+ptz_launcher.py:277:        pan = float(startup_view["pan"])
+ptz_launcher.py:278:        tilt = float(startup_view["tilt"])
+ptz_launcher.py:279:        zoom = float(startup_view["zoom"])
+ptz_launcher.py:284:        "name": str(startup_view.get("name") or _STARTUP_PRESET_NAME),
+ptz_launcher.py:288:        "source": "startup_view",
+ptz_launcher.py:304:    # 必须合并写入：若用启动时内存里的整份 cfg 覆盖磁盘，会把用户已改的 scene_path 等字段打回旧值。
+ptz_launcher.py:320:    startup_item = _build_startup_preset()
+ptz_launcher.py:321:    if startup_item is not None:
+ptz_launcher.py:322:        items.append(startup_item)
+ptz_launcher.py:328:        return _build_startup_preset()
+ptz_launcher.py:394:_status_cache = {"ts": 0.0, "data": None}
+ptz_launcher.py:395:_status_cache_lock = threading.Lock()
+ptz_launcher.py:396:_snapshot_proxy_cache = {"ts": 0.0, "jpeg": None, "source": None}
+ptz_launcher.py:400:_ISAAC_STARTUP_READY_TIMEOUT_S = float(cfg.get("isaac_startup_ready_timeout_s", 180.0))
+ptz_launcher.py:401:_ISAAC_STARTUP_READY_CONSECUTIVE = max(1, int(cfg.get("isaac_startup_ready_consecutive", 3)))
+ptz_launcher.py:403:_isaac_startup_streak = 0
+ptz_launcher.py:433:def _isaac_fetch_health_stream_parallel(
+ptz_launcher.py:436:    """并行 GET 8081 /api/health 与 /api/stream_ready，避免串行超时叠加。"""
+ptz_launcher.py:441:        fut_s = pool.submit(_http_get_isaac_ex, "/api/stream_ready", t)
+ptz_launcher.py:453:def _parse_upstream_health_ctrl_hints(body: bytes) -> tuple[bool | None, str | None]:
+ptz_launcher.py:476:        sub.append("upstream_503_busy")
+ptz_launcher.py:478:        sub.append(f"upstream_http_{http_st}")
+ptz_launcher.py:485:        sub.append("port_listening_but_http_unreachable")
+ptz_launcher.py:517:    """GET JSON 路径并判断顶层 ok==True（用于 /api/health、/api/stream_ready）。"""
+ptz_launcher.py:532:def _is_isaac_scene_state_ok() -> bool:
+ptz_launcher.py:533:    """与 launcher 代理 /scene/state 对齐：子进程控制面须能返回 200。"""
+ptz_launcher.py:535:        "/scene/state", min(2.0, _ISAAC_LITE_HTTP_TIMEOUT_S + 0.85)
+ptz_launcher.py:541:    """8081 已被占用时：最小「健康外部」判定（listening + /api/health + /scene/state）。"""
+ptz_launcher.py:542:    if not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:543:        return False, "port_not_listening"
+ptz_launcher.py:547:    if not _is_isaac_scene_state_ok():
+ptz_launcher.py:549:            "/scene/state", min(2.0, _ISAAC_LITE_HTTP_TIMEOUT_S + 0.85)
+ptz_launcher.py:551:        return False, f"scene_state_fail http={s_st} err={s_err!r}"
+ptz_launcher.py:552:    return True, "listening_health_scene_ok"
+ptz_launcher.py:556:    """子进程句柄仍「存活」时，结合端口 + 健康 + scene/state 判断是否真在跑（避免假阳性）。"""
+ptz_launcher.py:561:    if not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:562:        return False, f"pid={pid} poll=None port={ISAAC_PORT}_not_listening"
+ptz_launcher.py:566:    if not _is_isaac_scene_state_ok():
+ptz_launcher.py:568:            "/scene/state", min(2.0, _ISAAC_LITE_HTTP_TIMEOUT_S + 0.85)
+ptz_launcher.py:570:        return False, f"pid={pid} scene_state_fail http={s_st} err={s_err!r}"
+ptz_launcher.py:571:    return True, f"pid={pid} port_ok health_ok scene_state_ok"
+ptz_launcher.py:590:def _is_isaac_stream_init_ready() -> bool:
+ptz_launcher.py:591:    """ptz_stream 主线程完成相机/吊篮首帧初始化后 /api/stream_ready 才返回 200。"""
+ptz_launcher.py:592:    return _isaac_api_path_ok("/api/stream_ready", _ISAAC_LITE_HTTP_TIMEOUT_S)
+ptz_launcher.py:617:    """端口 + /api/health + /api/stream_ready；避免把 health 卡在 snapshot 链路上。"""
+ptz_launcher.py:618:    if not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:624:    if not _isaac_api_path_ok("/api/stream_ready", t0):
+ptz_launcher.py:631:    port_busy = _port_in_use(ISAAC_PORT)
+ptz_launcher.py:633:    h_st, h_body, h_err = (None, b"", "skipped_port_free")
+ptz_launcher.py:634:    s_st, s_body, s_err = (None, b"", "skipped_port_free")
+ptz_launcher.py:635:    if port_busy:
+ptz_launcher.py:636:        (h_st, h_body, h_err), (s_st, s_body, s_err) = _isaac_fetch_health_stream_parallel(
+ptz_launcher.py:650:    stream_ok = _json_ok_field(s_st, s_body)
+ptz_launcher.py:651:    ctrl_health_ok_no_stream = bool(port_busy and health_ok)
+ptz_launcher.py:654:        if port_busy and preview
+ptz_launcher.py:657:    if port_busy and (h_err or s_err):
+ptz_launcher.py:661:            f"stream_ready_http={s_st} stream_ready_err={s_err!r} "
+ptz_launcher.py:665:    http_ready = bool(port_busy and health_ok and stream_ok)
+ptz_launcher.py:666:    degraded_busy = bool(port_busy and health_ok and not stream_ok)
+ptz_launcher.py:667:    up_deg, up_reason = _parse_upstream_health_ctrl_hints(h_body)
+ptz_launcher.py:671:    proc_alive_or_listener = bool(proc_alive or port_busy)
+ptz_launcher.py:673:        (port_busy and not http_ready)
+ptz_launcher.py:683:        deg_reason = "stream_not_ready"
+ptz_launcher.py:684:    elif port_busy and not health_ok:
+ptz_launcher.py:686:    elif port_busy and health_ok and not stream_ok:
+ptz_launcher.py:687:        deg_reason = f"stream_ready_fail:{s_err or s_st}"
+ptz_launcher.py:688:    elif port_busy and not http_ready:
+ptz_launcher.py:693:        "launcher": {"listen": "0.0.0.0", "port": LAUNCHER_PORT},
+ptz_launcher.py:695:        "isaac_port_listening": port_busy,
+ptz_launcher.py:700:            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:701:            "port_listening": port_busy,
+ptz_launcher.py:703:            "ctrl_health_ok": ctrl_health_ok_no_stream,
+ptz_launcher.py:704:            "degraded_stream_not_ready": degraded_busy,
+ptz_launcher.py:705:            "stream_init_ready": stream_ok if port_busy else False,
+ptz_launcher.py:708:            "isaac_port_listening": port_busy,
+ptz_launcher.py:715:                "stream_ready_http": s_st,
+ptz_launcher.py:716:                "stream_ready_err": s_err,
+ptz_launcher.py:723:def _get_isaac_status_cached(timeout: float = 90.0, max_age: float = _STATUS_CACHE_TTL_S) -> dict | None:
+ptz_launcher.py:725:    with _status_cache_lock:
+ptz_launcher.py:726:        cached = _status_cache["data"]
+ptz_launcher.py:727:        cached_ts = float(_status_cache["ts"])
+ptz_launcher.py:728:        if isinstance(cached, dict) and now - cached_ts <= max_age:
+ptz_launcher.py:729:            return dict(cached)
+ptz_launcher.py:745:    with _status_cache_lock:
+ptz_launcher.py:746:        _status_cache["data"] = data
+ptz_launcher.py:747:        _status_cache["ts"] = time.monotonic()
+ptz_launcher.py:751:def _read_snapshot_proxy_cache(max_age: float) -> tuple[bytes | None, str | None]:
+ptz_launcher.py:754:        jpeg = _snapshot_proxy_cache["jpeg"]
+ptz_launcher.py:755:        if jpeg is not None and now - float(_snapshot_proxy_cache["ts"]) <= max_age:
+ptz_launcher.py:756:            return jpeg, _snapshot_proxy_cache["source"]
+ptz_launcher.py:760:def _cache_snapshot_proxy(jpeg: bytes, source: str) -> None:
+ptz_launcher.py:762:        _snapshot_proxy_cache["jpeg"] = jpeg
+ptz_launcher.py:763:        _snapshot_proxy_cache["source"] = source
+ptz_launcher.py:764:        _snapshot_proxy_cache["ts"] = time.monotonic()
+ptz_launcher.py:788:        return None, None, f"upstream_http_{status}"
+ptz_launcher.py:790:        return None, None, "upstream_empty_or_too_small"
+ptz_launcher.py:792:        return None, None, "upstream_not_jpeg"
+ptz_launcher.py:797:    cached_jpeg, cached_source = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
+ptz_launcher.py:798:    if cached_jpeg is not None:
+ptz_launcher.py:799:        return cached_jpeg, cached_source or "launcher-snapshot-cache"
+ptz_launcher.py:812:                _cache_snapshot_proxy(data, source or "isaac-snapshot")
+ptz_launcher.py:821:        cached_jpeg2, cached_source2 = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
+ptz_launcher.py:822:        if cached_jpeg2 is not None:
+ptz_launcher.py:823:            return cached_jpeg2, cached_source2 or "launcher-snapshot-cache"
+ptz_launcher.py:825:    stale_jpeg, stale_source = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_STALE_TTL_S)
+ptz_launcher.py:827:        return stale_jpeg, stale_source or "launcher-snapshot-cache"
+ptz_launcher.py:859:    """阻塞直到 Isaac 稳定就绪；需连续若干次满足端口 + /api/health + /api/stream_ready。"""
+ptz_launcher.py:876:        "限时内未达到稳定就绪：需连续满足 TCP 监听 + GET /api/health(200) + GET /api/stream_ready(200)"
+ptz_launcher.py:903:    global _isaac_proc, _start_time, _isaac_state, _isaac_startup_streak
+ptz_launcher.py:915:            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:918:    # 假阳性：poll 仍 None 但 8081/健康/scene 不可用 → 终止并回收后再 spawn
+ptz_launcher.py:972:        if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:982:                        "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:983:                        "port_busy": True,
+ptz_launcher.py:989:                if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:993:                        f"[PTZ-Launcher] [force_restart] port freed; spawning new ptz_stream (killed={killed_pids}).",
+ptz_launcher.py:998:            if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1001:                    f"[PTZ-Launcher] start_isaac: ctrl_port_precheck port={ISAAC_PORT} "
+ptz_launcher.py:1016:                            "error": "控制端口被占用且无法识别为本项目 ptz_stream，未自动杀进程",
+ptz_launcher.py:1017:                            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1018:                            "port_busy": True,
+ptz_launcher.py:1021:                            "action_taken": "port_precheck_refused",
+ptz_launcher.py:1025:                    if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1032:                            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1033:                            "port_busy": True,
+ptz_launcher.py:1035:                            "action_taken": "port_precheck_still_busy",
+ptz_launcher.py:1039:                        "[PTZ-Launcher] start_isaac: bad_residual freed; will spawn new ptz_stream.",
+ptz_launcher.py:1044:            if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1046:                    f"[PTZ-Launcher] Isaac Sim ctrl_port busy: reuse external (port={ISAAC_PORT}, pids={existing_pids}).",
+ptz_launcher.py:1058:            sc = _read_stream_config_from_disk(CONFIG_PATH)
+ptz_launcher.py:1059:            print("[PTZ-Launcher] ========== 本次 Isaac 子进程将加载（ptz_stream 读盘）==========", flush=True)
+ptz_launcher.py:1061:            print(f"[PTZ-Launcher] scene_path={sc.get('scene_path')}", flush=True)
+ptz_launcher.py:1062:            print(f"[PTZ-Launcher] scene_basename={sc.get('scene_basename')}", flush=True)
+ptz_launcher.py:1063:            print(f"[PTZ-Launcher] camera_prim={sc.get('camera_prim')}", flush=True)
+ptz_launcher.py:1064:            print(f"[PTZ-Launcher] renderer={sc.get('renderer')}", flush=True)
+ptz_launcher.py:1072:                "--ctrl-port", str(ISAAC_PORT),
+ptz_launcher.py:1076:                cmd.extend(["--scene", os.path.abspath(_ov)])
+ptz_launcher.py:1077:                print(f"[PTZ-Launcher] PTZ_SCENE_OVERRIDE（可被磁盘 scene_path 覆盖）→ {_ov}", flush=True)
+ptz_launcher.py:1081:                cmd.extend(["--camera", _cam_ov])
+ptz_launcher.py:1084:            if sc.get("scene_path"):
+ptz_launcher.py:1085:                cmd.extend(["--scene", sc["scene_path"]])
+ptz_launcher.py:1087:                    f"[PTZ-Launcher] 子进程 --scene（与 YAML 一致，最终生效）={sc['scene_path']}",
+ptz_launcher.py:1097:                env=_env_for_ptz_stream_subprocess(),
+ptz_launcher.py:1107:    _isaac_startup_streak = 0
+ptz_launcher.py:1111:        if reuse_external and _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1126:                "[PTZ-Launcher] isaac_stream.log OOM/GPU 相关摘录:\n" + "\n".join(oom_hints),
+ptz_launcher.py:1132:            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1133:            "port_busy": bool(reuse_external),
+ptz_launcher.py:1147:                "[PTZ-Launcher] isaac_stream.log 末尾摘录:\n" + "\n".join(tail_lines[-12:]),
+ptz_launcher.py:1158:            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1159:            "port_busy": True,
+ptz_launcher.py:1164:            "note": "外部占用 ctrl 端口：已通过稳定就绪探测（含 /api/stream_ready）。",
+ptz_launcher.py:1171:        "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1172:        "port_busy": False,
+ptz_launcher.py:1181:def _port_free(port: int) -> bool:
+ptz_launcher.py:1185:        return s.connect_ex(("127.0.0.1", port)) != 0
+ptz_launcher.py:1199:        # 无存活托管子进程：处理「launcher 认为未运行但 8081 仍被旧 ptz_stream 占口」
+ptz_launcher.py:1200:        if not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1204:                "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1205:                "port_listening": False,
+ptz_launcher.py:1209:        project_pids = [pid for pid in pids if _is_project_ptz_stream_pid(pid)]
+ptz_launcher.py:1211:            f"[PTZ-Launcher] stop_isaac: no_managed_proc but ctrl_port busy "
+ptz_launcher.py:1218:                "error": "控制端口已被占用，但监听者不是本项目 ptz_stream，未自动杀进程",
+ptz_launcher.py:1219:                "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1220:                "port_listening": True,
+ptz_launcher.py:1234:            f"msg={msg_kill!r} killed={killed} port_still_busy={_port_in_use(ISAAC_PORT)}",
+ptz_launcher.py:1239:            "ctrl_port": ISAAC_PORT,
+ptz_launcher.py:1240:            "port_listening_after": _port_in_use(ISAAC_PORT),
+ptz_launcher.py:1241:            "action_taken": "orphan_project_ptz_stream_stopped" if ok_kill else "orphan_stop_failed",
+ptz_launcher.py:1245:            "note": "launcher 未持有子进程句柄，但已按本项目 ptz_stream 证据回收占口进程。"
+ptz_launcher.py:1254:            return {"ok": False, "error": "Isaac Sim 未在运行", "ctrl_port": ISAAC_PORT}
+ptz_launcher.py:1265:            f"pre_SIGTERM_poll={proc.poll()} port8081_listening={_port_in_use(ISAAC_PORT)}",
+ptz_launcher.py:1278:            if _port_free(ISAAC_PORT):
+ptz_launcher.py:1284:                f"pid={pid} poll={proc.poll()} port8081_free={_port_free(ISAAC_PORT)}",
+ptz_launcher.py:1290:            f"returncode={proc.returncode} port8081_free={_port_free(ISAAC_PORT)}",
+ptz_launcher.py:1308:        for port in (ISAAC_PORT,):
+ptz_launcher.py:1310:                if _port_free(port):
+ptz_launcher.py:1320:            f"final_returncode={proc.returncode} port8081_free={_port_free(ISAAC_PORT)} "
+ptz_launcher.py:1331:    global _isaac_state, _isaac_startup_streak, _start_time
+ptz_launcher.py:1339:    port_alive = _port_in_use(ISAAC_PORT)
+ptz_launcher.py:1342:    if state == "stopped" and not has_proc_handle and port_alive and _is_isaac_api_health_ok():
+ptz_launcher.py:1359:    elif not has_proc_handle and state in ("running", "starting") and not port_alive:
+ptz_launcher.py:1364:        _isaac_startup_streak = 0
+ptz_launcher.py:1365:    elif state == "starting" and port_alive:
+ptz_launcher.py:1368:            _isaac_startup_streak += 1
+ptz_launcher.py:1369:            if _isaac_startup_streak >= _ISAAC_STARTUP_READY_CONSECUTIVE:
+ptz_launcher.py:1372:                _isaac_startup_streak = 0
+ptz_launcher.py:1374:            _isaac_startup_streak = 0
+ptz_launcher.py:1378:        "isaac_port":  ISAAC_PORT,
+ptz_launcher.py:1382:        "stream_config": _read_stream_config_from_disk(CONFIG_PATH),
+ptz_launcher.py:1383:        "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。"
+ptz_launcher.py:1384:                "ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。",
+ptz_launcher.py:1404:            fut_s = pool3.submit(_http_get_isaac_ex, "/api/stream_ready", _ISAAC_LITE_HTTP_TIMEOUT_S)
+ptz_launcher.py:1418:        stream_ok2 = _json_ok_body(sst, sbody)
+ptz_launcher.py:1419:        ctrl_ready = bool(port_alive and health_ok2 and stream_ok2)
+ptz_launcher.py:1420:        up_deg2, up_reason2 = _parse_upstream_health_ctrl_hints(hbody)
+ptz_launcher.py:1422:            (port_alive and not ctrl_ready)
+ptz_launcher.py:1428:            f"health={herr or hst} stream={serr or sst}" if port_alive and not ctrl_ready else None
+ptz_launcher.py:1430:        result["isaac_process_running"] = bool(proc_alive_launcher or (port_alive and health_ok2))
+ptz_launcher.py:1431:        result["isaac_port_listening"] = bool(port_alive)
+ptz_launcher.py:1447:            status = _get_isaac_status_cached(
+ptz_launcher.py:1459:            elif not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1462:            elif _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1464:                result["isaac_ctrl_degraded_reason"] = "ptz_state_and_status_unreachable_but_port_listening"
+ptz_launcher.py:1468:    elif port_alive or state == "starting":
+ptz_launcher.py:1469:        (hst, hbody, herr), (sst, sbody, serr) = _isaac_fetch_health_stream_parallel(
+ptz_launcher.py:1473:        stream_ok2 = _json_ok_body(sst, sbody)
+ptz_launcher.py:1474:        ctrl_ready = bool(port_alive and health_ok2 and stream_ok2)
+ptz_launcher.py:1475:        up_deg2, up_reason2 = _parse_upstream_health_ctrl_hints(hbody)
+ptz_launcher.py:1477:            (port_alive and not ctrl_ready)
+ptz_launcher.py:1483:            f"health={herr or hst} stream={serr or sst}" if port_alive and not ctrl_ready else None
+ptz_launcher.py:1485:        result["isaac_process_running"] = bool(proc_alive_launcher or (port_alive and health_ok2))
+ptz_launcher.py:1486:        result["isaac_port_listening"] = bool(port_alive)
+ptz_launcher.py:1492:        result["isaac_port_listening"] = bool(port_alive)
+ptz_launcher.py:1505:_ws_cache      = {"jpeg": None, "frame_id": 0}
+ptz_launcher.py:1506:_ws_cache_lock = threading.Lock()
+ptz_launcher.py:1518:        if _isaac_state == "running" or _port_in_use(ISAAC_PORT):
+ptz_launcher.py:1525:                    with _ws_cache_lock:
+ptz_launcher.py:1526:                        _ws_cache["jpeg"]     = data
+ptz_launcher.py:1527:                        _ws_cache["frame_id"] += 1
+ptz_launcher.py:1595:_RTSP_PORT = cfg.get("mediamtx", {}).get("port", 8554)
+ptz_launcher.py:1597:_ONVIF_RTSP_HOST_OVERRIDE = str(cfg.get("onvif_rtsp_host") or "").strip()
+ptz_launcher.py:1607:        from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+ptz_launcher.py:1694:    """从 HTTP Host 头解析纯主机名（IPv4:port 不能用 split(':')[0]，否则会截成 '192'）。"""
+ptz_launcher.py:1706:def _rtsp_host_for_onvif(http_host: str, client_ip: str) -> str:
+ptz_launcher.py:1879:def _port_in_use(port: int) -> bool:
+ptz_launcher.py:1883:        if s.connect_ex(("127.0.0.1", port)) == 0:
+ptz_launcher.py:1885:    return bool(_get_listening_pids(port))
+ptz_launcher.py:1888:def _get_listening_pids(port: int) -> list[int]:
+ptz_launcher.py:1892:            ["lsof", "-t", f"-iTCP:{port}", "-sTCP:LISTEN", "-nP"],
+ptz_launcher.py:1911:    """读取 /proc/<pid>/cmdline（尽力而为），用于判断是否属于本项目 ptz_stream。"""
+ptz_launcher.py:1927:def _is_project_ptz_stream_pid(pid: int) -> bool:
+ptz_launcher.py:1931:    # 启动 argv 含本项目 ptz_stream.py 绝对路径
+ptz_launcher.py:1934:    if "ptz_stream.py" not in cmd:
+ptz_launcher.py:1945:def _force_kill_project_isaac_ctrl(port: int) -> tuple[bool, str, list[int]]:
+ptz_launcher.py:1946:    """当 force_restart=true 时，尽力杀掉本项目的 ptz_stream（只在监听者确认为本项目时）。"""
+ptz_launcher.py:1947:    pids = _get_listening_pids(port)
+ptz_launcher.py:1949:        return (True, "port not listening anymore", [])
+ptz_launcher.py:1951:    project_pids = [pid for pid in pids if _is_project_ptz_stream_pid(pid)]
+ptz_launcher.py:1953:        return (False, "port busy but listeners not recognized as project ptz_stream", pids)
+ptz_launcher.py:1955:    # SIGTERM -> 等待 -> SIGKILL（只针对本项目 ptz_stream）
+ptz_launcher.py:1964:        if not _port_in_use(port):
+ptz_launcher.py:1965:            return (True, "project ptz_stream killed; port freed", project_pids)
+ptz_launcher.py:1974:    ok = not _port_in_use(port)
+ptz_launcher.py:1977:        "project ptz_stream killed; port freed by SIGKILL" if ok else "force_kill failed",
+ptz_launcher.py:1984:    disk = _read_stream_config_from_disk(CONFIG_PATH)
+ptz_launcher.py:1989:        "launcher_port": LAUNCHER_PORT,
+ptz_launcher.py:1990:        "isaac_ctrl_port": ISAAC_PORT,
+ptz_launcher.py:2001:            "修改 ptz_config.yaml 的 scene_path 后 POST /stop 再 POST /start；"
+ptz_launcher.py:2002:            "或 ./start_abnormal_web.sh <样本.usd>；"
+ptz_launcher.py:2003:            "PTZ_SCENE_OVERRIDE 仅作兼容，启动时仍以当前 YAML 中 scene_path 为准（子进程 argv 中后写 --scene）。"
+ptz_launcher.py:2009:    if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:2069:    """后台线程：Isaac Sim 运行时启动 ffmpeg 读 RTSP，解析 FLV tag 并广播给客户端。"""
+ptz_launcher.py:2075:        if _isaac_state != "running" or not _port_in_use(8554):
+ptz_launcher.py:2082:            "ffmpeg", "-loglevel", "quiet",
+ptz_launcher.py:2087:            "-rtsp_transport", "tcp",
+ptz_launcher.py:2088:            "-i", "rtsp://localhost:8554/ptz_cam",
+ptz_launcher.py:2225:    st = _get_isaac_status_cached(timeout=_ISAAC_STATUS_FETCH_TIMEOUT_CAP_S, max_age=1.5)
+ptz_launcher.py:2241:    status = _get_isaac_status_cached(timeout=2.0)
+ptz_launcher.py:2276:    # dynamic_lookat：Isaac 侧 default_initial 使用 base + dynamic_startup_* 作为「对目标的中性可见位」；
+ptz_launcher.py:2616:        rtsp_host = _rtsp_host_for_onvif(host, client_ip)
+ptz_launcher.py:2617:        rtsp_url  = f"rtsp://{rtsp_host}:{_RTSP_PORT}/ptz_cam"
+ptz_launcher.py:2619:            f"[ONVIF] GetStreamUri Host={host!r} client={client_ip!r} → {rtsp_url}",
+ptz_launcher.py:2624:    <tt:Uri>{rtsp_url}</tt:Uri>
+ptz_launcher.py:2738:      <tt:H264ProfilesSupported>Baseline</tt:H264ProfilesSupported>
+ptz_launcher.py:2739:      <tt:H264ProfilesSupported>Main</tt:H264ProfilesSupported>
+ptz_launcher.py:2740:      <tt:H264ProfilesSupported>High</tt:H264ProfilesSupported>
+ptz_launcher.py:2876:    <tt:SupportedPTZSpaces>
+ptz_launcher.py:2891:    </tt:SupportedPTZSpaces>
+ptz_launcher.py:2893:    <tt:HomeSupported>false</tt:HomeSupported>
+ptz_launcher.py:3117:                self.wfile.write(b"snapshot upstream unavailable")
+ptz_launcher.py:3133:        if path == "/scene/state":
+ptz_launcher.py:3134:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/state")
+ptz_launcher.py:3137:        if path == "/scene/random-config":
+ptz_launcher.py:3138:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/random-config")
+ptz_launcher.py:3141:        if path == "/api/scene/randomize/last":
+ptz_launcher.py:3142:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3145:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/api/scene/randomize/last")
+ptz_launcher.py:3148:        if path == "/api/scene/random-config":
+ptz_launcher.py:3149:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3152:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/api/scene/random-config")
+ptz_launcher.py:3155:        if path == "/scene/hdri":
+ptz_launcher.py:3156:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/hdri")
+ptz_launcher.py:3159:        if path == "/scene/environment":
+ptz_launcher.py:3160:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/environment")
+ptz_launcher.py:3163:        if path == "/scene/dynamic-sky-presets":
+ptz_launcher.py:3164:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/dynamic-sky-presets")
+ptz_launcher.py:3167:        if path == "/scene/describe":
+ptz_launcher.py:3168:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/scene/describe")
+ptz_launcher.py:3175:        if path == "/render/volumetric":
+ptz_launcher.py:3176:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3179:            self._proxy_once(f"http://127.0.0.1:{ISAAC_PORT}/render/volumetric")
+ptz_launcher.py:3190:        if path == "/api/scene/randomize/last":
+ptz_launcher.py:3196:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3203:                        "scene_type": "gondola",
+ptz_launcher.py:3242:        # 透明代理 POST 到 Isaac Sim 的 /control 和 /scene/* 端点（Web UI 用）
+ptz_launcher.py:3245:            "/scene/gondola",
+ptz_launcher.py:3246:            "/scene/workers",
+ptz_launcher.py:3247:            "/scene/randomize",
+ptz_launcher.py:3248:            "/api/scene/randomize",
+ptz_launcher.py:3249:            "/scene/activate_diaolan",
+ptz_launcher.py:3250:            "/scene/select_diaolan",
+ptz_launcher.py:3251:            "/scene/random-config",
+ptz_launcher.py:3252:            "/scene/hdri/group",
+ptz_launcher.py:3253:            "/scene/hdri/select",
+ptz_launcher.py:3254:            "/scene/hdri/random",
+ptz_launcher.py:3255:            "/scene/environment",
+ptz_launcher.py:3256:            "/scene/dynamic-sky-preset",
+ptz_launcher.py:3257:            "/scene/experiment",
+ptz_launcher.py:3258:            "/scene/safety-components/status",
+ptz_launcher.py:3259:            "/scene/safety-components/apply",
+ptz_launcher.py:3260:            "/render/volumetric",
+ptz_launcher.py:3264:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3396:            if path in ("/scene/randomize", "/api/scene/randomize", "/scene/activate_diaolan"):
+ptz_launcher.py:3398:            elif path == "/scene/experiment":
+ptz_launcher.py:3400:            elif path in ("/scene/safety-components/status", "/scene/safety-components/apply"):
+ptz_launcher.py:3404:                "/scene/hdri/group",
+ptz_launcher.py:3405:                "/scene/hdri/select",
+ptz_launcher.py:3406:                "/scene/hdri/random",
+ptz_launcher.py:3407:                "/scene/environment",
+ptz_launcher.py:3408:                "/scene/dynamic-sky-preset",
+ptz_launcher.py:3427:            # POST /api/scene/randomize/last：上游 4xx/5xx 的 JSON 须原样透传，避免把 HTTPError 包装成 502
+ptz_launcher.py:3428:            if path != "/api/scene/randomize/last":
+ptz_launcher.py:3522:                ct = r.headers.get("Content-Type", "application/octet-stream")
+ptz_launcher.py:3562:            with _ws_cache_lock:
+ptz_launcher.py:3563:                jpeg = _ws_cache.get("jpeg")
+ptz_launcher.py:3565:                source = "launcher-ws-cache"
+ptz_launcher.py:3571:                self.send_header("Cache-Control", "no-cache, no-store")
+ptz_launcher.py:3576:                self.wfile.write(b"snapshot upstream unavailable")
+ptz_launcher.py:3585:            self.send_header("Cache-Control",  "no-cache, no-store")
+ptz_launcher.py:3598:                ct   = r.headers.get("Content-Type", "application/octet-stream")
+ptz_launcher.py:3602:            self.send_header("Cache-Control",  "no-cache, no-store")
+ptz_launcher.py:3619:                        "error": "upstream_unreachable",
+ptz_launcher.py:3620:                        "upstream": "8081",
+ptz_launcher.py:3621:                        "upstream_timeout": is_to,
+ptz_launcher.py:3661:                with _ws_cache_lock:
+ptz_launcher.py:3662:                    fid  = _ws_cache["frame_id"]
+ptz_launcher.py:3663:                    jpeg = _ws_cache["jpeg"]
+ptz_launcher.py:3735:def _sync_isaac_state_on_startup() -> None:
+ptz_launcher.py:3738:    if _port_in_use(ISAAC_PORT):
+ptz_launcher.py:3749:                "状态同步为 starting（需 /api/stream_ready 等）"
+ptz_launcher.py:3758:    _sync_isaac_state_on_startup()
+ptz_launcher.py:3778:    print(f"[PTZ-Launcher] RTSP 视频流：rtsp://{lan_ip}:{_RTSP_PORT}/ptz_cam  (VLC / NVR)")
+ptz_stream.py:5:将 Isaac Sim 中 PTZ_SecurityDome.usda 的相机画面以 RTSP 流形式输出。
+ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+ptz_stream.py:13:    vlc rtsp://localhost:8554/ptz_cam
+ptz_stream.py:14:    ffplay rtsp://localhost:8554/ptz_cam -rtsp_transport tcp
+ptz_stream.py:17:    将本文件、ptz_rtsp_config.yaml、PTZ_SecurityDome.usda 一起复制到目标工程目录即可。
+ptz_stream.py:18:    在配置文件中修改 scene_path 和 camera_prim 适配目标场景。
+ptz_stream.py:24:import argparse
+ptz_stream.py:25:from collections import Counter
+ptz_stream.py:26:import copy
+ptz_stream.py:27:import os
+ptz_stream.py:28:import sys
+ptz_stream.py:54:parser.add_argument("--config", default=os.path.join(os.path.dirname(__file__), "ptz_rtsp_config.yaml"),
+ptz_stream.py:55:                    help="YAML 配置文件路径（默认：脚本同目录的 ptz_rtsp_config.yaml）")
+ptz_stream.py:56:parser.add_argument("--scene",     default=None, help="覆盖 scene_path 配置")
+ptz_stream.py:57:parser.add_argument("--camera",    default=None, help="覆盖 camera_prim 配置")
+ptz_stream.py:58:parser.add_argument("--rtsp",      default=None, help="覆盖 rtsp_url 配置")
+ptz_stream.py:60:parser.add_argument("--ctrl-port", type=int, default=None, dest="ctrl_port",
+ptz_stream.py:61:                    help="HTTP 控制 API 监听端口（默认读取配置文件 ctrl_port，回退 8080）")
+ptz_stream.py:65:import yaml  # Isaac Sim kit python 内置 PyYAML
+ptz_stream.py:68:from scene_perception import (
+ptz_stream.py:71:    attach_perception_to_randomize_result,
+ptz_stream.py:89:scene_path      = _resolve_path(args.scene   or cfg["scene_path"])
+ptz_stream.py:90:camera_prim     = args.camera  or cfg["camera_prim"]
+ptz_stream.py:91:rtsp_url        = args.rtsp    or cfg["rtsp_url"]
+ptz_stream.py:97:rtsp_enabled    = cfg.get("rtsp_enabled",    True)
+ptz_stream.py:110:    0.0, float(cfg.get("randomize_render_stabilize_window_s", 3.0))
+ptz_stream.py:145:    cfg.get("wall_constraint_prim_path", cfg.get("camera_height_wall_prim_path", _WALL_CONSTRAINT_PRIM_DEFAULT)),
+ptz_stream.py:173:    cfg.get("camera_orientation_mode", "dynamic_lookat"),
+ptz_stream.py:189:    cfg.get("camera_lookat_target_xyz", [101.1, 0.4, 18.13]),
+ptz_stream.py:191:    "camera_lookat_target_xyz",
+ptz_stream.py:206:    cfg.get("dynamic_startup_pan_offset_deg", 0.0), 0.0, "dynamic_startup_pan_offset_deg"
+ptz_stream.py:209:    cfg.get("dynamic_startup_tilt_offset_deg", 0.0), 0.0, "dynamic_startup_tilt_offset_deg"
+ptz_stream.py:213:def _normalize_renderer_mode(raw_renderer) -> str:
+ptz_stream.py:214:    raw = str(raw_renderer or "").strip()
+ptz_stream.py:220:            f"[renderer-fix] requested_renderer={raw or '<empty>'} -> forced={_RENDERER_TARGET_MODE}"
+ptz_stream.py:224:def _simulation_renderer_name(mode: str) -> str:
+ptz_stream.py:230:renderer_mode   = _normalize_renderer_mode(cfg.get("renderer", _RENDERER_TARGET_MODE))
+ptz_stream.py:231:cfg["renderer"] = renderer_mode
+ptz_stream.py:232:sim_renderer_name = _simulation_renderer_name(renderer_mode)
+ptz_stream.py:237:def _camera_rig_translate_from_cfg(c: dict) -> tuple[float, float, float]:
+ptz_stream.py:238:    """camera_rig_translate_xyz: [x,y,z] → 启动时写入 rig；无效或缺省 → (82,-72,28)。"""
+ptz_stream.py:239:    raw = c.get("camera_rig_translate_xyz")
+ptz_stream.py:248:_CAMERA_RIG_TRANSLATE_XYZ = _camera_rig_translate_from_cfg(cfg)
+ptz_stream.py:253:print(f"[PTZ-RTSP] 配置：场景={scene_path}")
+ptz_stream.py:254:print(f"[PTZ-RTSP]       相机Prim={camera_prim}")
+ptz_stream.py:255:print(f"[PTZ-RTSP]       RTSP URL={rtsp_url}  分辨率={W}x{H}  fps={fps}")
+ptz_stream.py:256:print(f"[PTZ-RTSP]       renderer={renderer_mode}  preview_enabled={preview_enabled}")
+ptz_stream.py:268:    f"(camera_rig_translate_xyz 或 fallback)"
+ptz_stream.py:272:from isaacsim import SimulationApp
+ptz_stream.py:276:    "renderer": sim_renderer_name,
+ptz_stream.py:284:import asyncio
+ptz_stream.py:285:import io as _io
+ptz_stream.py:286:import json
+ptz_stream.py:287:import queue
+ptz_stream.py:288:import random
+ptz_stream.py:289:import traceback
+ptz_stream.py:290:import signal
+ptz_stream.py:291:import subprocess
+ptz_stream.py:292:import tarfile
+ptz_stream.py:293:import threading
+ptz_stream.py:294:import time
+ptz_stream.py:295:import urllib.request
+ptz_stream.py:296:import uuid
+ptz_stream.py:297:from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
+ptz_stream.py:299:import numpy as np
+ptz_stream.py:300:import omni.replicator.core as rep
+ptz_stream.py:301:import omni.usd
+ptz_stream.py:302:from isaacsim.core.api import World
+
+===== KIT_ENV_FROM_PROCESS =====
+PID_8081=2701356
+CONDA_PYTHON_EXE=/home/uniubi/miniconda3/bin/python
+HOME=/home/uniubi
+LD_LIBRARY_PATH=/home/uniubi/miniconda3/envs/env_isaaclab/lib
+PATH=/home/uniubi/.cursor-server/bin/linux-x64/e9ee1339915a927dfb2df4a836dd9c8337e17cc0:/home/uniubi/.cursor-server/bin/linux-x64/e9ee1339915a927dfb2df4a836dd9c8337e17cc0/bin/remote-cli:/home/uniubi/.nvm/versions/node/v20.19.6/bin:/home/uniubi/miniconda3/bin:/home/uniubi/miniconda3/condabin:/home/uniubi/.cursor-server/bin/linux-x64/e9ee1339915a927dfb2df4a836dd9c8337e17cc0/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+===== GPU_DRIVER =====
+Thu Apr 30 06:04:03 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.126.09             Driver Version: 580.126.09     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 5070        Off |   00000000:01:00.0  On |                  N/A |
+| 36%   56C    P1            149W /  250W |    9925MiB /  12227MiB |    100%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A         2701356    C+G   ...envs/env_isaaclab/bin/python3       9655MiB |
+|    0   N/A  N/A         2701771      C   ffmpeg                                  181MiB |
++-----------------------------------------------------------------------------------------+
+
+===== DISK_CACHE_HINTS =====
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3  753G  723G   31G  96% /home
+16G	/home/uniubi/.cache/ov
+14G	/home/uniubi/.local/share/ov
+1.3G	/home/uniubi/.nvidia-omniverse
+
+===== CURRENT_8081_GET =====
+--- http://127.0.0.1:8081/api/health ---
+{"ok": true, "process_alive": true, "control_http_ready": true, "degraded": false, "reason": null, "ts": 1777529043.4064493, "service": "ptz_stream", "listen": "0.0.0.0", "ctrl_port": 8081, "timestamp": "2026-04-30T06:04:03", "stream_init_ready": true, "control_plane_snapshot": {"ctrl_http_inflight": 1, "ctrl_http_max_inflight": 32, "degraded": false, "busy_reason": null}}
+HTTP_CODE=200 TIME_TOTAL=0.000936
+
+--- http://127.0.0.1:8081/stream-ready ---
+
+HTTP_CODE=404 TIME_TOTAL=0.000431
+
+--- http://127.0.0.1:8081/status ---
+{"pan": 70.7666, "tilt": -14.821, "zoom": 1.5, "stream": {"role": "isaac_ptz_stream", "config_file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml", "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda", "scene_basename": "scene_4diaolan_ptz.usda", "camera_prim": "/World/CameraRig/CamTilt/Camera", "stage_open_ok": true, "open_stage_detail": "streaming_ready", "camera_bound_ok": true, "render_product": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x7b3cda747b90>", "rtsp_enabled": true, "rtsp_url": "rtsp://localhost:8554/ptz_cam", "preview_enabled": false, "resolution_wh": [960, 540], "control_base": "http://127.0.0.1:8081", "mjpeg_url": "http://127.0.0.1:8081/stream.mjpeg", "snapshot_url": "http://127.0.0.1:8081/snapshot.jpg", "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)", "ffmpeg_alive": true, "mediamtx_started": true, "render_capture_last_frame_source": "viewport_delegate_fallback", "render_capture_last_fallback_reason": "replicator_black_viewport_healthy", "render_capture_last_replicator_rgb_mean": 0.0, "render_capture_last_viewport_rgb_mean": 175.36871013374486, "gondola_resolved_prim": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan", "node1_resolved_prim": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01", "node2_resolved_prim": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02", "camera_rig_resolved_prim": "/World/CameraRig", "gondola_init_height": 31.882573128787406, "gondola_init_workers_visible": 1, "gondola_init_relation": "diaolan_randomizer_managed", "gondola_group1_source": "diaolan_randomizer", "target_projection_metrics": {"prim_path": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan", "distance_to_camera": 114.14, "frustum内可见": true, "屏幕包围框px": [18.99, 303.7, 34.44, 313.37], "中心点px": [26.71, 308.54], "宽度占比%": 1.61, "高度占比%": 1.79, "越界面积占比": 0.0, "中心在画面内": true, "目标像素占比": 0.0003, "画面内交集像素占比": 0.000288}, "camera_view_perception": {"image_wh": [960, 540], "camera_prim_path": "/World/CameraRig/CamTilt/Camera", "active_diaolan_path": "/World/Diaolan/Diaolan", "gondola_prim_path": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan", "gondola_world_height_axis": 30.94, "gondola_projection": {"prim_path": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan", "distance_to_camera": 114.14, "frustum内可见": true, "屏幕包围框px": [18.99, 303.7, 34.44, 313.37], "中心点px": [26.71, 308.54], "宽度占比%": 1.61, "高度占比%": 1.79, "越界面积占比": 0.0, "中心在画面内": true, "目标像素占比": 0.0003, "画面内交集像素占比": 0.000288}, "workers": [], "camera_view_worker_count": 0, "rendered_worker_paths_under_active_count": 0, "workers_all_projected_in_view": true, "min_worker_area_ratio": 0.00012}, "render_capture_bind_seq": 2, "rendercurl: (23) Failure writing output to destination
+
+
+===== RECENT_LOG_TAIL =====
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=3 queue_empty=9 last_frame_age_ms=1538 push_fps=2.2 avg_write_ms=1.9
+[PTZ-RTSP][main] render_fps=0.7  step=9.4ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363624
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.4 avg_write_ms=0.7
+[PTZ-RTSP][viewport-camera-bind] bind_ok=True restore_ok=True rtsp_bind_target='/World/CameraRig/CamTilt/Camera' restore_path='/OmniverseKit_Persp'
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.4 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=9.6ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363648
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=9 last_frame_age_ms=501 push_fps=2.3 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=9.5ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363672
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=8 last_frame_age_ms=516 push_fps=2.3 avg_write_ms=1.2
+[PTZ-RTSP][main] render_fps=0.7  step=9.3ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363696
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.3 avg_write_ms=1.2
+[PTZ-RTSP][main] render_fps=0.8  step=9.5ms  get_data=0.2ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363720
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.4 avg_write_ms=1.8
+[PTZ-RTSP][main] render_fps=0.7  step=9.6ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363744
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=3 queue_empty=9 last_frame_age_ms=1533 push_fps=2.2 avg_write_ms=1.8
+[PTZ-RTSP][viewport-camera-bind] bind_ok=True restore_ok=True rtsp_bind_target='/World/CameraRig/CamTilt/Camera' restore_path='/OmniverseKit_Persp'
+[PTZ-RTSP][main] render_fps=0.7  step=9.4ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363768
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=8 last_frame_age_ms=501 push_fps=2.4 avg_write_ms=0.7
+[PTZ-RTSP][main] render_fps=0.7  step=9.6ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363792
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.3 avg_write_ms=1.7
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.4 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=10.5ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363816
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.3 avg_write_ms=0.7
+[PTZ-RTSP][main] render_fps=0.8  step=9.5ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363840
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=9 last_frame_age_ms=501 push_fps=2.3 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=9.5ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363864
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.3 avg_write_ms=1.6
+[PTZ-RTSP][viewport-camera-bind] bind_ok=True restore_ok=True rtsp_bind_target='/World/CameraRig/CamTilt/Camera' restore_path='/OmniverseKit_Persp'
+[PTZ-RTSP][main] render_fps=0.7  step=9.7ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363888
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=8 last_frame_age_ms=1032 push_fps=2.3 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=9.4ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363912
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=9 last_frame_age_ms=501 push_fps=2.4 avg_write_ms=0.8
+[PTZ-RTSP][main] render_fps=0.7  step=9.7ms  get_data=0.2ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363936
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.3 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.8  step=9.6ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363960
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.4 avg_write_ms=1.6
+[PTZ-RTSP][main] render_fps=0.7  step=9.7ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=363984
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.3 avg_write_ms=0.8
+[PTZ-RTSP][viewport-camera-bind] bind_ok=True restore_ok=True rtsp_bind_target='/World/CameraRig/CamTilt/Camera' restore_path='/OmniverseKit_Persp'
+[PTZ-RTSP][main] render_fps=0.7  step=10.9ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=364008
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=1 queue_empty=9 last_frame_age_ms=501 push_fps=2.3 avg_write_ms=1.9
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=9 last_frame_age_ms=1002 push_fps=2.2 avg_write_ms=1.7
+[PTZ-RTSP][main] render_fps=0.6  step=11.0ms  get_data=0.3ms  tobytes=0.3ms  jpeg=0.0ms  drop=0  sim_frame=364032
+[PTZ-RTSP][write] source=repeat_last_frame repeat_count=2 queue_empty=8 last_frame_age_ms=1027 push_fps=2.3 avg_write_ms=1.5
+[PTZ-RTSP][main] render_fps=0.7  step=9.7ms  get_data=0.3ms  tobytes=0.2ms  jpeg=0.0ms  drop=0  sim_frame=364056
+[PTZ-RTSP][write] source=viewport_delegate_standalone repeat_count=0 queue_empty=8 last_frame_age_ms=0 push_fps=2.4 avg_write_ms=0.7
+[PTZ-RTSP][main] render_fps=0.8  step=9.9ms  get_data=0.3ms  tobytes=0.3ms  jpeg=0.0ms  drop=0  sim_frame=364080
+
+===== DONE_COMPARE_144 =====

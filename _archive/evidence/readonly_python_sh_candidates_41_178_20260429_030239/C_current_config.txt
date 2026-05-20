@@ -1,0 +1,12 @@
+=== ptz_config.yaml 相关行 ===
+7:ctrl_port: 8081
+23:onvif_rtsp_host: ''
+27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+38:rtsp_enabled: true
+39:rtsp_url: rtsp://localhost:8554/ptz_cam
+40:scene_path: /home/uniubi/xuanyuan/camera03/scene_4diaolan_ptz.usda
+
+解析的 python_sh 值: [/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3]
+存在: no
+可执行: no
+stat: cannot statx '/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3': No such file or directory

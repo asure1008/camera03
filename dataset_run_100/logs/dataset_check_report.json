@@ -1,0 +1,18 @@
+{
+  "manifest_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100/manifests/dataset_manifest_full.jsonl",
+  "stats_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100/stats/dataset_stats_full.json",
+  "total_samples": 100,
+  "scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "basket_state_counts": {
+    "ground_empty": 100,
+    "air_with_person": 100,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "failed_samples": 0,
+  "failures": []
+}

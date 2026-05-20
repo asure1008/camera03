@@ -1,0 +1,118 @@
+{
+  "start_line": 14905,
+  "new_log_lines": 64609,
+  "captured_meta_rows": 11,
+  "captured_camera_rows": 11,
+  "captured_scene_rows": 11,
+  "runs": [
+    {
+      "idx": 1,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_27/Component432_27/Mesh231/Mesh231",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 2,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_25/Component432_25/Mesh223/Mesh223",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 3,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_1_28/Component430_28/Mesh232/Mesh232",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 4,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_27/Component431_27/Mesh230/Mesh230",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 5,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_1_26/Component429_26/Mesh225/Mesh225",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 6,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_1_35/Component429_35/Mesh265/Mesh265",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 7,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_24/Component432_24/Mesh219/Mesh219",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 8,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228/Mesh228",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 9,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_22/Component431_22/Mesh210/Mesh210",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    },
+    {
+      "idx": 10,
+      "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5",
+      "candidate_count": 38,
+      "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_22/Component431_22/Mesh210/Mesh210",
+      "selected_mount_in_candidate_pool": true,
+      "mounted_on_wall": true,
+      "startup_view_visible": true,
+      "selected_group": "Group5/Group7"
+    }
+  ],
+  "group_hits": {
+    "Group5/Group7": 10
+  },
+  "collection_roots": [
+    "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5"
+  ],
+  "candidate_count_set": [
+    38
+  ]
+}

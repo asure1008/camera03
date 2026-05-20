@@ -1,0 +1,80 @@
+1:#!/usr/bin/env python3
+9:    python3 ptz_launcher.py [--config ./ptz_config.yaml]
+18:    POST http://localhost:8080/start              启动 Isaac Sim
+43:import subprocess
+69:PYTHON_SH     = cfg.get("python_sh",
+70:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+97:def _strip_pathlist_with_banned(path_val: str, banned: tuple[str, ...]) -> str:
+110:def _read_isaac_log_tail(max_lines: int = 48) -> list[str]:
+135:def _isaac_log_oom_hints(max_scan_lines: int = 400, max_hints: int = 8) -> list[str]:
+150:def _env_for_ptz_stream_subprocess() -> dict:
+160:        if not cfg.get("isaac_child_preserve_pythonpath", False):
+180:def _read_stream_config_from_disk(config_path: str) -> dict:
+223:def _default_preset_name(token: str) -> str:
+234:def _clamp(v: float, lo: float, hi: float) -> float:
+238:def _preset_token_order() -> list[str]:
+242:def _normalize_preset(token: str, item: dict | None) -> dict | None:
+254:def _load_presets_from_cfg() -> dict[str, dict]:
+271:def _build_startup_preset() -> dict | None:
+293:def _persist_presets() -> None:
+317:def _list_presets() -> list[dict]:
+326:def _get_preset(token: str) -> dict | None:
+334:def _save_preset(token: str | None, name: str | None, ptz: dict) -> dict:
+356:def _delete_preset(token: str) -> bool:
+367:def _preset_to_onvif_xml(preset: dict) -> str:
+377:def _soap_fault(reason: str, code: str = "ter:InvalidArgVal") -> bytes:
+388:_isaac_proc: subprocess.Popen | None = None
+406:def _http_get_isaac_ex(path: str, timeout: float = 5.0) -> tuple[int | None, bytes, str | None]:
+433:def _isaac_fetch_health_stream_parallel(
+453:def _parse_upstream_health_ctrl_hints(body: bytes) -> tuple[bool | None, str | None]:
+470:def _isaac_ctrl_degraded_probe_detail(http_st: int | None, err: str | None) -> dict:
+493:def _http_get_isaac(path: str, timeout: float = 5.0) -> tuple[int | None, bytes]:
+498:def _http_get_isaac_json_small(path: str, timeout: float, max_bytes: int = 262144) -> dict | None:
+516:def _isaac_api_path_ok(path: str, timeout: float) -> bool:
+528:def _is_isaac_api_health_ok() -> bool:
+532:def _is_isaac_scene_state_ok() -> bool:
+540:def _external_ctrl_min_healthy() -> tuple[bool, str]:
+555:def _isaac_child_operational_truth(proc: subprocess.Popen) -> tuple[bool, str]:
+574:def _wait_prev_isaac_stop_complete(timeout_s: float = 90.0) -> tuple[bool, str]:
+590:def _is_isaac_stream_init_ready() -> bool:
+595:def _is_isaac_snapshot_jpeg_ready() -> bool:
+602:def _is_isaac_http_ready() -> bool:
+616:def _isaac_deemed_ready_for_launcher(preview_enabled: bool) -> bool:
+629:def _launcher_api_health() -> dict:
+640:    def _json_ok_field(st: int | None, body: bytes) -> bool:
+723:def _get_isaac_status_cached(timeout: float = 90.0, max_age: float = _STATUS_CACHE_TTL_S) -> dict | None:
+751:def _read_snapshot_proxy_cache(max_age: float) -> tuple[bytes | None, str | None]:
+760:def _cache_snapshot_proxy(jpeg: bytes, source: str) -> None:
+767:def _is_jpeg_bytes(data: bytes) -> bool:
+771:def _fetch_runtime_snapshot_jpeg(
+796:def _get_snapshot_proxy_data() -> tuple[bytes | None, str | None]:
+831:def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
+856:def _wait_isaac_post_spawn_ready(
+857:    proc: subprocess.Popen | None, preview_enabled: bool
+882:def _watch_isaac(proc: subprocess.Popen) -> None:
+902:def start_isaac(force_restart: bool = False) -> dict:
+904:    spawned_proc: subprocess.Popen | None = None
+919:    stale_to_kill: subprocess.Popen | None = None
+1091:            spawned_proc = subprocess.Popen(
+1097:                env=_env_for_ptz_stream_subprocess(),
+1181:def _port_free(port: int) -> bool:
+1188:def stop_isaac() -> dict:
+1269:    def _wait():
+1301:        except (subprocess.TimeoutExpired, ChildProcessError) as e:
+1329:def get_status() -> dict:
+1387:    def _json_ok_body(st: int | None, body: bytes) -> bool:
+1512:def _ws_frame_fetcher() -> None:
+1534:def _ws_send(sock_file, data: bytes) -> None:
+1565:def _clamp(v: float, lo: float, hi: float) -> float:
+1569:def _norm_to_pan(norm: float) -> float:
+1573:def _pan_to_norm(pan_deg: float) -> float:
+1577:def _norm_to_tilt(norm: float) -> float:
+1582:def _tilt_to_norm(tilt_deg: float) -> float:
+1587:def _norm_to_zoom(norm: float) -> float:
+1591:def _zoom_to_norm(zoom_x: float) -> float:
+1600:def _make_offline_jpeg() -> bytes:
+1655:def _get_local_ips() -> list:
+1682:def _get_sender_local_ip(remote_ip: str) -> str:
+1693:def _parse_host_header_host_only(host_hdr: str) -> str:
+1706:def _rtsp_host_for_onvif(http_host: str, client_ip: str) -> str:
+1722:def _wsd_probe_match(msg_id: str, local_ip: str) -> bytes:

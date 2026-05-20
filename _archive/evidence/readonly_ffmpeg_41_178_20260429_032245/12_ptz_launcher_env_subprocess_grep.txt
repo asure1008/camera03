@@ -1,0 +1,11 @@
+148-
+149-
+150:def _env_for_ptz_stream_subprocess() -> dict:
+151-    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+152-
+--
+1095-                cwd=script_dir,
+1096-                start_new_session=True,
+1097:                env=_env_for_ptz_stream_subprocess(),
+1098-            )
+1099-            _isaac_proc = spawned_proc

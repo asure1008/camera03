@@ -1,0 +1,4 @@
+=== after kill, ss 8080 ===
+(none)
+=== proc still exists? ===
+PID gone

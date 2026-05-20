@@ -1,0 +1,85 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+	modified:   API.md
+	modified:   README.md
+	modified:   V4.0.usd
+	modified:   docs/API.md
+	modified:   ptz_config.yaml
+	modified:   ptz_launcher.py
+	modified:   ptz_stream.py
+	modified:   ptz_web_control.html
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.gondola_height_verify_20260414_0746.json
+	DEPLOY.md
+	DiaoLan_ChangJing_2026.03.18_unpacked/
+	_archive/
+	analyze_target_projection.py
+	changjing_aabb_report.yaml
+	check_health.sh
+	dataset_run_10/
+	dataset_run_100/
+	dataset_run_100_camcheck_conservative/
+	dataset_run_100_camcheck_tuned/
+	dataset_run_10_camcheck/
+	dataset_run_10_camcheck_tuned/
+	debug_wall_constraint_sampling.py
+	diaolan_randomizer.py
+	diaolan_scene_variables.txt
+	discover_diaolan_prims.py
+	generate_scene_usd.py
+	inspect_bounds.py
+	inspect_material.py
+	inspect_target_prim.py
+	launcher.out
+	parse_mem.py
+	phase25_ab_test.py
+	phase25_main_verify.py
+	phase25_restore_verify.py
+	phase25_validate_and_ab.py
+	ptz_config.yaml.formal_verify_backup_20260403_053042
+	ptz_config.yaml.single_var_backup_20260403
+	ptz_config.yaml.verify_backup_20260403_052642
+	ptz_stream.py.internal_probe_backup_20260403
+	ptz_stream_novis.py
+	ptz_web_control.html.step5_bak_20260407_093339
+	ptz_web_control.html.step7_bak_20260407_093647
+	ptz_web_control.html.step8_bak_20260407_093748
+	rollback_safe.sh
+	run_2diaolan_test.py
+	run_4quadrant_regression.py
+	run_4quadrant_regression_fix.py
+	run_constrained_random_acceptance.py
+	run_diaolan03_local_content_experiment.py
+	run_diaolan03_runtime_local_content_experiment.py
+	run_generate_scene_usd.sh
+	scene_perception.py
+	start_abnormal_web.sh
+	start_safe.sh
+	step1_restore.py
+	step2_random.py
+	stop_all.sh
+	test_snaps_loop.py
+	test_state_loop.py
+	text01/
+	tools/
+	usd_print_prim_tree.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+===
+ .gitignore           |    49 +
+ API.md               |   108 +-
+ README.md            |   176 +-
+ V4.0.usd             |   Bin 15113 -> 16123 bytes
+ docs/API.md          |    85 +-
+ ptz_config.yaml      |   201 +-
+ ptz_launcher.py      |  2502 ++++++++--
+ ptz_stream.py        | 12997 +++++++++++++++++++++++++++++++++++++++++++++++--
+ ptz_web_control.html |  1649 ++++++-
+ 9 files changed, 16860 insertions(+), 907 deletions(-)

@@ -1,0 +1,11 @@
+=== grep python_sh scene_path ctrl_port rtsp from ptz_config.yaml ===
+7:ctrl_port: 8081
+27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+38:rtsp_enabled: true
+39:rtsp_url: rtsp://localhost:8554/ptz_cam
+40:scene_path: /home/uniubi/xuanyuan/camera03/scene_4diaolan_ptz.usda
+
+=== broader rtsp lines ===
+23:onvif_rtsp_host: ''
+38:rtsp_enabled: true
+39:rtsp_url: rtsp://localhost:8554/ptz_cam

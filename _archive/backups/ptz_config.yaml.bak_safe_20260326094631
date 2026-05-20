@@ -1,0 +1,55 @@
+launcher_port: 8080
+ctrl_port: 8081
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+scene_path: ./DiaoLan_ChangJing_2026.03.18.usdz
+camera_prim: /World/CameraRig/CamTilt/Camera
+rtsp_url: rtsp://localhost:8554/ptz_cam
+resolution:
+- 960
+- 540
+fps: 10
+bitrate: 1M
+sim_hz: 60
+rtsp_enabled: true
+preview_enabled: false
+mjpeg_quality: 80
+renderer: RaytracedLighting
+osd_time:
+  enabled: true
+  fmt: '%Y-%m-%d %H:%M:%S'
+  x: 10
+  y: 10
+  size: 28
+  font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+focal_length_1x: 18.14756
+mediamtx:
+  path: ./mediamtx
+  port: 8554
+  auto_download: true
+  version: v1.17.0
+presets:
+  '1':
+    name: Preset639101228041322270
+    pan: 0.0
+    tilt: 0.0
+    zoom: 1.0
+  '2':
+    name: 水平正视
+    pan: 0.0
+    tilt: 0.0
+    zoom: 1.0
+  '3':
+    name: 左90°
+    pan: -90.0
+    tilt: -45.0
+    zoom: 1.0
+  '4':
+    name: 右90°
+    pan: 90.0
+    tilt: -45.0
+    zoom: 1.0
+  '5':
+    name: 俯视
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.0

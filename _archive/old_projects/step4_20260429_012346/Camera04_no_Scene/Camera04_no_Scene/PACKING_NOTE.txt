@@ -1,0 +1,5 @@
+﻿Camera04 打包说明（不含场景模型）
+
+1) 本包未包含 *.usd/*.usdz 场景文件。
+2) 部署后请修改 ptz_rtsp_config.yaml 中的 scene_path，指向目标机实际场景路径。
+3) 如目标机未安装 ffmpeg/mediamtx，请使用本包内可执行文件。

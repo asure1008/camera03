@@ -1,0 +1,55 @@
+{
+  "verify_time_utc": "2026-04-14T07:46Z",
+  "backup_dir": "/home/uniubi/xuanyuan/camera05/camera03/.backup_20260414_073857",
+  "usd_offline_hierarchy": {
+    "note": "usd-core 打开 scene_4diaolan_ptz.usda，四台吊篮 Model/Diaolan_01 下兄弟节点",
+    "example_root": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01",
+    "direct_children": [
+      {"name": "Diaolan", "meshes": 4914},
+      {"name": "Rope", "meshes": 144},
+      {"name": "node___42_1", "meshes": 390},
+      {"name": "node___42_2", "meshes": 390},
+      {"name": "People_02", "meshes": 75},
+      {"name": "People_01", "meshes": 75},
+      {"name": "People_03", "meshes": 75}
+    ],
+    "resolved_height_target": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan",
+    "root_cause": "原先对 Diaolan_01 根写 xformOp:translate 会带动其下所有兄弟（含 Rope 悬挂绳）"
+  },
+  "isaac_pid_after_restart": 465808,
+  "log_evidence_file": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+  "log_grep_patterns": [
+    "scan_diaolan_prims] accepted",
+    "GONDOLA_HEIGHT_AXIS] prim_path="
+  ],
+  "http_single_basket_test": {
+    "endpoint_gondola_stage_heights": "GET http://127.0.0.1:8081/scene/gondola_stage_heights",
+    "before_after_active_only": {
+      "active_root": "/World/Diaolan_Ver1_0_2026_05",
+      "gondola_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan",
+      "world_heights_before_cm_test": {
+        "/World/Diaolan_Ver1_0_2026_05": 8.574312,
+        "/World/Diaolan_Ver1_0_2026_06": -0.0,
+        "/World/Diaolan_Ver1_0_2026_07": -0.0,
+        "/World/Diaolan_Ver1_0_2026_01": 0.0
+      },
+      "post_body": {"height_cm": 1200},
+      "world_heights_after": {
+        "/World/Diaolan_Ver1_0_2026_05": 12.0,
+        "/World/Diaolan_Ver1_0_2026_06": -0.0,
+        "/World/Diaolan_Ver1_0_2026_07": -0.0,
+        "/World/Diaolan_Ver1_0_2026_01": 0.0
+      }
+    }
+  },
+  "http_switch_basket_decoupling": {
+    "select": {"selected_diaolan_path": "/World/Diaolan_Ver1_0_2026_06"},
+    "post_height_cm": 800,
+    "world_heights_sample": {
+      "/World/Diaolan_Ver1_0_2026_05": 12.0,
+      "/World/Diaolan_Ver1_0_2026_06": 8.0,
+      "/World/Diaolan_Ver1_0_2026_07": -0.0,
+      "/World/Diaolan_Ver1_0_2026_01": 0.0
+    }
+  }
+}

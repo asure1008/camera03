@@ -1,0 +1,32 @@
+[
+  {
+    "file": "ptz_stream.py",
+    "restored_sha256": "a84c11e15d15f9b19de185534354625a7440b108a1e7217fdcc6be0010c2f427",
+    "backup_sha256": "a84c11e15d15f9b19de185534354625a7440b108a1e7217fdcc6be0010c2f427",
+    "match": true
+  },
+  {
+    "file": "diaolan_randomizer.py",
+    "restored_sha256": "52c202300e305c9948d59c01b9addb55ce4fe8c107fbaf3e43d7346d6daadac3",
+    "backup_sha256": "52c202300e305c9948d59c01b9addb55ce4fe8c107fbaf3e43d7346d6daadac3",
+    "match": true
+  },
+  {
+    "file": "ptz_config.yaml",
+    "restored_sha256": "c026fc43d35c8718a76d59ad8671607abf6156b961c3877053353348e6c851b8",
+    "backup_sha256": "c026fc43d35c8718a76d59ad8671607abf6156b961c3877053353348e6c851b8",
+    "match": true
+  },
+  {
+    "file": "ptz_web_control.html",
+    "restored_sha256": "c3638998c22fe91842121585567b23c1676ea8a0ff9142af7cd5ca2155bdd164",
+    "backup_sha256": "c3638998c22fe91842121585567b23c1676ea8a0ff9142af7cd5ca2155bdd164",
+    "match": true
+  },
+  {
+    "file": "ptz_launcher.py",
+    "restored_sha256": "ea8fee1744a2e8ab01e8bc4eb8167be5e317a1e72a54b97d781c80a251341052",
+    "backup_sha256": "ea8fee1744a2e8ab01e8bc4eb8167be5e317a1e72a54b97d781c80a251341052",
+    "match": true
+  }
+]

@@ -1,0 +1,27 @@
+=== grep -nEi 'hdri|sky|environment|changjing|hdr|dynamic|dome|exposure' ptz_config.yaml ===
+（行号以仓库当前文件为准）
+29: hdri_fill_exposure_nominal
+30-34: hdri_whitelist（四条绝对路径，均指向 .../camera05/camera03/changjing/*.hdr）
+41: environment_mode: hdri
+42-44: dynamic_sky_* 
+48-51: changjing_prim_path / lookat / wall 等 prim 路径
+101: random_config.random_hdri: true
+
+=== sed -n '1,120p' ptz_config.yaml（HDRI 相关段摘录）===
+bitrate: 1M
+...
+hdri_fill_exposure_nominal: 1.0
+hdri_whitelist:
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+...
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+environment_mode: hdri
+dynamic_sky_enabled: false
+dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/...
+...
+random_config:
+  ...
+  random_hdri: true

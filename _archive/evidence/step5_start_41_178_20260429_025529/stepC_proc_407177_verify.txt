@@ -1,0 +1,11 @@
+=== C: ps -fp 407177 ===
+UID          PID    PPID  C STIME TTY          TIME CMD
+uniubi    407177       1  0 Apr28 ?        00:01:11 /home/uniubi/miniconda3/bin/python3 ptz_launcher.py --config ./ptz_config.yaml
+=== C: cwd ===
+/home/uniubi/xuanyuan/camera03
+=== C: cmdline ===
+/home/uniubi/miniconda3/bin/python3 ptz_launcher.py --config ./ptz_config.yaml 
+=== C: environ (filtered) ===
+PWD=/home/uniubi/xuanyuan/camera03
+PATH=/home/uniubi/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+OLDPWD=/home/uniubi

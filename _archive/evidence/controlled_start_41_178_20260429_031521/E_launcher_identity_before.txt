@@ -1,0 +1,3 @@
+PID=560720
+/home/uniubi/xuanyuan/camera03
+python3 ptz_launcher.py --config ./ptz_config.yaml 

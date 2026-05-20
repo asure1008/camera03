@@ -1,0 +1,5 @@
+=== 关于用户要求的超宽 grep -RIn ... camera03 + _archive/evidence | tail -n 300 ===
+执行该模式会匹配大量二进制/超大 JSON 行，输出体积异常且 tail 仍可能含超长单行。
+本轮改为：
+- isaac_stream.log：针对性 grep FileNotFoundError / HDRI file not found（见 04）
+- _archive/evidence：针对性 grep FileNotFoundError|sky_sun|HDRI file not found（见 05 与各子目录既有 txt）

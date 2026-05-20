@@ -1,0 +1,201 @@
+3793 /home/uniubi/xuanyuan/camera03/ptz_launcher.py
+#!/usr/bin/env python3
+"""
+PTZ 仿真 ONVIF 服务  ptz_launcher.py
+======================================
+始终运行的轻量 ONVIF 服务（默认端口 8080），GPU 占用接近 0%。
+通过 Web UI 按需启动 / 停止 Isaac Sim 仿真进程（ptz_stream.py）。
+
+使用方法：
+    python3 ptz_launcher.py [--config ./ptz_config.yaml]
+
+访问地址：
+    http://localhost:8080/                       Web 控制面板（始终可用）
+    POST http://localhost:8080/onvif/device_service  ONVIF 设备服务
+    POST http://localhost:8080/onvif/media_service   ONVIF 媒体服务
+    POST http://localhost:8080/onvif/ptz_service     ONVIF PTZ 服务
+    GET  http://localhost:8080/onvif-snap.jpg         ONVIF 快照端点
+    GET  ws://localhost:8080/ws                       WebSocket 视频流（JPEG 帧推送）
+    POST http://localhost:8080/start              启动 Isaac Sim
+    POST http://localhost:8080/stop               停止 Isaac Sim
+
+架构说明：
+    launcher（8080）← 代理 → Isaac Sim（8081）
+    外部 ONVIF 客户端只需连接 8080，无需感知 8081。
+
+坐标换算：
+    pan_deg  = onvif_pan  × 170.0        ONVIF[-1,1] → Isaac[-170°,170°]
+    tilt_deg = clamp(-60.0 × onvif_tilt - 30.0, -90°, 30°)
+    zoom_x   = 1.0 + onvif_zoom × 31.0  ONVIF[0,1]  → Isaac[1×,32×]
+"""
+
+import argparse
+import base64
+import datetime
+import errno
+import hashlib
+import http.client
+import io
+import json
+import os
+import signal
+import socket
+import struct
+import subprocess
+import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+import urllib.request
+import urllib.error
+import uuid as _uuid_mod
+import xml.etree.ElementTree as ET
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs
+
+import yaml
+
+# ── 配置 ─────────────────────────────────────────────────────────────
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+ap = argparse.ArgumentParser(description="PTZ Launcher - ONVIF simulation server")
+ap.add_argument("--config", default=os.path.join(script_dir, "ptz_config.yaml"))
+args, _ = ap.parse_known_args()
+
+with open(args.config, "r", encoding="utf-8") as f:
+    cfg = yaml.safe_load(f)
+
+LAUNCHER_PORT = cfg.get("launcher_port", 8080)
+ISAAC_PORT    = cfg.get("ctrl_port",     8081)
+PYTHON_SH     = cfg.get("python_sh",
+                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+STREAM_SCRIPT = os.path.join(script_dir, "ptz_stream.py")
+ISAAC_LOG     = os.path.join(script_dir, "isaac_stream.log")
+CONFIG_PATH   = args.config
+
+# Isaac 控制面「热路径」探测：短超时 + 硬上限，避免 Web 轮询把 launcher 线程拖死在超大 /status 或慢 JPEG 上
+_ISAAC_LITE_HTTP_TIMEOUT_S = max(0.35, float(cfg.get("isaac_launcher_lite_http_timeout_s", 1.15)))
+_ISAAC_STARTUP_CTRL_HTTP_TIMEOUT_S = max(
+    _ISAAC_LITE_HTTP_TIMEOUT_S, float(cfg.get("isaac_startup_ctrl_http_timeout_s", 4.0))
+)
+_ISAAC_STATUS_BODY_MAX_BYTES = max(65536, int(cfg.get("isaac_status_body_max_bytes", 6291456)))
+_ISAAC_STATUS_FETCH_TIMEOUT_CAP_S = max(0.5, float(cfg.get("isaac_status_fetch_timeout_cap_s", 2.0)))
+
+# conda activate env_isaaclab 会通过 etc/conda/activate.d/setenv.sh source IsaacLab/_isaac_sim/setup_conda_env.sh，
+# 注入 ISAAC_PATH / CARB_APP_PATH / EXP_PATH 以及大量 *_isaac_sim 的 LD_LIBRARY_PATH；仅清 PYTHONPATH 仍会让 Kit 走不完整运行时并依赖在线注册表 → exit 55。
+_ISAACLAB_RUNTIME_ENV_KEYS: tuple[str, ...] = (
+    "ISAAC_PATH",
+    "CARB_APP_PATH",
+    "EXP_PATH",
+)
+_LD_PATH_BAN_SUBSTR: tuple[str, ...] = (
+    "/_isaac_sim/",
+    "IsaacLab/_isaac_sim",
+    "/.isaac_sim_unzip/",
+)
+
+
+def _strip_pathlist_with_banned(path_val: str, banned: tuple[str, ...]) -> str:
+    if not path_val:
+        return ""
+    parts: list[str] = []
+    for p in path_val.split(os.pathsep):
+        if not p:
+            continue
+        if any(b in p for b in banned):
+            continue
+        parts.append(p)
+    return os.pathsep.join(parts)
+
+
+def _read_isaac_log_tail(max_lines: int = 48) -> list[str]:
+    """启动失败时摘取 isaac_stream.log 末尾若干行（仅 ASCII/UTF-8 文本）。"""
+    try:
+        with open(ISAAC_LOG, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        tail = lines[-max_lines:] if len(lines) > max_lines else lines
+        return [ln.rstrip("\n") for ln in tail]
+    except Exception:
+        return []
+
+
+_OOM_LOG_MARKERS: tuple[str, ...] = (
+    "out of memory",
+    "cuda error",
+    "cuda oom",
+    "ran out of memory",
+    "oom killer",
+    "killed process",
+    "xid ",
+    "nvrm",
+    "segmentation fault",
+    "vk::device::device lost",
+)
+
+
+def _isaac_log_oom_hints(max_scan_lines: int = 400, max_hints: int = 8) -> list[str]:
+    """只读：从 isaac_stream.log 尾部扫描显存/OOM/驱动崩溃相关关键词，供诊断字段使用。"""
+    hints: list[str] = []
+    try:
+        with open(ISAAC_LOG, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()[-max_scan_lines:]
+        for ln in lines:
+            low = ln.lower()
+            if any(m in low for m in _OOM_LOG_MARKERS):
+                hints.append(ln.rstrip("\n")[:500])
+    except Exception:
+        return []
+    return hints[-max_hints:]
+
+
+def _env_for_ptz_stream_subprocess() -> dict:
+    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+
+    可通过 ptz_config.yaml 设置 isaac_child_preserve_isaaclab_runtime: true 恢复旧行为（仅调试）。
+    """
+    env = os.environ.copy()
+    preserve = bool(cfg.get("isaac_child_preserve_isaaclab_runtime", False))
+    if not preserve:
+        for k in _ISAACLAB_RUNTIME_ENV_KEYS:
+            env.pop(k, None)
+        if not cfg.get("isaac_child_preserve_pythonpath", False):
+            env.pop("PYTHONPATH", None)
+        raw_ld = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = _strip_pathlist_with_banned(raw_ld, _LD_PATH_BAN_SUBSTR)
+    py_exe = os.path.abspath(PYTHON_SH)
+    lib_dir = os.path.normpath(os.path.join(os.path.dirname(py_exe), "..", "lib"))
+    if os.path.isdir(lib_dir):
+        prev = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = lib_dir + (os.pathsep + prev if prev else "")
+    return env
+
+
+_PRESET_LEFT_PAN_OFFSET_DEG = float(cfg.get("preset_left_pan_offset_deg", 90.0))
+_PRESET_RIGHT_PAN_OFFSET_DEG = float(cfg.get("preset_right_pan_offset_deg", -90.0))
+_PRESET_OVERLOOK_TILT_DEG = float(cfg.get("preset_overlook_tilt_deg", 30.0))
+# 与 ptz_stream._resolve_orientation_profile 中 default_initial 一致：启动/随机后「可见中性朝向」相对几何 look-at 的偏置
+_DYNAMIC_STARTUP_PAN_OFFSET_DEG = float(cfg.get("dynamic_startup_pan_offset_deg", 0.0))
+_DYNAMIC_STARTUP_TILT_OFFSET_DEG = float(cfg.get("dynamic_startup_tilt_offset_deg", 0.0))
+
+
+def _read_stream_config_from_disk(config_path: str) -> dict:
+    """从磁盘读取 ptz 推流相关字段（与 ptz_stream 启动时读取一致；用于诊断/确认样本 USD）。"""
+    out: dict = {
+        "scene_path": None,
+        "scene_basename": None,
+        "camera_prim": None,
+        "rtsp_url": None,
+        "preview_enabled": None,
+        "renderer": None,
+        "read_error": None,
+    }
+    try:
+        cp = os.path.abspath(config_path)
+        with open(cp, "r", encoding="utf-8") as f:
+            y = yaml.safe_load(f) or {}
+        sp = y.get("scene_path")
+        if sp:
+            if not os.path.isabs(str(sp)):
+                sp = os.path.join(script_dir, str(sp))
+            sp_abs = os.path.abspath(sp)
+            out["scene_path"] = sp_abs

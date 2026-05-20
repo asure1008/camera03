@@ -1,0 +1,11 @@
+=== ss ports ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+
+=== ps ===
+   1500       1 29-17:37:09 /usr/libexec/rtkit-daemon
+   2773    2550 29-17:37:00 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 18 20
+   2803    2550 29-17:37:00 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 26 23 25
+ 560720       1       08:12 python3 ptz_launcher.py --config ./ptz_config.yaml
+1236262 1236169 15-23:52:33 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 30 33
+1236271 1236169 15-23:52:33 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 4 36 40
+2313635       1 13-04:36:32 /usr/lib/polkit-1/polkitd --no-debug

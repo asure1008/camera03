@@ -1,0 +1,82 @@
+[
+  {
+    "i": 0,
+    "s8080": "{\"isaac_state\": \"stopping\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "{\"auto_random_on_start\": false, \"random_gondola\": true, \"random_workers\": true, \"random_camera\": true, \"random_hdri\": false, \"keep_target_visible\": true, \"keep_wall_install_constraint\": true, \"auto_look_at_target\": true, \"hdri_candidates\": [\"/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr\"]}"
+  },
+  {
+    "i": 1,
+    "s8080": "{\"isaac_state\": \"stopping\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:[Errno 104] Connection reset by peer"
+  },
+  {
+    "i": 2,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 3,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 4,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 5,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 6,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 7,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 8,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 9,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 10,
+    "s8080": "{\"isaac_state\": \"stopped\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 11,
+    "s8080": "{\"isaac_state\": \"starting\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 12,
+    "s8080": "{\"isaac_state\": \"starting\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 13,
+    "s8080": "{\"isaac_state\": \"starting\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 14,
+    "s8080": "{\"isaac_state\": \"starting\", \"isaac_port\": 8081, \"uptime_s\": 0, \"ptz\": null, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "ERR:<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "i": 15,
+    "s8080": "{\"isaac_state\": \"running\", \"isaac_port\": 8081, \"uptime_s\": 8, \"ptz\": {\"pan\": 0.0, \"tilt\": -15.0, \"zoom\": 1.5}, \"config_path\": \"/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml\", \"stream_config\": {\"scene_path\": \"/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda\", \"scene_basename\": \"scene_4diaolan_ptz.usda\", \"camera_prim\": \"/World/CameraRig/CamTilt/Camera\", \"rtsp_url\": \"rtsp://localhost:8554/ptz_cam\", \"preview_enabled\": false, \"renderer\": \"PathTracing\", \"read_error\": null}, \"note\": \"stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。\"}",
+    "cfg": "{\"auto_random_on_start\": false, \"random_gondola\": true, \"random_workers\": true, \"random_camera\": true, \"random_hdri\": false, \"keep_target_visible\": true, \"keep_wall_install_constraint\": true, \"auto_look_at_target\": true, \"hdri_candidates\": [\"/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr\", \"/home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr\"]}"
+  }
+]

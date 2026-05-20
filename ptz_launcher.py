@@ -393,11 +393,23 @@ _SNAPSHOT_PROXY_TTL_S = 0.25
 _SNAPSHOT_PROXY_STALE_TTL_S = 2.0
 _status_cache = {"ts": 0.0, "data": None}
 _status_cache_lock = threading.Lock()
-_snapshot_proxy_cache = {"ts": 0.0, "jpeg": None, "source": None}
+_SNAPSHOT_META_HEADERS = (
+    "X-PTZ-Snapshot-Ready",
+    "X-PTZ-Snapshot-Frame-Id",
+    "X-PTZ-Snapshot-Capture-Seq",
+    "X-PTZ-Snapshot-Capture-Epoch-Ms",
+    "X-PTZ-Snapshot-Capture-Iso",
+    "X-PTZ-Snapshot-OSD-Text",
+    "X-PTZ-Snapshot-Pixel-Source",
+    "X-PTZ-Snapshot-Frame-Age-Ms",
+    "X-PTZ-Snapshot-Randomize-Mode",
+    "X-PTZ-Snapshot-Bypass-Last-Good",
+)
+_snapshot_proxy_cache = {"ts": 0.0, "jpeg": None, "source": None, "headers": {}}
 _snapshot_proxy_lock = threading.Lock()
 _snapshot_proxy_fetch_lock = threading.Lock()
 
-_ISAAC_STARTUP_READY_TIMEOUT_S = float(cfg.get("isaac_startup_ready_timeout_s", 180.0))
+_ISAAC_STARTUP_READY_TIMEOUT_S = float(cfg.get("isaac_startup_ready_timeout_s", 420.0))
 _ISAAC_STARTUP_READY_CONSECUTIVE = max(1, int(cfg.get("isaac_startup_ready_consecutive", 3)))
 _ISAAC_SNAPSHOT_READY_MIN_BYTES = max(512, int(cfg.get("isaac_snapshot_ready_min_bytes", 2048)))
 _isaac_startup_streak = 0
@@ -748,19 +760,20 @@ def _get_isaac_status_cached(timeout: float = 90.0, max_age: float = _STATUS_CAC
     return dict(data)
 
 
-def _read_snapshot_proxy_cache(max_age: float) -> tuple[bytes | None, str | None]:
+def _read_snapshot_proxy_cache(max_age: float) -> tuple[bytes | None, str | None, dict]:
     now = time.monotonic()
     with _snapshot_proxy_lock:
         jpeg = _snapshot_proxy_cache["jpeg"]
         if jpeg is not None and now - float(_snapshot_proxy_cache["ts"]) <= max_age:
-            return jpeg, _snapshot_proxy_cache["source"]
-    return None, None
+            return jpeg, _snapshot_proxy_cache["source"], dict(_snapshot_proxy_cache.get("headers") or {})
+    return None, None, {}
 
 
-def _cache_snapshot_proxy(jpeg: bytes, source: str) -> None:
+def _cache_snapshot_proxy(jpeg: bytes, source: str, headers: dict | None = None) -> None:
     with _snapshot_proxy_lock:
         _snapshot_proxy_cache["jpeg"] = jpeg
         _snapshot_proxy_cache["source"] = source
+        _snapshot_proxy_cache["headers"] = dict(headers or {})
         _snapshot_proxy_cache["ts"] = time.monotonic()
 
 
@@ -770,7 +783,7 @@ def _is_jpeg_bytes(data: bytes) -> bool:
 
 def _fetch_runtime_snapshot_jpeg(
     timeout_s: float = 3.0,
-) -> tuple[bytes | None, str | None, str | None]:
+) -> tuple[bytes | None, str | None, dict, str | None]:
     """
     只读拉取 runtime(8081) 的 /snapshot.jpg。
     校验：HTTP 200 + body 非空 + JPEG magic bytes(FF D8)。
@@ -782,21 +795,26 @@ def _fetch_runtime_snapshot_jpeg(
         ) as r:
             data = r.read()
             status = getattr(r, "status", 200)
+            headers = {
+                name: r.headers.get(name)
+                for name in _SNAPSHOT_META_HEADERS
+                if r.headers.get(name) is not None
+            }
     except Exception as e:
-        return None, None, f"fetch_error:{type(e).__name__}"
+        return None, None, {}, f"fetch_error:{type(e).__name__}"
     if status != 200:
-        return None, None, f"upstream_http_{status}"
+        return None, None, {}, f"upstream_http_{status}"
     if not data or len(data) < _ISAAC_SNAPSHOT_READY_MIN_BYTES:
-        return None, None, "upstream_empty_or_too_small"
+        return None, None, {}, "upstream_empty_or_too_small"
     if not _is_jpeg_bytes(data):
-        return None, None, "upstream_not_jpeg"
-    return data, "isaac-snapshot", None
+        return None, None, {}, "upstream_not_jpeg"
+    return data, "isaac-snapshot", headers, None
 
 
-def _get_snapshot_proxy_data() -> tuple[bytes | None, str | None]:
-    cached_jpeg, cached_source = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
+def _get_snapshot_proxy_data() -> tuple[bytes | None, str | None, dict]:
+    cached_jpeg, cached_source, cached_headers = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
     if cached_jpeg is not None:
-        return cached_jpeg, cached_source or "launcher-snapshot-cache"
+        return cached_jpeg, cached_source or "launcher-snapshot-cache", cached_headers
 
     # 允许并发请求等待短时间，避免非阻塞锁导致的偶发 503
     acquired = False
@@ -807,10 +825,10 @@ def _get_snapshot_proxy_data() -> tuple[bytes | None, str | None]:
 
     if acquired:
         try:
-            data, source, _err = _fetch_runtime_snapshot_jpeg(timeout_s=3.0)
+            data, source, headers, _err = _fetch_runtime_snapshot_jpeg(timeout_s=3.0)
             if data is not None:
-                _cache_snapshot_proxy(data, source or "isaac-snapshot")
-                return data, source or "isaac-snapshot"
+                _cache_snapshot_proxy(data, source or "isaac-snapshot", headers)
+                return data, source or "isaac-snapshot", headers
         finally:
             try:
                 _snapshot_proxy_fetch_lock.release()
@@ -818,14 +836,30 @@ def _get_snapshot_proxy_data() -> tuple[bytes | None, str | None]:
                 pass
     else:
         # 其他线程可能正在拉取，尝试再读一次缓存
-        cached_jpeg2, cached_source2 = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
+        cached_jpeg2, cached_source2, cached_headers2 = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_TTL_S)
         if cached_jpeg2 is not None:
-            return cached_jpeg2, cached_source2 or "launcher-snapshot-cache"
+            return cached_jpeg2, cached_source2 or "launcher-snapshot-cache", cached_headers2
 
-    stale_jpeg, stale_source = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_STALE_TTL_S)
+    stale_jpeg, stale_source, stale_headers = _read_snapshot_proxy_cache(_SNAPSHOT_PROXY_STALE_TTL_S)
     if stale_jpeg is not None:
-        return stale_jpeg, stale_source or "launcher-snapshot-cache"
-    return None, None
+        return stale_jpeg, stale_source or "launcher-snapshot-cache", stale_headers
+    return None, None, {}
+
+
+def _send_snapshot_meta_headers(handler, headers: dict | None, *, skip: set[str] | None = None) -> None:
+    if not isinstance(headers, dict):
+        return
+    skip_norm = {str(x).lower() for x in (skip or set())}
+    for name in _SNAPSHOT_META_HEADERS:
+        if name.lower() in skip_norm:
+            continue
+        value = headers.get(name)
+        if value is None:
+            continue
+        try:
+            handler.send_header(name, str(value))
+        except Exception:
+            pass
 
 
 def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
@@ -3094,13 +3128,14 @@ class _Handler(BaseHTTPRequestHandler):
 
         # 快照端点：代理到 runtime(8081) /snapshot.jpg（与 onvif-snap 复用同一上游拉取逻辑）
         if path == "/snapshot.jpg":
-            jpeg, source = _get_snapshot_proxy_data()
+            jpeg, source, snap_headers = _get_snapshot_proxy_data()
             if jpeg is not None and _is_jpeg_bytes(jpeg):
                 try:
                     self.send_response(200)
                     self.send_header("Content-Type", "image/jpeg")
                     self.send_header("Cache-Control", "no-store")
                     self.send_header("X-PTZ-Snapshot-Source", source or "unknown")
+                    _send_snapshot_meta_headers(self, snap_headers)
                     self._cors()
                     self.end_headers()
                     self.wfile.write(jpeg)
@@ -3553,9 +3588,10 @@ class _Handler(BaseHTTPRequestHandler):
         """
         jpeg = None
         source = None
+        snap_headers = {}
 
         # ① 实时拉取
-        jpeg, source = _get_snapshot_proxy_data()
+        jpeg, source, snap_headers = _get_snapshot_proxy_data()
 
         # ② 回退缓存帧
         if jpeg is None:
@@ -3585,6 +3621,7 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control",  "no-cache, no-store")
             self.send_header("X-PTZ-Snapshot-Ready", "1")
             self.send_header("X-PTZ-Snapshot-Source", source or "unknown")
+            _send_snapshot_meta_headers(self, snap_headers, skip={"X-PTZ-Snapshot-Ready"})
             self._cors()
             self.end_headers()
             self.wfile.write(jpeg)

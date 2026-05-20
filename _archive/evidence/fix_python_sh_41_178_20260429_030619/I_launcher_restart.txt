@@ -1,0 +1,11 @@
+=== pre-check ===
+PID=554536 cwd=/home/uniubi/xuanyuan/camera03
+cmdline=python3 ptz_launcher.py --config ./ptz_config.yaml 
+cmdline OK
+=== SIGTERM via Python (avoid kill CLI) ===
+Sent SIGTERM to 554536
+=== wait port 8080 free ===
+8080 free after 1s
+=== nohup restart ===
+new_pid=560720 log=/home/uniubi/xuanyuan/camera03/launcher_fix_python_sh_20260429_110716.log
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      

@@ -1,0 +1,12 @@
+--- /home/uniubi/xuanyuan/camera05/camera03/_archive/evidence/fix_ffmpeg_path_41_178_20260429_032533/ptz_launcher.py.before	2026-04-29 03:25:59.033957979 +0000
++++ /home/uniubi/xuanyuan/camera05/camera03/_archive/evidence/fix_ffmpeg_path_41_178_20260429_032533/ptz_launcher.py.patched	2026-04-29 03:26:05.949936811 +0000
+@@ -166,6 +166,9 @@
+     if os.path.isdir(lib_dir):
+         prev = env.get("LD_LIBRARY_PATH", "")
+         env["LD_LIBRARY_PATH"] = lib_dir + (os.pathsep + prev if prev else "")
++    ffmpeg_dir = "/home/uniubi/miniconda3/bin"
++    prev_path = env.get("PATH", "")
++    env["PATH"] = ffmpeg_dir + (os.pathsep + prev_path if prev_path else "")
+     return env
+ 
+ 

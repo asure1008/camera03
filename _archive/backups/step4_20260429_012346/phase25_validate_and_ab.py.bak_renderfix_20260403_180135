@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""
+Phase 2.5C + 2.5D: 最小验证 & 渲染器 A/B 对比
+================================================
+Phase 2.5C:
+  - 暂时禁用 force_active_diaolan_path / force_workers_count / force_gondola_height
+  - 验证 scan_diaolan_prims 能识别 4 个吊篮，输出 target prim 列表
+  - 抓 1 张 RTSP 帧（HydraStorm，默认机位）
+
+Phase 2.5D:
+  - 同一场景 / 同一机位 / 同一 active_path（07）
+  - HydraStorm vs RaytracedLighting 各抓 1 张 RTSP 帧
+  - 对比：黑模程度 / 文件大小 / 目标轮廓可见性
+"""
+
+import datetime as dt
+import json
+import subprocess
+import time
+import urllib.request
+from pathlib import Path
+
+import numpy as np
+import yaml
+from PIL import Image
+
+CFG_PATH = Path("/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml")
+OUT_DIR  = Path("/home/uniubi/xuanyuan/camera05/camera03")
+
+RTSP_STABILIZE_S = 3.0
+AB_ACTIVE_PATH   = "/World/Diaolan_Ver1_0_2026_07"
+AB_CAM_XYZ       = [88.0, -55.0, 33.0]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HTTP helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _http(url: str, method: str = "GET", payload: dict | None = None) -> dict:
+    data, headers = None, {}
+    if payload is not None:
+        data = json.dumps(payload).encode()
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req, timeout=25) as r:
+        return json.loads(r.read().decode())
+
+
+def get_status() -> dict:
+    return _http("http://127.0.0.1:8080/status")
+
+
+def restart_stream() -> None:
+    try:
+        _http("http://127.0.0.1:8080/stop", method="POST", payload={})
+    except Exception:
+        pass
+    for _ in range(60):
+        try:
+            if _http("http://127.0.0.1:8080/status").get("isaac_state") == "stopped":
+                break
+        except Exception:
+            pass
+        time.sleep(1)
+    _http("http://127.0.0.1:8080/start", method="POST", payload={})
+    for _ in range(180):
+        st = _http("http://127.0.0.1:8080/status")
+        if st.get("isaac_state") == "running":
+            time.sleep(2)
+            return
+        time.sleep(1)
+    raise RuntimeError("Isaac stream 未进入 running 状态")
+
+
+def wait_stream_ready(timeout: int = 90) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            st = get_status()
+            ptz = (st.get("ptz") or {})
+            stream = (ptz.get("stream") or {})
+            if (
+                st.get("isaac_state") == "running"
+                and stream.get("camera_bound_ok") is True
+                and stream.get("ffmpeg_alive") is True
+            ):
+                return
+        except Exception:
+            pass
+        time.sleep(1)
+    raise RuntimeError("推流未就绪（超时）")
+
+
+def write_cfg(cfg: dict) -> None:
+    CFG_PATH.write_text(
+        yaml.safe_dump(cfg, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+
+
+def grab_frame(tag: str, rtsp_url: str) -> Path:
+    ts = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+    out = OUT_DIR / f"_test_4diaolan_{tag}_{ts}.jpg"
+    url = rtsp_url.replace("localhost", "127.0.0.1")
+    cmd = [
+        "ffmpeg", "-y", "-rtsp_transport", "tcp",
+        "-i", url, "-frames:v", "1", "-q:v", "2", str(out),
+    ]
+    for _ in range(5):
+        try:
+            subprocess.run(cmd, check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           timeout=30)
+            return out
+        except Exception:
+            time.sleep(1.5)
+    raise RuntimeError("ffmpeg 抓帧失败")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 图像质量分析
+# ─────────────────────────────────────────────────────────────────────────────
+
+def analyze_image(path: Path) -> dict:
+    img = np.array(Image.open(path).convert("RGB"))
+    gray = 0.299 * img[:, :, 0] + 0.587 * img[:, :, 1] + 0.114 * img[:, :, 2]
+    mean_luma = float(np.mean(gray))
+    black_ratio = float(np.mean(gray < 20))
+    h, w = gray.shape
+    cx0, cx1 = int(w * 0.2), int(w * 0.8)
+    cy0, cy1 = int(h * 0.2), int(h * 0.8)
+    center_black = float(np.mean(gray[cy0:cy1, cx0:cx1] < 20))
+    crop_std = float(np.std(gray[cy0:cy1, cx0:cx1]))
+    gx = float(np.abs(np.diff(gray[cy0:cy1, cx0:cx1], axis=1)).mean())
+    gy = float(np.abs(np.diff(gray[cy0:cy1, cx0:cx1], axis=0)).mean())
+    file_kb = path.stat().st_size / 1024
+    return {
+        "file_kb":          round(file_kb, 1),
+        "mean_luma":        round(mean_luma, 2),
+        "black_ratio":      round(black_ratio, 4),
+        "center_black":     round(center_black, 4),
+        "center_crop_std":  round(crop_std, 2),
+        "center_edge_grad": round((gx + gy) * 0.5, 2),
+        "非整帧黑":          mean_luma > 18.0 and black_ratio < 0.90,
+        "轮廓基本可见":       crop_std > 14.0 and (gx + gy) * 0.5 > 5.5,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 2.5C: 最小验证
+# ─────────────────────────────────────────────────────────────────────────────
+
+def phase_c(base_cfg: dict, rtsp_url: str) -> dict:
+    print("\n" + "=" * 64)
+    print("Phase 2.5C: 禁用所有 force_* 验证 scan_diaolan_prims")
+    print("=" * 64)
+
+    cfg = dict(base_cfg)
+    # 禁用 force_* 参数
+    cfg.pop("force_active_diaolan_path", None)
+    cfg.pop("force_workers_count", None)
+    cfg.pop("force_gondola_height", None)
+    # 保持 HydraStorm
+    cfg["renderer"] = "PathTracing"
+    cfg["camera_rig_translate_xyz"] = AB_CAM_XYZ
+    write_cfg(cfg)
+
+    restart_stream()
+    wait_stream_ready()
+
+    # 读取 scan 日志（从 /status 的 ptz 字段）
+    st = get_status()
+    ptz_info = st.get("ptz") or {}
+    scan_log = ptz_info.get("diaolan_scan") or {}
+    print(f"[phase_c] diaolan_scan from /status: {json.dumps(scan_log, ensure_ascii=False)}")
+
+    time.sleep(RTSP_STABILIZE_S)
+    frame_path = grab_frame("phase_c", rtsp_url)
+    iq = analyze_image(frame_path)
+
+    result = {
+        "phase":          "2.5C",
+        "renderer":       "PathTracing",
+        "force_disabled": ["force_active_diaolan_path", "force_workers_count", "force_gondola_height"],
+        "frame_path":     str(frame_path),
+        "image_quality":  iq,
+        "diaolan_scan_status": scan_log,
+        "isaac_state":    st.get("isaac_state"),
+    }
+    print(json.dumps({"Phase2.5C": result}, ensure_ascii=False, indent=2))
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 2.5D: 渲染器 A/B 对比
+# ─────────────────────────────────────────────────────────────────────────────
+
+def phase_d_one(base_cfg: dict, rtsp_url: str, renderer: str) -> dict:
+    cfg = dict(base_cfg)
+    cfg["renderer"]                = renderer
+    cfg["camera_rig_translate_xyz"] = AB_CAM_XYZ
+    cfg["force_active_diaolan_path"] = AB_ACTIVE_PATH
+    cfg["force_gondola_height"]    = 24.98
+    cfg["force_workers_count"]     = 1
+    write_cfg(cfg)
+
+    restart_stream()
+    wait_stream_ready()
+
+    time.sleep(RTSP_STABILIZE_S)
+    tag = f"phase_d_{renderer.lower().replace('lighted', 'rt')}"
+    frame_path = grab_frame(tag, rtsp_url)
+    iq = analyze_image(frame_path)
+
+    result = {
+        "renderer":      renderer,
+        "active_path":   AB_ACTIVE_PATH,
+        "cam_xyz":       AB_CAM_XYZ,
+        "frame_path":    str(frame_path),
+        "image_quality": iq,
+    }
+    print(f"[phase_d] renderer={renderer} file_kb={iq['file_kb']} "
+          f"mean_luma={iq['mean_luma']} black_ratio={iq['black_ratio']} "
+          f"center_std={iq['center_crop_std']} 非整帧黑={iq['非整帧黑']} 轮廓可见={iq['轮廓基本可见']}")
+    return result
+
+
+def phase_d(base_cfg: dict, rtsp_url: str) -> dict:
+    print("\n" + "=" * 64)
+    print("Phase 2.5D: HydraStorm vs RaytracedLighting A/B 对比")
+    print("=" * 64)
+
+    hydra = phase_d_one(base_cfg, rtsp_url, "PathTracing")
+    rt    = phase_d_one(base_cfg, rtsp_url, "PathTracing")
+
+    comparison = {
+        "PathTracing":          hydra["image_quality"],
+        "PathTracing":   rt["image_quality"],
+        "文件大小差(kb)":       round(rt["image_quality"]["file_kb"] - hydra["image_quality"]["file_kb"], 1),
+        "平均亮度差":           round(rt["image_quality"]["mean_luma"] - hydra["image_quality"]["mean_luma"], 2),
+        "黑像素占比差":         round(rt["image_quality"]["black_ratio"] - hydra["image_quality"]["black_ratio"], 4),
+        "中心裁剪标准差差":     round(rt["image_quality"]["center_crop_std"] - hydra["image_quality"]["center_crop_std"], 2),
+        "轮廓梯度差":           round(rt["image_quality"]["center_edge_grad"] - hydra["image_quality"]["center_edge_grad"], 2),
+    }
+    result = {
+        "phase":       "2.5D",
+        "PathTracing":  hydra,
+        "PathTracing": rt,
+        "对比摘要":    comparison,
+    }
+    print(json.dumps({"Phase2.5D_对比": comparison}, ensure_ascii=False, indent=2))
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 主流程
+# ─────────────────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    original_text = CFG_PATH.read_text(encoding="utf-8")
+    base_cfg = yaml.safe_load(original_text) or {}
+    rtsp_url = str(base_cfg["rtsp_url"])
+
+    report_path = OUT_DIR / f"_phase25_report_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+    try:
+        c_result = phase_c(base_cfg, rtsp_url)
+        d_result = phase_d(base_cfg, rtsp_url)
+
+        report = {
+            "Phase2.5C": c_result,
+            "Phase2.5D": d_result,
+        }
+        report_path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"\n[report] saved → {report_path}")
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+
+    finally:
+        # 恢复原始配置
+        write_cfg(yaml.safe_load(original_text) or {})
+        try:
+            restart_stream()
+        except Exception:
+            pass
+
+
+if __name__ == "__main__":
+    main()

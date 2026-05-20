@@ -15,8 +15,8 @@ rtmp: false
 webrtc: false
 srt: false
 
-# 增大读缓冲，减少帧率不稳时的服务端丢包
-readBufferCount: 1024
+# 低延时优先：保留一定抗抖动空间，但避免 NVR 侧堆积过多旧 RTP 包
+readBufferCount: 256
 
 # 明确允许推流路径（不设认证）
 paths:

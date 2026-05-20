@@ -1,0 +1,29 @@
+launcher_port: 8080
+ctrl_port: 8081
+python_sh: C:/IsaacSim/python.bat
+renderer_mode: PathTracing
+path_tracing_spp: 64
+rt_subframes: 2
+
+scene_path: D:/IsaacSim_Projects/ZuoyemianChangjing_2026.04.07.usdz
+camera_prim: /World/Camera_01
+
+rtsp_url: rtsp://localhost:8554/ptz_cam
+resolution: [1280, 720]
+fps: 30
+bitrate: "4M"
+sim_hz: 60
+
+rtsp_enabled: true
+
+ffmpeg:
+  path: ./tools/ffmpeg/extract/ffmpeg-8.1-essentials_build/bin/ffmpeg.exe
+
+mjpeg_quality: 80
+focal_length_1x: 18.14756
+
+mediamtx:
+  path: ./mediamtx
+  port: 8554
+  auto_download: true
+  version: "v1.17.0"

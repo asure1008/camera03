@@ -1,0 +1,2426 @@
+#!/usr/bin/env python3
+"""
+PTZ 安防球机 RTSP 流输出组件
+==============================
+将 Isaac Sim 中 PTZ_SecurityDome.usda 的相机画面以 RTSP 流形式输出。
+
+使用方法：
+    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+
+客户端查看：
+    vlc rtsp://localhost:8554/ptz_cam
+    ffplay rtsp://localhost:8554/ptz_cam -rtsp_transport tcp
+
+可移植性：
+    将本文件、ptz_rtsp_config.yaml、PTZ_SecurityDome.usda 一起复制到目标工程目录即可。
+    在配置文件中修改 scene_path 和 camera_prim 适配目标场景。
+"""
+
+# ============================================================
+# 第一阶段：SimulationApp 必须在所有 omni.* 导入之前启动
+# ============================================================
+import argparse
+import os
+import sys
+
+# python.sh 会设置 CARB_APP_PATH=$ISAAC_SIM_ROOT/kit/
+# isaacsim 包的 expose_api() 依赖 ISAAC_PATH 指向 Isaac Sim 根目录；
+# SimulationApp 依赖 EXP_PATH 指向 apps/ 目录（存放 .kit 配置文件）。
+# 两者均未由 setup_python_env.sh 设置，从 CARB_APP_PATH 推断。
+def _setup_isaac_env():
+    carb_app = os.environ.get("CARB_APP_PATH", "")
+    if not carb_app:
+        return  # 无法推断，可能已在 Isaac Sim 目录内运行
+
+    # CARB_APP_PATH = $ISAAC_SIM_ROOT/kit/，上一级为根目录
+    isaac_root = os.path.dirname(carb_app)
+
+    if "ISAAC_PATH" not in os.environ:
+        os.environ["ISAAC_PATH"] = isaac_root
+
+    if "EXP_PATH" not in os.environ:
+        exp_path = os.path.join(isaac_root, "apps")
+        if os.path.isdir(exp_path):
+            os.environ["EXP_PATH"] = exp_path
+
+_setup_isaac_env()
+
+# 解析命令行参数（在 SimulationApp 之前，避免 Kit 解析器干扰）
+parser = argparse.ArgumentParser(description="PTZ Camera RTSP Streamer for Isaac Sim")
+parser.add_argument("--config", default=os.path.join(os.path.dirname(__file__), "ptz_rtsp_config.yaml"),
+                    help="YAML 配置文件路径（默认：脚本同目录的 ptz_rtsp_config.yaml）")
+parser.add_argument("--scene",     default=None, help="覆盖 scene_path 配置")
+parser.add_argument("--camera",    default=None, help="覆盖 camera_prim 配置")
+parser.add_argument("--rtsp",      default=None, help="覆盖 rtsp_url 配置")
+parser.add_argument("--fps",       type=int, default=None, help="覆盖 fps 配置")
+parser.add_argument("--ctrl-port", type=int, default=None, dest="ctrl_port",
+                    help="HTTP 控制 API 监听端口（默认读取配置文件 ctrl_port，回退 8080）")
+args, unknown = parser.parse_known_args()
+
+# 读取配置文件
+import yaml  # Isaac Sim kit python 内置 PyYAML
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+config_path = args.config
+with open(config_path, "r", encoding="utf-8") as f:
+    cfg = yaml.safe_load(f)
+
+# 命令行参数覆盖配置文件
+def _resolve_path(p):
+    """将相对路径解析为相对于脚本目录的绝对路径。"""
+    if p and not os.path.isabs(p):
+        return os.path.join(script_dir, p)
+    return p
+
+scene_path      = _resolve_path(args.scene   or cfg["scene_path"])
+camera_prim     = args.camera  or cfg["camera_prim"]
+rtsp_url        = args.rtsp    or cfg["rtsp_url"]
+fps             = args.fps     or cfg.get("fps", 25)
+resolution      = tuple(cfg.get("resolution", [1920, 1080]))
+bitrate         = cfg.get("bitrate", "4M")
+sim_hz          = cfg.get("sim_hz", 60)
+mediamtx_cfg    = cfg.get("mediamtx", {})
+rtsp_enabled    = cfg.get("rtsp_enabled",    True)
+mjpeg_quality   = cfg.get("mjpeg_quality",   80)
+FOCAL_LENGTH_1X = float(cfg.get("focal_length_1x", 18.14756))
+# 新增配置项
+preview_enabled = cfg.get("preview_enabled", True)   # false=关闭 MJPEG/ws-flv，仅 RTSP
+_RENDERER_TARGET_MODE = "PathTracing"
+_CAMERA_HEIGHT_WALL_PRIM = str(
+    cfg.get("camera_height_wall_prim_path", "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228") or "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228"
+).strip()
+
+
+def _normalize_renderer_mode(raw_renderer) -> str:
+    raw = str(raw_renderer or "").strip()
+    if raw != _RENDERER_TARGET_MODE:
+        print(
+            f"[renderer-fix] requested_renderer={raw or '<empty>'} -> forced={_RENDERER_TARGET_MODE}"
+        )
+    return _RENDERER_TARGET_MODE
+
+
+renderer_mode   = _normalize_renderer_mode(cfg.get("renderer", _RENDERER_TARGET_MODE))
+cfg["renderer"] = renderer_mode
+_osd_cfg        = cfg.get("osd_time", {})
+osd_enabled     = _osd_cfg.get("enabled", False)
+
+
+def _camera_rig_translate_from_cfg(c: dict) -> tuple[float, float, float]:
+    """camera_rig_translate_xyz: [x,y,z] → 启动时写入 rig；无效或缺省 → (82,-72,28)。"""
+    raw = c.get("camera_rig_translate_xyz")
+    if isinstance(raw, (list, tuple)) and len(raw) == 3:
+        try:
+            return (float(raw[0]), float(raw[1]), float(raw[2]))
+        except (TypeError, ValueError):
+            pass
+    return (82.0, -72.0, 28.0)
+
+
+_CAMERA_RIG_TRANSLATE_XYZ = _camera_rig_translate_from_cfg(cfg)
+
+W, H = resolution
+skip_frames = max(1, round(sim_hz / fps))
+
+print(f"[PTZ-RTSP] 配置：场景={scene_path}")
+print(f"[PTZ-RTSP]       相机Prim={camera_prim}")
+print(f"[PTZ-RTSP]       RTSP URL={rtsp_url}  分辨率={W}x{H}  fps={fps}")
+print(f"[PTZ-RTSP]       renderer={renderer_mode}  preview_enabled={preview_enabled}")
+print(f"[PTZ-RTSP]       sim_hz={sim_hz}  skip_frames={skip_frames}")
+print(
+    f"[PTZ-RTSP]       CameraRig translate={_CAMERA_RIG_TRANSLATE_XYZ} "
+    f"(camera_rig_translate_xyz 或 fallback)"
+)
+
+# 启动 SimulationApp（headless 模式）
+from isaacsim import SimulationApp
+
+sim_app = SimulationApp({
+    "headless": True,
+    "renderer": renderer_mode,
+    "width": W,
+    "height": H,
+})
+
+# ============================================================
+# 第二阶段：所有 omni.* 导入在 SimulationApp 启动后进行
+# ============================================================
+import io as _io
+import json
+import queue
+import random
+import signal
+import subprocess
+import tarfile
+import threading
+import time
+import urllib.request
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
+
+import numpy as np
+import omni.replicator.core as rep
+import omni.usd
+from isaacsim.core.api import World
+
+# ============================================================
+# PTZ 控制 HTTP API（内嵌在仿真进程中，port 8080）
+# ============================================================
+
+
+
+
+def _enforce_renderer_mode(reason: str, reset_launch_config: bool = False) -> None:
+    if reset_launch_config:
+        try:
+            sim_app.reset_render_settings()
+        except Exception as exc:
+            print(f"[renderer-fix] reset_render_settings skipped reason={reason} error={exc}")
+    sim_app.set_setting("/rtx/rendermode", renderer_mode)
+    sim_app.update()
+    import carb
+
+    settings = carb.settings.get_settings()
+    render_mode = settings.get("/rtx/rendermode")
+    renderer_plugin = settings.get("/app/renderer/plugin")
+    print(
+        "[renderer-fix] "
+        f"reason={reason} target={renderer_mode} "
+        f"/app/renderer/plugin={renderer_plugin} "
+        f"/rtx/rendermode={render_mode}"
+    )
+    if str(render_mode).strip().lower() != renderer_mode.lower():
+        raise RuntimeError(
+            f"renderer enforcement failed: expected {renderer_mode}, got {render_mode}"
+        )
+
+_CTRL_PORT = args.ctrl_port or cfg.get("ctrl_port", 8080)
+
+_ptz_state = {
+    "pan":  float(cfg.get("initial_pan",  0.0)),   # -170 ~ +170 度
+    "tilt": float(cfg.get("initial_tilt", -15.0)), # (-90, 30]：正值=俯视（向下），负值=仰视（向上）
+    "zoom": float(cfg.get("initial_zoom", 1.5)),    # 1× ~ 32×
+}
+print(f"[PTZ-RTSP] 初始云台 pan={_ptz_state['pan']}° tilt={_ptz_state['tilt']}° zoom={_ptz_state['zoom']}×")
+_ptz_lock    = threading.Lock()
+_ptz_dirty   = threading.Event()
+
+# 最近一次 /control 输入（用于调试：打印输入与最终写入旋转链）
+_ptz_last_cmd: dict | None = None
+
+# 推流/场景运行时诊断（供 /status、/diagnostics 与日志对照，避免“以为换了样本其实还是母场景”）
+_stream_diag_lock = threading.Lock()
+_STREAM_DIAG: dict = {
+    "role": "isaac_ptz_stream",
+    "config_file": os.path.abspath(config_path),
+    "scene_path": os.path.abspath(scene_path) if scene_path else "",
+    "scene_basename": os.path.basename(scene_path) if scene_path else "",
+    "camera_prim": camera_prim,
+    "stage_open_ok": False,
+    "open_stage_detail": "not_loaded_yet",
+    "camera_bound_ok": False,
+    "render_product": "",
+    "rtsp_enabled": rtsp_enabled,
+    "rtsp_url": rtsp_url if rtsp_enabled else None,
+    "preview_enabled": preview_enabled,
+    "resolution_wh": [W, H],
+    "control_base": f"http://127.0.0.1:{_CTRL_PORT}",
+    "mjpeg_url": f"http://127.0.0.1:{_CTRL_PORT}/stream.mjpeg",
+    "snapshot_url": f"http://127.0.0.1:{_CTRL_PORT}/snapshot.jpg",
+    "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+    "ffmpeg_alive": False,
+    "mediamtx_started": False,
+}
+
+
+def _stream_diag_update(**kwargs) -> None:
+    with _stream_diag_lock:
+        _STREAM_DIAG.update(kwargs)
+
+
+def _compose_status_dict() -> dict:
+    with _ptz_lock:
+        out = dict(_ptz_state)
+    with _stream_diag_lock:
+        out["stream"] = dict(_STREAM_DIAG)
+    with _scene_lock:
+        out["scene"] = dict(_scene_state)
+    return out
+_scene_up_axis = "Y"   # 加载场景后自动更新；Z-up 时改为 "Z"
+
+# CamTilt 上实际用于 tilt 的 rotate 属性名（与 USD 资产是否含对应 op 有关，见 _resolve_or_create_tilt_rotate_attr）
+_last_tilt_attr_used: str | None = None
+_tilt_axis_diag_printed: bool = False
+_ptz_base_initialized: bool = False
+_ptz_base_pan_deg: float = 0.0
+_ptz_base_tilt_deg: float = 0.0
+
+# ── 吊篮高度随机范围（与 HTTP POST /scene/gondola 的 clamp 一致，集中配置）────
+_GONDOLA_HEIGHT_MIN = 0.0
+_GONDOLA_HEIGHT_MAX = 3300.0
+
+# _CAMERA_RIG_TRANSLATE_XYZ 在 cfg 读取段由 camera_rig_translate_xyz 解析（见 _camera_rig_translate_from_cfg）
+
+# 路径候选：优先用户约定路径，其次常见 SceneRoot 前缀；运行时以 stage 上实际存在为准
+_GONDOLA_PATH_CANDIDATES = (
+    "/World/DiaoLan/Model/Group1",
+    "/World/SceneRoot/DiaoLan/Model/Group1",
+    "/World/SceneRoot/DiaoLan_01/Model/Group1",
+)
+# node_1（及 USD 转义名 node______1）
+_NODE1_PATH_CANDIDATES = (
+    "/World/DiaoLan/Model/node_1",
+    "/World/SceneRoot/DiaoLan/Model/node_1",
+    "/World/DiaoLan/Model/node______1",
+    "/World/SceneRoot/DiaoLan/Model/node______1",
+    "/World/SceneRoot/DiaoLan_01/Model/node______1",
+)
+_WORKER2_PATH_CANDIDATES = (
+    "/World/DiaoLan/Model/node_2",
+    "/World/SceneRoot/DiaoLan/Model/node_2",
+    "/World/DiaoLan/Model/node______2",
+    "/World/SceneRoot/DiaoLan/Model/node______2",
+    "/World/SceneRoot/DiaoLan_01/Model/node______2",
+)
+
+# 与 Group1 同挂在 .../Model 下的工人根 prim 名（USD 转义名）
+_NODE1_SIBLING_NAMES = frozenset(("node______1", "node_1"))
+_NODE2_SIBLING_NAMES = frozenset(("node______2", "node_2"))
+_CAMERA_RIG_PATH_CANDIDATES_EXTRA = (
+    "/World/CameraRig",
+    "/World/SceneRoot/CameraRig",
+)
+
+# ── 场景控制状态（吊篮 + 工人）；prim 路径在 stage 加载后解析写入下列变量 ──
+_GONDOLA_PRIM: str = ""
+_WORKER1_PRIM: str = ""   # 与 Group1 做高度同步的 node_1（解析失败则为空）
+_WORKER2_PRIM: str = ""
+_CAMERA_RIG_PRIM: str = ""  # 写入固定 translate 的 rig（由 camera_prim 推断或候选解析）
+
+# 首次应用场景状态时，若 node_1 与 Group1 为兄弟关系，记录二者在「高度轴」上的初始差
+_node1_vs_group1_height_offset: float | None = None
+# 首次应用场景状态时，若 node_2 与 Group1 为兄弟关系，记录二者在「高度轴」上的初始差
+_node2_vs_group1_height_offset: float | None = None
+
+# 启动时随机一次的吊篮高度（仅日志/诊断；与 gondola_y 一致）
+_last_gondola_init_sampled_height: float | None = None
+_last_gondola_init_synced_node1: bool = False
+_last_gondola_init_synced_node2: bool = False
+_last_gondola_init_relation: str = ""
+_last_gondola_init_group1_source: str = ""  # dynamic_traverse | fallback_list | missing
+
+_GONDOLA_HEIGHT_DIAG_PRINTED: bool = False
+
+
+def _get_translate_tuple(stage, prim_path: str) -> tuple[float, float, float] | None:
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        return None
+    attr = prim.GetAttribute("xformOp:translate")
+    if not (attr and attr.IsValid()) or attr.Get() is None:
+        return None
+    v = attr.Get()
+    return (float(v[0]), float(v[1]), float(v[2]))
+
+
+def _gondola_world_aabb_str(stage, prim_path: str) -> str:
+    from pxr import UsdGeom, Usd
+
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        return "invalid"
+    try:
+        img = UsdGeom.Imageable(prim)
+        wb = img.ComputeWorldBound(Usd.TimeCode.Default(), UsdGeom.Tokens.default_)
+        box = wb.ComputeAlignedBox()
+        mn = box.GetMin()
+        mx = box.GetMax()
+        return (
+            f"world_aabb min=({mn[0]:.3f},{mn[1]:.3f},{mn[2]:.3f}) "
+            f"max=({mx[0]:.3f},{mx[1]:.3f},{mx[2]:.3f})"
+        )
+    except Exception as exc:
+        return f"aabb_err={exc!r}"
+
+
+def _print_gondola_height_line(
+    stage,
+    label: str,
+    prim_path: str,
+    world_height_value_set: float,
+    before_t: tuple[float, float, float] | None,
+) -> None:
+    """单行：写高度目标 prim、高度轴分量前后、父级、类型、world AABB。"""
+    idx = _height_axis_index()
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        print(f"[gondola-height] {label} INVALID prim_path={prim_path!r}", flush=True)
+        return
+    parent = prim.GetParent().GetPath().pathString if prim.GetParent().IsValid() else ""
+    ptype = prim.GetTypeName()
+    authored_comp = before_t[idx] if before_t is not None else None
+    after_t = _get_translate_tuple(stage, prim_path)
+    after_comp = after_t[idx] if after_t is not None else None
+    aabb = _gondola_world_aabb_str(stage, prim_path)
+    print(
+        "[gondola-height] "
+        f"label={label!r} prim={prim_path!r} type={ptype!r} parent={parent!r} "
+        f"height_axis_idx={idx} "
+        f"authored_height_component={authored_comp} world_height_value_set={world_height_value_set} "
+        f"before_translate={before_t} after_translate={after_t} "
+        f"height_component_after={after_comp} {aabb}",
+        flush=True,
+    )
+
+
+_scene_state = {
+    "gondola_y": 0.0,    # 吊篮高度（gondola_y_min ~ max；写入 USD 时按 upAxis 落到高度轴）
+    "workers":   2,      # 工人数量（0 / 1 / 2）
+}
+_scene_lock  = threading.Lock()
+_scene_dirty = threading.Event()
+_chosen_worker: int = 1   # workers=1 时固定使用工人 1（不随机）
+_scene_experiment_state = {
+    "active_hidden_paths": [],
+    "original_visibility": {},
+}
+
+# ── MJPEG 帧缓冲（主循环写，HTTP handler 读）────────────────
+_mjpeg = {"jpeg": None, "frame_id": 0}
+_mjpeg_lock = threading.Lock()
+_jpeg_encode_fn = None   # 在 main() 里初始化
+
+
+def _init_jpeg_encoder(quality: int):
+    """按优先级检测 JPEG 编码器：Pillow → OpenCV → 不可用。"""
+    try:
+        from PIL import Image as _PILImg  # noqa
+        def _enc(rgba):
+            img = _PILImg.fromarray(rgba[:, :, :3])
+            buf = _io.BytesIO()
+            img.save(buf, "JPEG", quality=quality, optimize=False)
+            return buf.getvalue()
+        print("[PTZ-RTSP] MJPEG 编码器：Pillow ✓")
+        return _enc
+    except ImportError:
+        pass
+    try:
+        import cv2 as _cv2  # noqa
+        _params = [_cv2.IMWRITE_JPEG_QUALITY, quality]
+        def _enc(rgba):
+            bgr = rgba[:, :, :3][:, :, ::-1].copy()
+            ok, buf = _cv2.imencode(".jpg", bgr, _params)
+            return buf.tobytes() if ok else None
+        print("[PTZ-RTSP] MJPEG 编码器：OpenCV ✓")
+        return _enc
+    except ImportError:
+        pass
+    print("[PTZ-RTSP] ⚠ 未找到 PIL/OpenCV，MJPEG 不可用（仅 RTSP）")
+    return None
+
+
+def _list_cam_tilt_xform_op_names(tilt_prim) -> list[str]:
+    """CamTilt prim 上 GetOrderedXformOps 的 op 名列表（只读）。"""
+    from pxr import UsdGeom
+
+    if not tilt_prim.IsValid():
+        return []
+    xf = UsdGeom.Xformable(tilt_prim)
+    return [op.GetOpName() for op in xf.GetOrderedXformOps()]
+
+
+def _resolve_or_create_tilt_rotate_attr(tilt_prim, preferred_name: str) -> str | None:
+    """在 CamTilt 上解析/创建用于俯仰的 rotate 属性。
+
+    关键原则：一旦 preferred 不存在，就强制创建 preferred，而不是“复用已有 rotateX/Y/Z”。
+    否则很容易把 tilt 写到 yaw 轴上（例如当前场景 CamTilt 只有 rotateY，导致 tilt=-78 实际变成水平转动）。
+    """
+    from pxr import UsdGeom
+
+    if not tilt_prim.IsValid():
+        return None
+    pa = tilt_prim.GetAttribute(preferred_name)
+    if pa and pa.IsValid():
+        return preferred_name
+    xf = UsdGeom.Xformable(tilt_prim)
+    if preferred_name == "xformOp:rotateX":
+        xf.AddRotateXOp()
+    elif preferred_name == "xformOp:rotateY":
+        xf.AddRotateYOp()
+    else:
+        xf.AddRotateZOp()
+    return preferred_name
+
+
+def _read_rotate_attr_float(prim, attr_name: str) -> float | None:
+    if not prim or not prim.IsValid():
+        return None
+    a = prim.GetAttribute(attr_name)
+    if not (a and a.IsValid()):
+        return None
+    v = a.Get()
+    if v is None:
+        return None
+    try:
+        return float(v)
+    except Exception:
+        return None
+
+
+def _apply_ptz_state(stage) -> None:
+    """将 _ptz_state 写入 USD Stage：Pan 旋转、Tilt 旋转、相机焦距。
+
+    自动适配坐标轴：
+      Z-up 场景（本项目）：Pan → rotateZ，Tilt → rotateX
+      Y-up 场景（PTZ_SecurityDome）：Pan → rotateY，Tilt → rotateZ
+    """
+    global _last_tilt_attr_used, _tilt_axis_diag_printed
+    global _ptz_base_initialized, _ptz_base_pan_deg, _ptz_base_tilt_deg
+    with _ptz_lock:
+        pan_deg  = _ptz_state["pan"]
+        tilt_deg = _ptz_state["tilt"]
+        zoom     = _ptz_state["zoom"]
+
+    # 从 camera_prim 路径推断 pan/tilt prim 路径
+    parts     = camera_prim.split("/")
+    pan_path  = "/".join(parts[:-2])   # e.g. /World/CameraRig
+    tilt_path = "/".join(parts[:-1])   # e.g. /World/CameraRig/CamTilt
+
+    pan_p  = stage.GetPrimAtPath(pan_path)
+    tilt_p = stage.GetPrimAtPath(tilt_path)
+    cam_p  = stage.GetPrimAtPath(camera_prim)
+
+    # Z-up：水平旋转绕 Z，俯仰绕 X（避免将俯仰误写到横摆轴）
+    # Y-up：水平旋转绕 Y，俯仰绕 Z
+    if _scene_up_axis == "Z":
+        pan_attr_name  = "xformOp:rotateZ"
+        tilt_attr_name = "xformOp:rotateX"
+        legacy_tilt_attr_name = "xformOp:rotateY"
+    else:
+        pan_attr_name  = "xformOp:rotateY"
+        tilt_attr_name = "xformOp:rotateZ"
+        legacy_tilt_attr_name = None
+
+    if not _ptz_base_initialized:
+        _ptz_base_pan_deg = _read_rotate_attr_float(pan_p, pan_attr_name) or 0.0
+        if tilt_p.IsValid():
+            preferred_val = _read_rotate_attr_float(tilt_p, tilt_attr_name)
+            if preferred_val is not None:
+                _ptz_base_tilt_deg = preferred_val
+            elif legacy_tilt_attr_name:
+                # 兼容历史资产：若此前 tilt 用 rotateY，迁移其基准值到 rotateX。
+                _ptz_base_tilt_deg = _read_rotate_attr_float(tilt_p, legacy_tilt_attr_name) or 0.0
+            else:
+                _ptz_base_tilt_deg = 0.0
+        else:
+            _ptz_base_tilt_deg = 0.0
+        _ptz_base_initialized = True
+        pan_base_for_apply = _ptz_base_pan_deg + (180.0 if _scene_up_axis == "Z" else 0.0)
+        print(
+            "[PTZ-RTSP][ptz-base] "
+            f"pan_base_raw={_ptz_base_pan_deg} pan_base_apply={pan_base_for_apply} ({pan_attr_name}) "
+            f"tilt_base={_ptz_base_tilt_deg} ({tilt_attr_name})",
+            flush=True,
+        )
+
+    if pan_p.IsValid():
+        attr = pan_p.GetAttribute(pan_attr_name)
+        if attr and attr.IsValid():
+            # Z-up 下修正 yaw 语义：+pan 应向右；并补偿 180° 基准偏置避免“水平正视背对目标”。
+            if _scene_up_axis == "Z":
+                pan_final = (_ptz_base_pan_deg + 180.0) - pan_deg
+            else:
+                pan_final = _ptz_base_pan_deg + pan_deg
+            attr.Set(float(pan_final))
+    if tilt_p.IsValid():
+        tname = _resolve_or_create_tilt_rotate_attr(tilt_p, tilt_attr_name)
+        _last_tilt_attr_used = tname
+        before = after = None
+        if tname:
+            attr = tilt_p.GetAttribute(tname)
+            if attr and attr.IsValid():
+                try:
+                    v = attr.Get()
+                    before = float(v) if v is not None else None
+                except Exception:
+                    pass
+                attr.Set(float(_ptz_base_tilt_deg + (-tilt_deg)))
+                try:
+                    after = float(attr.Get())
+                except Exception:
+                    pass
+        if legacy_tilt_attr_name:
+            # 迁移后清零旧轴，避免 rotateY 与 rotateX 叠加导致姿态扭曲/横倒。
+            lg = tilt_p.GetAttribute(legacy_tilt_attr_name)
+            if lg and lg.IsValid():
+                lg.Set(0.0)
+        if not _tilt_axis_diag_printed:
+            ops = _list_cam_tilt_xform_op_names(tilt_p)
+            tp = tilt_p.GetPath().pathString
+            err = None
+            if not tname:
+                err = "resolve_or_create returned None"
+            elif not (tilt_p.GetAttribute(tname) and tilt_p.GetAttribute(tname).IsValid()):
+                err = f"attr missing after resolve tname={tname!r}"
+            print(
+                "[PTZ-RTSP][tilt-axis] "
+                f"cam_tilt={tp!r} xform_ops={ops} "
+                f"preferred={tilt_attr_name!r} hit_attr={tname!r} "
+                f"before={before} after={after}"
+                + (f" ERROR={err!r}" if err else ""),
+                flush=True,
+            )
+            _tilt_axis_diag_printed = True
+    elif not _tilt_axis_diag_printed:
+        print(
+            f"[PTZ-RTSP][tilt-axis] ERROR: invalid tilt_path={tilt_path!r} (CamTilt not on stage)",
+            flush=True,
+        )
+        _tilt_axis_diag_printed = True
+    if cam_p.IsValid():
+        attr = cam_p.GetAttribute("focalLength")
+        if attr and attr.IsValid():
+            attr.Set(float(FOCAL_LENGTH_1X * zoom))
+
+
+def _log_usd_ptz_debug_snapshot(stage) -> None:
+    """只读：打印当前 Stage 上 rig 平移、Pan/Tilt 对应旋转、focalLength（与 _apply_ptz_state 轴映射一致）。"""
+    try:
+        parts = [x for x in camera_prim.split("/") if x]
+        pan_path = "/" + "/".join(parts[:-2]) if len(parts) >= 3 else ""
+        tilt_path = "/" + "/".join(parts[:-1]) if len(parts) >= 2 else ""
+        rig_path = _CAMERA_RIG_PRIM or pan_path
+        if _scene_up_axis == "Z":
+            pan_attr_name, tilt_attr_name = "xformOp:rotateZ", "xformOp:rotateX"
+        else:
+            pan_attr_name, tilt_attr_name = "xformOp:rotateY", "xformOp:rotateZ"
+
+        def _getf(prim_path: str, attr_name: str):
+            p = stage.GetPrimAtPath(prim_path)
+            if not p.IsValid():
+                return None
+            a = p.GetAttribute(attr_name)
+            if not (a and a.IsValid()):
+                return None
+            try:
+                return float(a.Get())
+            except Exception:
+                return None
+
+        tr = None
+        rp = stage.GetPrimAtPath(rig_path) if rig_path else None
+        if rp and rp.IsValid():
+            ta = rp.GetAttribute("xformOp:translate")
+            if ta and ta.IsValid() and ta.Get() is not None:
+                v = ta.Get()
+                tr = (float(v[0]), float(v[1]), float(v[2]))
+
+        pan_r = _getf(pan_path, pan_attr_name)
+        tilt_resolved = _last_tilt_attr_used or tilt_attr_name
+        tilt_r = _getf(tilt_path, tilt_resolved)
+        tp = stage.GetPrimAtPath(tilt_path) if tilt_path else None
+        tilt_ops = _list_cam_tilt_xform_op_names(tp) if (tp and tp.IsValid()) else []
+        fl = _getf(camera_prim, "focalLength")
+
+        print(
+            "[PTZ-RTSP][usd-debug] "
+            f"rig={rig_path!r} xformOp:translate={tr} "
+            f"pan_axis={pan_attr_name} value={pan_r} "
+            f"tilt_preferred={tilt_attr_name} tilt_resolved={tilt_resolved} "
+            f"cam_tilt_ops={tilt_ops} value={tilt_r} "
+            f"camera={camera_prim!r} focalLength={fl}",
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"[PTZ-RTSP][usd-debug] ERROR: {exc!r}", flush=True)
+
+
+def _compute_target_projection_metrics(stage) -> dict | None:
+    """计算当前 target 在真实运行 Stage 上的投影指标，供验收脚本直接读取。"""
+    try:
+        from pxr import Gf, Usd, UsdGeom
+
+        if not _GONDOLA_PRIM:
+            return None
+        cam_prim = stage.GetPrimAtPath(camera_prim)
+        tgt_prim = stage.GetPrimAtPath(_GONDOLA_PRIM)
+        if not cam_prim.IsValid() or not tgt_prim.IsValid():
+            return None
+
+        bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+        target_bound = bbox_cache.ComputeWorldBound(tgt_prim)
+        target_range = target_bound.ComputeAlignedRange()
+        target_mid = target_range.GetMidpoint()
+
+        xcache = UsdGeom.XformCache(Usd.TimeCode.Default())
+        cam_world = xcache.GetLocalToWorldTransform(cam_prim)
+        cam_pos = cam_world.ExtractTranslation()
+        dist = float((target_mid - cam_pos).GetLength())
+
+        gf_cam = UsdGeom.Camera(cam_prim).GetCamera(Usd.TimeCode.Default())
+        frustum = gf_cam.frustum
+        frustum.Transform(cam_world)
+        in_frustum = bool(frustum.Intersects(target_bound))
+
+        vm = frustum.ComputeViewMatrix()
+        pm = frustum.ComputeProjectionMatrix()
+        pixels: list[tuple[float, float]] = []
+        mn = target_range.GetMin()
+        mx = target_range.GetMax()
+        for px in (mn[0], mx[0]):
+            for py in (mn[1], mx[1]):
+                for pz in (mn[2], mx[2]):
+                    clip = Gf.Vec4d(px, py, pz, 1.0) * vm * pm
+                    w = float(clip[3])
+                    if abs(w) < 1e-9:
+                        continue
+                    ndc_x = float(clip[0]) / w
+                    ndc_y = float(clip[1]) / w
+                    sx = (ndc_x * 0.5 + 0.5) * W
+                    sy = (1.0 - (ndc_y * 0.5 + 0.5)) * H
+                    pixels.append((sx, sy))
+
+        if not pixels:
+            return None
+
+        min_x = min(v[0] for v in pixels)
+        min_y = min(v[1] for v in pixels)
+        max_x = max(v[0] for v in pixels)
+        max_y = max(v[1] for v in pixels)
+        bbox_w = max_x - min_x
+        bbox_h = max_y - min_y
+        cx = (min_x + max_x) * 0.5
+        cy = (min_y + max_y) * 0.5
+        inter_w = max(0.0, min(max_x, W) - max(min_x, 0.0))
+        inter_h = max(0.0, min(max_y, H) - max(min_y, 0.0))
+        bbox_area = max(1e-6, bbox_w * bbox_h)
+        overflow_ratio = max(0.0, 1.0 - ((inter_w * inter_h) / bbox_area))
+
+        return {
+            "distance_to_camera": round(dist, 2),
+            "frustum内可见": in_frustum,
+            "屏幕包围框px": [round(min_x, 2), round(min_y, 2), round(max_x, 2), round(max_y, 2)],
+            "中心点px": [round(cx, 2), round(cy, 2)],
+            "宽度占比%": round(bbox_w / W * 100.0, 2),
+            "高度占比%": round(bbox_h / H * 100.0, 2),
+            "越界面积占比": round(overflow_ratio, 4),
+            "中心在画面内": bool(0 <= cx <= W and 0 <= cy <= H),
+            "目标像素占比": round(max(0.0, min(1.0, bbox_area / float(W * H))), 4),
+        }
+    except Exception as exc:
+        return {"error": repr(exc)}
+
+
+def _refresh_projection_metrics(stage) -> None:
+    _stream_diag_update(target_projection_metrics=_compute_target_projection_metrics(stage))
+
+
+def _log_ptz_applied_debug(stage, cmd: dict | None) -> None:
+    """当 /control 设置 PTZ 后，打印每层 Xform/Camera 的实际旋转与 forward 向量。"""
+    try:
+        from pxr import UsdGeom as _UsdGeom
+        from pxr import Gf as _Gf
+
+        parts = [x for x in camera_prim.split("/") if x]
+        pan_path = "/" + "/".join(parts[:-2]) if len(parts) >= 3 else ""
+        tilt_path = "/" + "/".join(parts[:-1]) if len(parts) >= 2 else ""
+        rig_path = _CAMERA_RIG_PRIM or pan_path
+
+        pan_attr_name = "xformOp:rotateZ" if _scene_up_axis == "Z" else "xformOp:rotateY"
+        default_tilt_attr_name = "xformOp:rotateX" if _scene_up_axis == "Z" else "xformOp:rotateZ"
+        tilt_attr_name_used = _last_tilt_attr_used or default_tilt_attr_name
+
+        with _ptz_lock:
+            pan_ap = float(_ptz_state["pan"])
+            tilt_ap = float(_ptz_state["tilt"])
+            zoom_ap = float(_ptz_state["zoom"])
+
+        in_dict = cmd.get("input", {}) if isinstance(cmd, dict) else {}
+        in_pan = in_dict.get("pan", pan_ap)
+        in_tilt = in_dict.get("tilt", tilt_ap)
+        in_zoom = in_dict.get("zoom", zoom_ap)
+
+        def _snapshot_rotate_ops(prim_path: str) -> list[str]:
+            p = stage.GetPrimAtPath(prim_path) if prim_path else None
+            if not (p and p.IsValid()):
+                return []
+            xf = _UsdGeom.Xformable(p)
+            out: list[str] = []
+            for op in xf.GetOrderedXformOps():
+                name = op.GetOpName()
+                if name.startswith("xformOp:rotate"):
+                    a = p.GetAttribute(name)
+                    val = None
+                    try:
+                        if a and a.IsValid():
+                            val = a.Get()
+                    except Exception:
+                        val = None
+                    out.append(f"{name}={val}")
+            return out
+
+        # camera forward：USD Camera 本地 forward = -Z
+        cam_p = stage.GetPrimAtPath(camera_prim)
+        cache = _UsdGeom.XformCache()
+        mat = cache.GetLocalToWorldTransform(cam_p)
+        f_local = _Gf.Vec3d(0, 0, -1)
+        f_world = mat.TransformDir(f_local)
+        if f_world.GetLength() > 1e-9:
+            f_world = f_world.GetNormalized()
+
+        pan_ops = _snapshot_rotate_ops(pan_path)
+        tilt_ops = _snapshot_rotate_ops(tilt_path)
+        cam_ops = _snapshot_rotate_ops(camera_prim)
+
+        print(
+            "[PTZ-RTSP][ptz-debug] "
+            f"in pan={in_pan}° tilt={in_tilt}° zoom={in_zoom}× | "
+            f"write pan={pan_path!r}:{pan_attr_name} tilt={tilt_path!r}:{tilt_attr_name_used} "
+            f"camera={camera_prim!r}:focalLength",
+            flush=True,
+        )
+        print(
+            f"[PTZ-RTSP][ptz-debug] rot(CameraRig)={pan_ops} "
+            f"rot(CamTilt)={tilt_ops} rot(Camera)={cam_ops}",
+            flush=True,
+        )
+        print(
+            "[PTZ-RTSP][ptz-debug] forward_world="
+            f"({float(f_world[0]):.6f},{float(f_world[1]):.6f},{float(f_world[2]):.6f})",
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"[PTZ-RTSP][ptz-debug] ERROR: {exc!r}", flush=True)
+
+
+def _height_axis_index() -> int:
+    """世界高度轴在 Vec3d translate 中的下标：Z-up → 2，Y-up → 1。"""
+    return 2 if _scene_up_axis == "Z" else 1
+
+
+def _path_is_strict_descendant(ancestor_path: str, prim_path: str) -> bool:
+    """prim_path 是否为 ancestor_path 的子孙（非自身）。"""
+    a = ancestor_path.rstrip("/")
+    p = prim_path.rstrip("/")
+    if not a or not p:
+        return False
+    return p.startswith(a + "/")
+
+
+def _get_translate_height(stage, prim_path: str) -> float | None:
+    from pxr import Gf as _Gf
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        return None
+    attr = prim.GetAttribute("xformOp:translate")
+    if not (attr and attr.IsValid()):
+        return None
+    cur = attr.Get()
+    if cur is None:
+        return None
+    v = _Gf.Vec3d(cur[0], cur[1], cur[2])
+    return float(v[_height_axis_index()])
+
+
+def _set_prim_translate_height(stage, prim_path: str, height_val: float) -> None:
+    """将 prim 的 xformOp:translate 在「高度轴」上的分量设为 height_val，其余分量不变。"""
+    from pxr import Gf as _Gf
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        return
+    attr = prim.GetAttribute("xformOp:translate")
+    if not (attr and attr.IsValid()):
+        return
+    cur = attr.Get()
+    idx = _height_axis_index()
+    if cur is not None:
+        x, y, z = float(cur[0]), float(cur[1]), float(cur[2])
+        if idx == 2:
+            attr.Set(_Gf.Vec3d(x, y, float(height_val)))
+        else:
+            attr.Set(_Gf.Vec3d(x, float(height_val), z))
+    else:
+        if idx == 2:
+            attr.Set(_Gf.Vec3d(0.0, 0.0, float(height_val)))
+        else:
+            attr.Set(_Gf.Vec3d(0.0, float(height_val), 0.0))
+
+
+def _set_prim_y(stage, prim_path: str, y_val: float) -> None:
+    """兼容旧名：按当前场景 upAxis 写入高度轴分量。"""
+    _set_prim_translate_height(stage, prim_path, y_val)
+
+
+def _set_prim_visibility(stage, prim_path: str, visible: bool) -> None:
+    """设置 prim 的 visibility 属性（invisible / inherited）。"""
+    from pxr import UsdGeom as _UG
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        return
+    attr = prim.GetAttribute("visibility")
+    if attr and attr.IsValid():
+        attr.Set(_UG.Tokens.inherited if visible else _UG.Tokens.invisible)
+
+
+def _set_resolved_workers_visible_count(stage, visible_count: int) -> int:
+    """按当前解析到的 worker prim 运行时切换可见性。"""
+    person_paths = [p for p in (_WORKER1_PRIM, _WORKER2_PRIM) if p]
+    if not person_paths:
+        return 0
+    count = max(0, min(len(person_paths), int(visible_count)))
+    visible_indices = set(range(count))
+    if count == 1:
+        visible_indices = {max(0, min(len(person_paths) - 1, _chosen_worker - 1))}
+    for idx, p_path in enumerate(person_paths):
+        _set_prim_visibility(stage, p_path, idx in visible_indices)
+    return count
+
+
+def _set_workers_visible_count(diaolan_info: dict, visible_count: int) -> int:
+    """按固定人数显示工人，顺序稳定，避免重启后再次随机。"""
+    person_paths = list(diaolan_info.get("persons") or [])
+    count = max(0, min(len(person_paths), int(visible_count)))
+    for idx, p_path in enumerate(person_paths):
+        _set_prim_visibility(omni.usd.get_context().get_stage(), p_path, idx < count)
+    return count
+
+
+def _apply_scene_state(stage) -> None:
+    """运行时同步吊篮高度与工人可见数量。"""
+    _apply_gondola_height_only(stage)
+    with _scene_lock:
+        workers = int(_scene_state.get("workers", 2))
+    _set_resolved_workers_visible_count(stage, workers)
+
+
+def _visibility_attr_snapshot(prim):
+    attr = prim.GetAttribute("visibility")
+    if not attr or not attr.IsValid():
+        return {"authored": False, "value": None}
+    return {
+        "authored": bool(attr.HasAuthoredValueOpinion()),
+        "value": str(attr.Get()) if attr.Get() is not None else None,
+    }
+
+
+def _restore_scene_experiment_visibility(stage) -> None:
+    from pxr import UsdGeom as _UG
+
+    with _scene_lock:
+        original_visibility = dict(_scene_experiment_state["original_visibility"])
+    for prim_path, snap in original_visibility.items():
+        prim = stage.GetPrimAtPath(prim_path)
+        if not prim.IsValid():
+            continue
+        attr = prim.GetAttribute("visibility")
+        if not attr or not attr.IsValid():
+            img = _UG.Imageable(prim)
+            attr = img.CreateVisibilityAttr()
+        if snap.get("authored"):
+            value = snap.get("value") or str(_UG.Tokens.inherited)
+            attr.Set(_UG.Tokens.invisible if value == str(_UG.Tokens.invisible) else _UG.Tokens.inherited)
+        else:
+            attr.Clear()
+    with _scene_lock:
+        _scene_experiment_state["active_hidden_paths"] = []
+        _scene_experiment_state["original_visibility"] = {}
+
+
+def _normalize_root_paths(paths: list[str]) -> list[str]:
+    cleaned = []
+    for path in sorted({str(p).rstrip("/") for p in paths if str(p).strip()}):
+        if any(path == root or path.startswith(root + "/") for root in cleaned):
+            continue
+        cleaned.append(path)
+    return cleaned
+
+
+def _set_scene_experiment_hidden_paths(stage, hidden_paths: list[str]) -> dict:
+    valid_hidden = []
+    invalid_hidden = []
+    original_visibility = {}
+    for prim_path in _normalize_root_paths(hidden_paths):
+        prim = stage.GetPrimAtPath(prim_path)
+        if not prim.IsValid():
+            invalid_hidden.append(prim_path)
+            continue
+        original_visibility[prim_path] = _visibility_attr_snapshot(prim)
+        _set_prim_visibility(stage, prim_path, False)
+        valid_hidden.append(prim_path)
+    with _scene_lock:
+        _scene_experiment_state["active_hidden_paths"] = list(valid_hidden)
+        _scene_experiment_state["original_visibility"] = dict(original_visibility)
+    return {
+        "active_hidden_paths": valid_hidden,
+        "invalid_hidden_paths": invalid_hidden,
+    }
+
+
+def _match_suspicious_name(path: str) -> bool:
+    path_l = path.lower()
+    tokens = ("card", "plane", "quad", "billboard", "decal", "screen")
+    return any(tok in path_l for tok in tokens)
+
+
+def _describe_flat_candidates(stage, root_prim, limit: int = 24) -> list[dict]:
+    from pxr import Usd, UsdGeom
+
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+    out = []
+    for prim in Usd.PrimRange(root_prim):
+        if not (prim.IsA(UsdGeom.Mesh) or prim.IsA(UsdGeom.Xform)):
+            continue
+        rng = bbox_cache.ComputeWorldBound(prim).ComputeAlignedRange()
+        if rng.IsEmpty():
+            continue
+        size = rng.GetSize()
+        dims = sorted(float(v) for v in size)
+        if dims[2] < 0.25 or dims[1] < 0.15:
+            continue
+        thin_ratio = dims[0] / max(dims[1], 1e-6)
+        if thin_ratio > 0.045:
+            continue
+        out.append(
+            {
+                "path": prim.GetPath().pathString,
+                "size_xyz": [round(float(size[0]), 4), round(float(size[1]), 4), round(float(size[2]), 4)],
+                "thin_ratio": round(thin_ratio, 5),
+                "type": prim.GetTypeName(),
+            }
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _describe_active_scene_branch(stage) -> dict:
+    from pxr import Usd
+
+    active_path = ""
+    if _GONDOLA_PRIM:
+        parts = [p for p in _GONDOLA_PRIM.split("/") if p]
+        if len(parts) >= 2:
+            active_path = "/" + "/".join(parts[:2])
+    model_path = f"{active_path}/Model" if active_path else ""
+    model_prim = stage.GetPrimAtPath(model_path) if model_path else None
+    model_children = []
+    auxiliary_model_children = []
+    suspicious_named_paths = []
+    flat_candidates = []
+    if model_prim and model_prim.IsValid():
+        for child in model_prim.GetChildren():
+            c_path = child.GetPath().pathString
+            model_children.append(c_path)
+            is_target = bool(_GONDOLA_PRIM) and (c_path == _GONDOLA_PRIM or _GONDOLA_PRIM.startswith(c_path + "/"))
+            is_worker = c_path in (_WORKER1_PRIM, _WORKER2_PRIM)
+            if not is_target and not is_worker:
+                auxiliary_model_children.append(c_path)
+        suspicious_named_paths = [
+            prim.GetPath().pathString
+            for prim in Usd.PrimRange(model_prim)
+            if _match_suspicious_name(prim.GetPath().pathString)
+        ]
+        flat_candidates = _describe_flat_candidates(stage, model_prim)
+    with _scene_lock:
+        scene_experiment = {
+            "active_hidden_paths": list(_scene_experiment_state["active_hidden_paths"]),
+        }
+    return {
+        "active_path": active_path or None,
+        "model_path": model_path or None,
+        "target_branch_path": _GONDOLA_PRIM or None,
+        "camera_rig_path": _CAMERA_RIG_PRIM or None,
+        "camera_rig_translate_xyz": [round(float(v), 2) for v in _CAMERA_RIG_TRANSLATE_XYZ],
+        "worker_paths": [p for p in (_WORKER1_PRIM, _WORKER2_PRIM) if p],
+        "model_children": model_children,
+        "auxiliary_model_children": auxiliary_model_children,
+        "suspicious_named_paths": suspicious_named_paths,
+        "flat_candidate_paths": flat_candidates,
+        "scene_experiment": scene_experiment,
+    }
+
+
+def _set_camera_rig_translate_runtime(stage, xyz: list[float]) -> list[float]:
+    from pxr import Gf as _Gf
+    global _CAMERA_RIG_TRANSLATE_XYZ
+
+    if not _CAMERA_RIG_PRIM:
+        raise RuntimeError("camera rig prim unresolved")
+    prim = stage.GetPrimAtPath(_CAMERA_RIG_PRIM)
+    if not prim.IsValid():
+        raise RuntimeError(f"invalid camera rig prim: {_CAMERA_RIG_PRIM}")
+    attr = prim.GetAttribute("xformOp:translate")
+    if not attr or not attr.IsValid():
+        raise RuntimeError(f"camera rig translate attr missing: {_CAMERA_RIG_PRIM}")
+    x, y, z = [round(float(v), 2) for v in xyz]
+    attr.Set(_Gf.Vec3d(x, y, z))
+    _CAMERA_RIG_TRANSLATE_XYZ = (x, y, z)
+    print(f"[camera-rig-runtime] translate=({x:.2f},{y:.2f},{z:.2f}) prim={_CAMERA_RIG_PRIM}", flush=True)
+    return [x, y, z]
+
+
+def _discover_diaolan_group1_path(stage) -> str:
+    """吊篮高度写入目标（最高优先级固定为 /World/DiaoLan/Model/Group1）。
+
+    不再通过 substring 遍历来“碰到”其他同名/相似层级的吊篮（例如 Group8761 旧层级），避免高度写错对象。
+    """
+    preferred = "/World/DiaoLan/Model/Group1"
+    p = stage.GetPrimAtPath(preferred)
+    if p.IsValid():
+        return preferred
+    return ""
+
+
+def _resolve_sibling_worker_nodes(stage, group1_path: str) -> tuple[str, str]:
+    """在 Group1 的父 prim（一般为 Model）下按 prim 名找 node______1/node_1、node______2/node_2。"""
+    g = stage.GetPrimAtPath(group1_path)
+    if not g.IsValid():
+        return "", ""
+    parent = g.GetParent()
+    if not parent.IsValid():
+        return "", ""
+    w1, w2 = "", ""
+    for ch in parent.GetChildren():
+        nm = ch.GetName()
+        ps = ch.GetPath().pathString
+        if nm in _NODE1_SIBLING_NAMES:
+            w1 = ps
+        elif nm in _NODE2_SIBLING_NAMES:
+            w2 = ps
+    return w1, w2
+
+
+def _apply_gondola_height_only(stage) -> None:
+    """仅写吊篮根 prim 的高度轴；若 node1/node2 为兄弟则分别同步高度轴并保持各自初始轴向高度差。"""
+    global _node1_vs_group1_height_offset, _node2_vs_group1_height_offset, _GONDOLA_HEIGHT_DIAG_PRINTED
+    if not _GONDOLA_PRIM:
+        return
+    with _scene_lock:
+        gondola_y = _scene_state["gondola_y"]
+
+    n1 = stage.GetPrimAtPath(_WORKER1_PRIM)
+    node1_under_g1 = n1.IsValid() and _path_is_strict_descendant(_GONDOLA_PRIM, _WORKER1_PRIM)
+    n2 = stage.GetPrimAtPath(_WORKER2_PRIM)
+    node2_under_g1 = n2.IsValid() and _path_is_strict_descendant(_GONDOLA_PRIM, _WORKER2_PRIM)
+
+    if n1.IsValid() and not node1_under_g1 and _node1_vs_group1_height_offset is None:
+        h_g = _get_translate_height(stage, _GONDOLA_PRIM)
+        h_n = _get_translate_height(stage, _WORKER1_PRIM)
+        if h_g is not None and h_n is not None:
+            _node1_vs_group1_height_offset = h_n - h_g
+        else:
+            _node1_vs_group1_height_offset = 0.0
+
+    if n2.IsValid() and not node2_under_g1 and _node2_vs_group1_height_offset is None:
+        h_g = _get_translate_height(stage, _GONDOLA_PRIM)
+        h_n = _get_translate_height(stage, _WORKER2_PRIM)
+        if h_g is not None and h_n is not None:
+            _node2_vs_group1_height_offset = h_n - h_g
+        else:
+            _node2_vs_group1_height_offset = 0.0
+
+    before_g = _get_translate_tuple(stage, _GONDOLA_PRIM)
+    before_n = _get_translate_tuple(stage, _WORKER1_PRIM) if _WORKER1_PRIM else None
+    before_n2 = _get_translate_tuple(stage, _WORKER2_PRIM) if _WORKER2_PRIM else None
+
+    _set_prim_translate_height(stage, _GONDOLA_PRIM, gondola_y)
+    node1_target_y = None
+    if n1.IsValid() and not node1_under_g1:
+        node1_target_y = gondola_y + float(_node1_vs_group1_height_offset or 0.0)
+        _set_prim_translate_height(stage, _WORKER1_PRIM, node1_target_y)
+
+    node2_target_y = None
+    if n2.IsValid() and not node2_under_g1:
+        node2_target_y = gondola_y + float(_node2_vs_group1_height_offset or 0.0)
+        _set_prim_translate_height(stage, _WORKER2_PRIM, node2_target_y)
+
+    if not _GONDOLA_HEIGHT_DIAG_PRINTED:
+        _print_gondola_height_line(
+            stage, "gondola_root", _GONDOLA_PRIM, float(gondola_y), before_g
+        )
+        if n1.IsValid() and not node1_under_g1 and node1_target_y is not None:
+            _print_gondola_height_line(
+                stage, "node1_sync", _WORKER1_PRIM, float(node1_target_y), before_n
+            )
+        if n2.IsValid() and not node2_under_g1 and node2_target_y is not None:
+            _print_gondola_height_line(
+                stage, "node2_sync", _WORKER2_PRIM, float(node2_target_y), before_n2
+            )
+        _GONDOLA_HEIGHT_DIAG_PRINTED = True
+
+
+def _first_valid_prim_path(stage, candidates: tuple[str, ...]) -> str:
+    for p in candidates:
+        if p and stage.GetPrimAtPath(p).IsValid():
+            return p
+    return ""
+
+
+def _resolve_camera_rig_path(stage) -> str:
+    parts = [x for x in camera_prim.split("/") if x]
+    if len(parts) >= 3:
+        pan_path = "/" + "/".join(parts[:-2])
+        if stage.GetPrimAtPath(pan_path).IsValid():
+            return pan_path
+    return _first_valid_prim_path(stage, _CAMERA_RIG_PATH_CANDIDATES_EXTRA)
+
+
+def _set_camera_rig_fixed_translate(stage, rig_path: str) -> None:
+    from pxr import Gf as _Gf
+    if not rig_path:
+        return
+    prim = stage.GetPrimAtPath(rig_path)
+    if not prim.IsValid():
+        return
+    attr = prim.GetAttribute("xformOp:translate")
+    if attr and attr.IsValid():
+        x, y, z = _CAMERA_RIG_TRANSLATE_XYZ
+        attr.Set(_Gf.Vec3d(float(x), float(y), float(z)))
+        print(f"[camera-rig] fixed translate=({x}, {y}, {z}) prim={rig_path}")
+
+
+def _preset_visibility_log_line(presets_cfg: dict, preset_vis: dict) -> str:
+    """按配置里的 name 打印各预置位可见性。"""
+    parts = []
+    for k in sorted(preset_vis.keys(), key=lambda x: str(x)):
+        v = preset_vis[k]
+        name = str(k)
+        if isinstance(presets_cfg, dict) and isinstance(presets_cfg.get(k), dict):
+            name = presets_cfg[k].get("name") or k
+        parts.append(f"{name}={v}")
+    return " ".join(parts)
+
+
+def _log_disabled_black_model_workarounds() -> None:
+    raw = cfg.get("diaolan_ambient_boost_intensity")
+    if raw not in (None, "", 0, 0.0, "0", "0.0"):
+        print(
+            "[renderer-fix] ignoring diaolan_ambient_boost_intensity; "
+            "lighting/exposure black-model workaround disabled"
+        )
+
+
+import random
+import yaml
+import math
+from diaolan_randomizer import (
+    scan_diaolan_prims,
+    pick_active_diaolan,
+    apply_diaolan_visibility,
+    randomize_workers,
+    sync_workers_to_group1,
+    check_safety_hazard,
+    compute_changjing_aabb,
+    sample_camera_in_changjing,
+    check_preset_visibility,
+    log_target_branch_render_state,
+    force_debug_emissive_on_target_branch,
+    apply_hydrastorm_formal_materials_on_target_branch,
+    prepare_geometry_only_target_branch,
+)
+
+def _init_gondola_paths_camera_and_random_height_once(stage) -> None:
+    """stage 已加载且 upAxis 已读后调用：固定相机 rig、动态解析吊篮 prim、随机一次高度；
+    仅写 Group1/node1/node2 高度轴，不调 _apply_scene_state。"""
+    global _GONDOLA_PRIM, _WORKER1_PRIM, _WORKER2_PRIM, _CAMERA_RIG_PRIM
+    global _node1_vs_group1_height_offset, _node2_vs_group1_height_offset
+    global _last_gondola_init_sampled_height, _last_gondola_init_synced_node1, _last_gondola_init_relation
+    global _last_gondola_init_synced_node2
+    global _last_gondola_init_group1_source
+
+    _CAMERA_RIG_PRIM = _resolve_camera_rig_path(stage)
+
+    _log_disabled_black_model_workarounds()
+
+    # 1. Scan diaolan prims
+    all_diaolans = scan_diaolan_prims(stage)
+    print(f"[diaolan-scan] found {len(all_diaolans)} diaolans: {[d['path'] for d in all_diaolans]}")
+
+    if not all_diaolans:
+        print("[diaolan-scan] ERROR: No diaolans found!")
+        return
+
+    # Random generator
+    rng = random.Random()
+
+    # 2. Pick active and apply visibility
+    forced_active_path = str(cfg.get("force_active_diaolan_path", "/World/DiaoLan_01") or "").strip()
+    active_diaolan = pick_active_diaolan(
+        all_diaolans,
+        rng,
+        forced_path=forced_active_path if forced_active_path else None,
+    )
+    # # # apply_diaolan_visibility(stage, active_diaolan, all_diaolans)
+    
+    hidden_paths = [d["path"] for d in all_diaolans if d["path"] != active_diaolan["path"]]
+    print(f"[diaolan-active] active={active_diaolan['path']} hidden={hidden_paths}")
+
+    # Set global variables for compatibility with existing code
+    _GONDOLA_PRIM = active_diaolan["group1"]
+    _WORKER1_PRIM = active_diaolan["persons"][0] if len(active_diaolan["persons"]) > 0 else ""
+    _WORKER2_PRIM = active_diaolan["persons"][1] if len(active_diaolan["persons"]) > 1 else ""
+    _last_gondola_init_group1_source = "diaolan_randomizer"
+    log_target_branch_render_state(stage, _GONDOLA_PRIM, renderer_mode)
+    hydra_material_mode = str(cfg.get("hydra_target_material_mode", "none")).strip().lower()
+    if renderer_mode == "HydraStorm" and hydra_material_mode == "debug":
+        force_debug_emissive_on_target_branch(stage, _GONDOLA_PRIM)
+        log_target_branch_render_state(stage, _GONDOLA_PRIM, renderer_mode)
+    elif renderer_mode == "HydraStorm" and hydra_material_mode == "formal":
+        apply_hydrastorm_formal_materials_on_target_branch(stage, _GONDOLA_PRIM)
+        log_target_branch_render_state(stage, _GONDOLA_PRIM, renderer_mode)
+
+    # 4. Compute Changjing AABB first to bound the height
+    aabb = compute_changjing_aabb(stage)
+    
+    # 3. Randomize workers and height with safety retry loop
+    max_retries = 10
+    gondola_y = 0.0
+    visible_count = 0
+    hazard = True
+    
+    # Use AABB zmax as the upper bound for gondola height, with a reasonable fallback
+    dynamic_height_max = min(_GONDOLA_HEIGHT_MAX, aabb['zmax']) if aabb['zmax'] > 5.0 else 36.0
+    
+    forced_height = None
+    forced_height_raw = cfg.get("force_gondola_height")
+    if forced_height_raw not in (None, ""):
+        try:
+            forced_height = max(
+                _GONDOLA_HEIGHT_MIN,
+                min(dynamic_height_max, float(forced_height_raw)),
+            )
+        except (TypeError, ValueError):
+            forced_height = None
+
+    forced_workers = None
+    forced_workers_raw = cfg.get("force_workers_count")
+    if forced_workers_raw not in (None, ""):
+        try:
+            forced_workers = max(0, min(len(active_diaolan["persons"]), int(forced_workers_raw)))
+        except (TypeError, ValueError):
+            forced_workers = None
+
+    if forced_height is not None or forced_workers is not None:
+        gondola_y = forced_height if forced_height is not None else rng.uniform(_GONDOLA_HEIGHT_MIN, dynamic_height_max)
+        visible_count = (
+            _set_workers_visible_count(active_diaolan, forced_workers)
+            if forced_workers is not None
+            else randomize_workers(stage, active_diaolan, rng)
+        )
+        hazard, reason = check_safety_hazard(gondola_y, visible_count)
+        print(
+            "[diaolan-workers] "
+            f"forced_height={forced_height} forced_workers={forced_workers} "
+            f"group1_z={gondola_y:.2f} persons_visible={visible_count} hazard={hazard}"
+        )
+        if hazard:
+            print(f"[diaolan-workers] WARNING: forced state still has hazard. reason={reason}")
+    else:
+        for attempt in range(max_retries):
+            # Randomize height
+            gondola_y = rng.uniform(_GONDOLA_HEIGHT_MIN, dynamic_height_max)
+            
+            # Randomize workers
+            visible_count = randomize_workers(stage, active_diaolan, rng)
+            
+            # Check safety
+            hazard, reason = check_safety_hazard(gondola_y, visible_count)
+            if not hazard:
+                break
+            
+        if hazard:
+            print(f"[diaolan-workers] WARNING: Failed to find safe state after {max_retries} retries. Last reason: {reason}")
+        
+    print(f"[diaolan-workers] persons_visible={visible_count} group1_z={gondola_y:.2f} is_on_ground={gondola_y < 0.12 + 0.5} hazard={hazard}")
+
+    # Apply height to group1 and sync workers
+    with _scene_lock:
+        _scene_state["gondola_y"] = gondola_y
+    _last_gondola_init_sampled_height = gondola_y
+    
+    _set_prim_translate_height(stage, _GONDOLA_PRIM, gondola_y)
+    sync_workers_to_group1(stage, _GONDOLA_PRIM, active_diaolan["persons"], visible_count)
+
+    print(f"[changjing-aabb] xmin={aabb['xmin']:.2f} xmax={aabb['xmax']:.2f} ymin={aabb['ymin']:.2f} ymax={aabb['ymax']:.2f} zmin={aabb['zmin']:.2f} zmax={aabb['zmax']:.2f} → yaml written")
+
+
+    # 5. 相机：可选关闭随机采样，仅用 camera_rig_translate_xyz（缺省回退与 scene_single CameraRig 一致）
+    presets_cfg = cfg.get("presets", {})
+    max_cam_retries = 20
+    cam_x, cam_y, cam_z = 0.0, 0.0, 0.0
+    preset_vis = {}
+    sampling_on = bool(cfg.get("diaolan_camera_sampling_enabled", True))
+    sample_box = cfg.get("diaolan_camera_sample_box")
+    if isinstance(sample_box, dict) and sampling_on:
+        _box = sample_box
+    else:
+        _box = None
+
+    global _CAMERA_RIG_TRANSLATE_XYZ
+
+    if not sampling_on:
+        _set_camera_rig_fixed_translate(stage, _CAMERA_RIG_PRIM)
+        cam_x, cam_y, cam_z = _CAMERA_RIG_TRANSLATE_XYZ
+        preset_vis = check_preset_visibility(
+            stage, _CAMERA_RIG_PRIM, presets_cfg, _GONDOLA_PRIM
+        )
+        pv_line = _preset_visibility_log_line(presets_cfg, preset_vis)
+        ok = bool(any(preset_vis.values()))
+        print(
+            f"[camera-rig] sampling=OFF final_translate=({cam_x:.2f},{cam_y:.2f},{cam_z:.2f}) "
+            f"(camera_rig_translate_xyz / 内置回退)"
+        )
+        print(f"[preset-visibility] {pv_line} → {'OK' if ok else 'FAILED'}")
+    else:
+        last_seed = None
+        last_box_meta = None
+        last_attempt_idx = 0
+        for attempt in range(max_cam_retries):
+            seed = rng.randint(0, 1000000)
+            cam_x, cam_y, cam_z, _, box_meta = sample_camera_in_changjing(
+                stage,
+                "/World/Changjing_AlgorithmVerification_2026_03",
+                _CAMERA_RIG_PRIM,
+                rng,
+                seed,
+                sample_box=_box,
+                wall_prim_path=_CAMERA_HEIGHT_WALL_PRIM,
+            )
+            last_seed = seed
+            last_box_meta = box_meta
+            last_attempt_idx = attempt + 1
+
+            preset_vis = check_preset_visibility(
+                stage, _CAMERA_RIG_PRIM, presets_cfg, _GONDOLA_PRIM
+            )
+
+            if any(preset_vis.values()):
+                break
+
+        _CAMERA_RIG_TRANSLATE_XYZ = (cam_x, cam_y, cam_z)
+
+        pv_line = _preset_visibility_log_line(presets_cfg, preset_vis)
+        ok = bool(any(preset_vis.values()))
+        eb = last_box_meta["effective_box"]
+        bm = last_box_meta["mode"]
+        clip = "; ".join(last_box_meta["aabb_clip_notes"]) if last_box_meta["aabb_clip_notes"] else "无"
+        cfg_b = last_box_meta.get("config_box")
+        cfg_hint = ""
+        if cfg_b:
+            cfg_hint = (
+                f" config_box_x=[{cfg_b['x_min']:.2f},{cfg_b['x_max']:.2f}] "
+                f"y=[{cfg_b['y_min']:.2f},{cfg_b['y_max']:.2f}] "
+                f"z=[{cfg_b['z_min']:.2f},{cfg_b['z_max']:.2f}]"
+            )
+        print(
+            f"[camera-rig] sampling=ON final_translate=({cam_x:.2f},{cam_y:.2f},{cam_z:.2f}) "
+            f"seed={last_seed} attempts={last_attempt_idx}/{max_cam_retries} box_mode={bm}{cfg_hint} "
+            f"eff_x=[{eb['x_min']:.2f},{eb['x_max']:.2f}] "
+            f"eff_y=[{eb['y_min']:.2f},{eb['y_max']:.2f}] "
+            f"eff_z=[{eb['z_min']:.2f},{eb['z_max']:.2f}] "
+            f"aabb_clip={clip}"
+        )
+        if last_box_meta.get("fallback_invalid"):
+            print(
+                "[camera-rig] WARN: 配置采样盒与 Changjing AABB 无有效交集，已回退 legacy 大盒"
+            )
+        print(f"[preset-visibility] {pv_line} → {'OK' if ok else 'FAILED'}")
+
+    # Set relations for diagnostics
+    _last_gondola_init_relation = "diaolan_randomizer_managed"
+    _last_gondola_init_synced_node1 = True
+    _last_gondola_init_synced_node2 = True
+    
+    _stream_diag_update(
+        gondola_resolved_prim=_GONDOLA_PRIM or None,
+        node1_resolved_prim=_WORKER1_PRIM or None,
+        node2_resolved_prim=_WORKER2_PRIM or None,
+        camera_rig_resolved_prim=_CAMERA_RIG_PRIM or None,
+        gondola_init_height=gondola_y,
+        gondola_init_workers_visible=visible_count,
+        gondola_init_relation=_last_gondola_init_relation,
+        gondola_group1_source=_last_gondola_init_group1_source,
+    )
+
+
+class _PTZHandler(BaseHTTPRequestHandler):
+    """轻量 HTTP handler：提供控制面板 HTML 和 REST 接口。"""
+
+    def log_message(self, fmt, *args):  # 静默访问日志
+        pass
+
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin",  "*")
+        self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._cors()
+        self.end_headers()
+
+    def do_GET(self):
+        if self.path in ("/", "/index.html"):
+            html_path = os.path.join(script_dir, "ptz_web_control.html")
+            if os.path.isfile(html_path):
+                data = open(html_path, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self._cors()
+                self.end_headers()
+                self.wfile.write(data)
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b"ptz_web_control.html not found")
+            return
+
+        if self.path == "/status":
+            body = json.dumps(_compose_status_dict(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path == "/diagnostics":
+            d = _compose_status_dict()
+            d["diagnostics_version"] = 1
+            body = json.dumps(d, ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path == "/scene/state":
+            with _scene_lock:
+                body = json.dumps(_scene_state).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path == "/scene/describe":
+            stage = omni.usd.get_context().get_stage()
+            body = json.dumps(_describe_active_scene_branch(stage), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # MJPEG 连续流 —— 浏览器一次连接持续接收帧（低延迟）
+        if self.path.startswith("/stream.mjpeg"):
+            self.send_response(200)
+            self.send_header("Content-Type",
+                             "multipart/x-mixed-replace; boundary=ptzframe")
+            self.send_header("Cache-Control", "no-cache, no-store")
+            self.send_header("Connection",    "close")
+            self._cors()
+            self.end_headers()
+            last_fid = -1
+            try:
+                while _running:
+                    with _mjpeg_lock:
+                        fid = _mjpeg["frame_id"]
+                        jpg = _mjpeg["jpeg"]
+                    if fid == last_fid or jpg is None:
+                        time.sleep(0.015)   # ~67fps 上限轮询
+                        continue
+                    last_fid = fid
+                    self.wfile.write(
+                        b"--ptzframe\r\n"
+                        b"Content-Type: image/jpeg\r\n"
+                        b"Content-Length: " + str(len(jpg)).encode() + b"\r\n\r\n"
+                        + jpg + b"\r\n"
+                    )
+                    self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                pass
+            return
+
+        # 单帧快照（Safari 等不支持 MJPEG 流时的降级方案）
+        if self.path.startswith("/snapshot.jpg"):
+            with _mjpeg_lock:
+                jpg = _mjpeg["jpeg"]
+            if jpg is None:
+                self.send_response(503)
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("Content-Type",   "image/jpeg")
+            self.send_header("Content-Length", str(len(jpg)))
+            self.send_header("Cache-Control",  "no-cache, no-store")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(jpg)
+            return
+
+        self.send_response(404)
+        self.end_headers()
+
+    def do_POST(self):
+        if self.path == "/scene/gondola":
+            length = int(self.headers.get("Content-Length", 0))
+            body   = self.rfile.read(length)
+            try:
+                req = json.loads(body)
+                with _scene_lock:
+                    if "y" in req:
+                        _scene_state["gondola_y"] = max(
+                            _GONDOLA_HEIGHT_MIN,
+                            min(_GONDOLA_HEIGHT_MAX, float(req["y"])),
+                        )
+                _scene_dirty.set()
+                with _scene_lock:
+                    resp = json.dumps({"ok": True, "state": dict(_scene_state)})
+            except Exception as exc:
+                resp = json.dumps({"ok": False, "error": str(exc)})
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(resp.encode())
+            return
+
+        if self.path == "/scene/workers":
+            length = int(self.headers.get("Content-Length", 0))
+            body   = self.rfile.read(length)
+            try:
+                req = json.loads(body)
+                with _scene_lock:
+                    if "count" in req:
+                        _scene_state["workers"] = max(0, min(2, int(req["count"])))
+                _scene_dirty.set()
+                with _scene_lock:
+                    resp = json.dumps({"ok": True, "state": dict(_scene_state)})
+            except Exception as exc:
+                resp = json.dumps({"ok": False, "error": str(exc)})
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(resp.encode())
+            return
+
+        if self.path == "/scene/camera_rig":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            try:
+                req = json.loads(body)
+                xyz = req.get("xyz")
+                if not isinstance(xyz, list) or len(xyz) != 3:
+                    raise ValueError("xyz must be a length-3 list")
+                stage = omni.usd.get_context().get_stage()
+                applied_xyz = _set_camera_rig_translate_runtime(stage, xyz)
+                _refresh_projection_metrics(stage)
+                resp = json.dumps({"ok": True, "xyz": applied_xyz, "describe": _describe_active_scene_branch(stage)}, ensure_ascii=False)
+            except Exception as exc:
+                resp = json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(resp.encode("utf-8"))
+            return
+
+        if self.path == "/control":
+            length = int(self.headers.get("Content-Length", 0))
+            body   = self.rfile.read(length)
+            try:
+                req = json.loads(body)
+                raw_pan = req.get("pan", None)
+                raw_tilt = req.get("tilt", None)
+                raw_zoom = req.get("zoom", None)
+                with _ptz_lock:
+                    if "pan"  in req:
+                        _ptz_state["pan"]  = max(-170.0, min(170.0, float(req["pan"])))
+                    if "tilt" in req:
+                        _ptz_state["tilt"] = max(-90.0,  min(30.0,  float(req["tilt"])))
+                    if "zoom" in req:
+                        _ptz_state["zoom"] = max(1.0,    min(32.0,  float(req["zoom"])))
+
+                    global _ptz_last_cmd
+                    _ptz_last_cmd = {
+                        "input": {
+                            "pan": raw_pan if raw_pan is not None else _ptz_state["pan"],
+                            "tilt": raw_tilt if raw_tilt is not None else _ptz_state["tilt"],
+                            "zoom": raw_zoom if raw_zoom is not None else _ptz_state["zoom"],
+                        },
+                        "applied": dict(_ptz_state),
+                        "source": "/control",
+                    }
+                _ptz_dirty.set()
+                with _ptz_lock:
+                    resp = json.dumps({"ok": True, "state": dict(_ptz_state)})
+            except Exception as exc:
+                resp = json.dumps({"ok": False, "error": str(exc)})
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(resp.encode())
+            return
+
+        if self.path == "/scene/experiment":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            try:
+                req = json.loads(body) if body else {}
+                action = str(req.get("action", "describe")).strip().lower()
+                stage = omni.usd.get_context().get_stage()
+                if action == "describe":
+                    resp_obj = {"ok": True, "data": _describe_active_scene_branch(stage)}
+                elif action == "clear":
+                    _restore_scene_experiment_visibility(stage)
+                    _apply_scene_state(stage)
+                    _refresh_projection_metrics(stage)
+                    resp_obj = {"ok": True, "data": _describe_active_scene_branch(stage)}
+                elif action == "apply_visibility":
+                    hide_paths = req.get("hide_paths") if isinstance(req.get("hide_paths"), list) else []
+                    _restore_scene_experiment_visibility(stage)
+                    apply_result = _set_scene_experiment_hidden_paths(stage, hide_paths)
+                    _apply_scene_state(stage)
+                    _refresh_projection_metrics(stage)
+                    resp_obj = {
+                        "ok": True,
+                        "data": {
+                            **_describe_active_scene_branch(stage),
+                            "apply_result": apply_result,
+                        },
+                    }
+                else:
+                    resp_obj = {"ok": False, "error": f"unknown action: {action}"}
+            except Exception as exc:
+                resp_obj = {"ok": False, "error": str(exc)}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(json.dumps(resp_obj, ensure_ascii=False).encode("utf-8"))
+            return
+
+        self.send_response(404)
+        self.end_headers()
+
+
+def _start_control_server() -> None:
+    """在 daemon 线程中启动 PTZ 控制 HTTP 服务，不阻塞仿真主循环。"""
+    srv = ThreadingHTTPServer(("0.0.0.0", _CTRL_PORT), _PTZHandler)
+    t   = threading.Thread(target=srv.serve_forever, daemon=True, name="ptz-ctrl")
+    t.start()
+    print(f"[PTZ-RTSP] 控制面板已启动 → http://localhost:{_CTRL_PORT}/")
+    print(f"[PTZ-RTSP]   用浏览器打开上面的地址即可实时控制云台和变焦")
+
+
+# ============================================================
+# MediaMTX 管理
+# ============================================================
+
+_MEDIAMTX_DOWNLOAD_URL = (
+    "https://github.com/bluenviron/mediamtx/releases/download/"
+    "{version}/mediamtx_{version}_linux_amd64.tar.gz"
+)
+
+def _ensure_mediamtx() -> str:
+    """
+    确保 mediamtx 二进制可用。
+    若配置路径不存在且 auto_download=true，则自动下载。
+    返回二进制绝对路径。
+    """
+    mtx_path = _resolve_path(mediamtx_cfg.get("path", "./mediamtx"))
+    if os.path.isfile(mtx_path) and os.access(mtx_path, os.X_OK):
+        print(f"[PTZ-RTSP] 使用已有 mediamtx：{mtx_path}")
+        return mtx_path
+
+    if not mediamtx_cfg.get("auto_download", True):
+        raise FileNotFoundError(
+            f"mediamtx 未找到：{mtx_path}。"
+            "请手动放置二进制或设置 auto_download: true。"
+        )
+
+    version = mediamtx_cfg.get("version", "v1.17.0")
+    url = _MEDIAMTX_DOWNLOAD_URL.format(version=version)
+    tar_path = mtx_path + ".tar.gz"
+
+    print(f"[PTZ-RTSP] 正在下载 mediamtx {version}...")
+    print(f"[PTZ-RTSP]   URL: {url}")
+    try:
+        urllib.request.urlretrieve(url, tar_path)
+    except Exception as e:
+        raise RuntimeError(f"下载 mediamtx 失败：{e}\n请手动下载并放置于 {mtx_path}") from e
+
+    print(f"[PTZ-RTSP] 解压 {tar_path}...")
+    with tarfile.open(tar_path, "r:gz") as tf:
+        # mediamtx 压缩包内只有一个可执行文件 mediamtx
+        tf.extract("mediamtx", path=os.path.dirname(mtx_path))
+    os.remove(tar_path)
+
+    extracted = os.path.join(os.path.dirname(mtx_path), "mediamtx")
+    if extracted != mtx_path:
+        os.rename(extracted, mtx_path)
+    os.chmod(mtx_path, 0o755)
+    print(f"[PTZ-RTSP] mediamtx 已就绪：{mtx_path}")
+    return mtx_path
+
+
+def _port_in_use(port: int) -> bool:
+    """检测 TCP 端口是否已被监听。"""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def _start_mediamtx(mtx_path: str) -> subprocess.Popen:
+    """
+    启动 mediamtx 进程，使用脚本同目录的 mediamtx.yml 配置文件。
+    若目标端口已在监听（说明 mediamtx 已运行），则跳过启动直接复用。
+    返回 Popen 对象（复用时返回 None）。
+    """
+    port = mediamtx_cfg.get("port", 8554)
+
+    # 若端口已在监听，假定 mediamtx 已运行，直接复用
+    if _port_in_use(port):
+        print(f"[PTZ-RTSP] 检测到 :{port} 已在监听，复用已有 mediamtx 实例")
+        return None
+
+    # 优先使用脚本同目录的 mediamtx.yml
+    cfg_file = os.path.join(script_dir, "mediamtx.yml")
+    cmd = [mtx_path]
+    if os.path.isfile(cfg_file):
+        cmd.append(cfg_file)
+        print(f"[PTZ-RTSP] 使用配置文件：{cfg_file}")
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    time.sleep(2.0)  # 等待 mediamtx 启动并绑定端口
+    if proc.poll() is not None:
+        err = proc.stderr.read().decode(errors="replace")
+        raise RuntimeError(f"mediamtx 启动失败（exit {proc.returncode}）:\n{err}")
+    print(f"[PTZ-RTSP] mediamtx 已启动，RTSP 端口 :{port}（pid={proc.pid}）")
+    return proc
+
+
+# ============================================================
+# ffmpeg 管道管理（NVENC 优先，自动回退 libx264）
+# ============================================================
+
+def _get_ffmpeg_version() -> str:
+    """获取 ffmpeg 版本字符串，失败时返回空字符串。"""
+    try:
+        out = subprocess.check_output(
+            ["ffmpeg", "-version"], stderr=subprocess.STDOUT, timeout=5
+        ).decode(errors="replace")
+        first_line = out.splitlines()[0] if out else ""
+        return first_line
+    except Exception:
+        return ""
+
+
+def _build_osd_filter() -> str | None:
+    """根据配置生成 ffmpeg drawtext 滤镜字符串，不启用时返回 None。
+    使用 expansion=strftime 模式：% 由 ffmpeg 解释为 strftime 指令，
+    冒号需转义为 \\: 以避免被 drawtext 解析为选项分隔符。
+    """
+    if not osd_enabled:
+        return None
+    fmt      = _osd_cfg.get("fmt",  "%Y-%m-%d %H:%M:%S")
+    x        = _osd_cfg.get("x",    10)
+    y        = _osd_cfg.get("y",    10)
+    size     = _osd_cfg.get("size", 28)
+    fontfile = _osd_cfg.get("font", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    # expansion=strftime 模式：% 直接作为 strftime 指令；冒号转义为 \:
+    escaped_fmt = fmt.replace(":", "\\:")
+    return (
+        f"drawtext=fontfile={fontfile}"
+        f":text='{escaped_fmt}'"
+        f":expansion=strftime"
+        f":fontcolor=white:fontsize={size}"
+        f":box=1:boxcolor=black@0.5:boxborderw=4"
+        f":x={x}:y={y}"
+    )
+
+
+def _build_nvenc_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 h264_nvenc 低延迟参数列表。"""
+    gop = fps * 2  # GOP = 2 秒
+    osd = _build_osd_filter()
+    # nvenc 需要 yuv420p，OSD 存在时拼接 drawtext，再做 format 转换
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
+        "ffmpeg",
+        "-loglevel", "warning",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{width}x{height}",
+        "-r", str(fps),
+        "-i", "pipe:0",
+        "-an",
+        "-vf", vf,
+        "-c:v", "h264_nvenc",
+        "-preset", "p1",       # 最快预设（ffmpeg 5.x/6.x+）
+        "-tune", "ll",         # low-latency 模式
+        "-rc", "cbr",          # 固定码率，避免 VBR 帧率波动
+        "-bf", "0",            # 禁用 B 帧，降延迟
+        "-g", str(gop),        # GOP 大小
+        "-delay", "0",
+        "-b:v", bitrate,
+        "-f", "rtsp",
+        rtsp_url,
+    ]
+
+
+def _build_x264_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 libx264 低延迟参数列表（NVENC 不可用时的回退方案）。"""
+    osd = _build_osd_filter()
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
+        "ffmpeg",
+        "-loglevel", "warning",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{width}x{height}",
+        "-r", str(fps),
+        "-i", "pipe:0",
+        "-an",
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-tune", "zerolatency",
+        "-b:v", bitrate,
+        "-vf", vf,
+        "-f", "rtsp",
+        rtsp_url,
+    ]
+
+
+def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+    """
+    启动 ffmpeg 进程，通过 stdin 接受 rawvideo RGBA 帧，编码为 H.264 并推流。
+    策略：优先尝试 h264_nvenc；若 2 秒内进程退出说明 NVENC 不可用，自动回退 libx264。
+    bufsize=0：跳过 Python 内部 BufferedWriter 层，大帧写入直通 OS pipe fd。
+    """
+    # 打印 ffmpeg 版本，方便排查参数兼容性
+    ver = _get_ffmpeg_version()
+    print(f"[PTZ-RTSP] {ver or 'ffmpeg 版本未知'}")
+
+    def _launch(cmd: list, label: str) -> subprocess.Popen:
+        import os as _os
+        _env = _os.environ.copy()
+        _env.setdefault("TZ", "Asia/Shanghai")  # OSD strftime 时区，系统未配置时兜底
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                bufsize=0, env=_env)
+        # 异步打印 ffmpeg 错误输出，不阻塞主线程
+        def _log_stderr():
+            for line in proc.stderr:
+                txt = line.decode(errors="replace").rstrip()
+                if txt:
+                    print(f"[ffmpeg/{label}] {txt}")
+        threading.Thread(target=_log_stderr, daemon=True).start()
+        return proc
+
+    # 先试 NVENC
+    nvenc_cmd = _build_nvenc_cmd(rtsp_url, width, height, fps, bitrate)
+    print(f"[PTZ-RTSP] 尝试 h264_nvenc 编码器...")
+    proc = _launch(nvenc_cmd, "nvenc")
+    time.sleep(2.0)
+    if proc.poll() is None:
+        print(f"[PTZ-RTSP] h264_nvenc 编码器可用，已启动（pid={proc.pid}）")
+        return proc
+
+    # NVENC 失败，回退 libx264
+    print("[PTZ-RTSP] h264_nvenc 不可用，回退到 libx264...")
+    x264_cmd = _build_x264_cmd(rtsp_url, width, height, fps, bitrate)
+    proc = _launch(x264_cmd, "x264")
+    time.sleep(0.5)
+    if proc.poll() is not None:
+        raise RuntimeError("ffmpeg 进程意外退出（libx264），请检查 rtsp_url 和 mediamtx 是否正常运行。")
+    print(f"[PTZ-RTSP] libx264 编码器已启动（pid={proc.pid}）")
+    return proc
+
+
+# ============================================================
+# 相机绑定（Replicator）
+# ============================================================
+
+def _bind_camera(camera_prim_path: str, width: int, height: int):
+    """
+    创建 Replicator RenderProduct 并绑定 RGB Annotator 到指定相机 Prim。
+    返回 (render_product, annotator)。
+    """
+    # 确认 Prim 存在
+    stage = omni.usd.get_context().get_stage()
+    prim = stage.GetPrimAtPath(camera_prim_path)
+    if not prim.IsValid():
+        raise ValueError(
+            f"相机 Prim 不存在：{camera_prim_path}\n"
+            "请检查 ptz_rtsp_config.yaml 中的 camera_prim 路径是否与场景一致。"
+        )
+
+    rp = rep.create.render_product(camera_prim_path, (width, height))
+    annotator = rep.AnnotatorRegistry.get_annotator("rgb")
+    annotator.attach(rp)
+    print(f"[PTZ-RTSP] 相机绑定成功：{camera_prim_path}  RenderProduct={rp}")
+    return rp, annotator
+
+
+# ============================================================
+# 优雅退出 + 帧队列写入线程
+# ============================================================
+
+_running = True
+_ffmpeg_proc = None
+_mediamtx_proc = None
+
+# 帧队列：主线程生产，写入线程消费。maxsize=2 保证实时性，满时丢旧帧。
+_frame_queue: queue.Queue = queue.Queue(maxsize=2)
+_c_local_frame_saved = False
+
+
+def _shutdown(signum=None, frame=None):
+    global _running
+    print("\n[PTZ-RTSP] 收到退出信号，正在清理...")
+    _running = False
+
+
+signal.signal(signal.SIGINT,  _shutdown)
+signal.signal(signal.SIGTERM, _shutdown)
+
+
+def _cleanup():
+    """关闭写入线程（通过哨兵），再关闭 ffmpeg 和 mediamtx 子进程。"""
+    # 放 None 哨兵让写入线程退出
+    try:
+        _frame_queue.put_nowait(None)
+    except Exception:
+        pass
+
+    if _ffmpeg_proc and _ffmpeg_proc.poll() is None:
+        try:
+            _ffmpeg_proc.stdin.close()
+        except Exception:
+            pass
+        try:
+            _ffmpeg_proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            _ffmpeg_proc.kill()
+        print("[PTZ-RTSP] ffmpeg 进程已退出。")
+
+    # _mediamtx_proc 为 None 表示复用了外部已有实例，不终止
+    if _mediamtx_proc is not None and _mediamtx_proc.poll() is None:
+        _mediamtx_proc.terminate()
+        try:
+            _mediamtx_proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            _mediamtx_proc.kill()
+        print("[PTZ-RTSP] mediamtx 进程已退出。")
+
+
+def _pipe_writer(proc: subprocess.Popen) -> None:
+    """
+    后台写入线程：从 _frame_queue 取帧写入 ffmpeg stdin。
+    与渲染主线程解耦，阻塞在 ffmpeg 消费速度上，不影响 Isaac 渲染循环。
+    None 哨兵表示退出。
+    """
+    t_write_total = 0.0
+    write_count   = 0
+    last_stat_t   = time.monotonic()
+
+    while True:
+        frame = _frame_queue.get()
+        if frame is None:   # 哨兵，退出
+            break
+        if proc.poll() is not None:
+            break
+        t0 = time.monotonic()
+        try:
+            proc.stdin.write(frame)
+            proc.stdin.flush()
+        except (BrokenPipeError, OSError):
+            print("[PTZ-RTSP] ffmpeg 管道已断开（写入线程退出）")
+            break
+        t_write_total += time.monotonic() - t0
+        write_count   += 1
+
+        # 写入线程侧每 5 秒打印一次 push_fps 和平均写入耗时
+        now = time.monotonic()
+        if now - last_stat_t >= 5.0:
+            elapsed  = now - last_stat_t
+            push_fps = write_count / elapsed
+            avg_write_ms = (t_write_total / write_count * 1000) if write_count else 0
+            print(f"[PTZ-RTSP][write] push_fps={push_fps:.1f}  "
+                  f"avg_write={avg_write_ms:.1f}ms")
+            t_write_total = 0.0
+            write_count   = 0
+            last_stat_t   = now
+
+
+# ============================================================
+# 主流程
+# ============================================================
+
+def main():
+    global _ffmpeg_proc, _mediamtx_proc, _jpeg_encode_fn, _c_local_frame_saved
+    c_branch_geometry_only = bool(cfg.get("hydra_c_branch_geometry_only", False))
+
+    # --- 初始化 MJPEG JPEG 编码器（preview_enabled=false 时跳过）---
+    if preview_enabled:
+        _jpeg_encode_fn = _init_jpeg_encoder(mjpeg_quality)
+    else:
+        print("[PTZ-RTSP] preview_enabled=false，MJPEG 编码已禁用")
+
+    # --- 启动 PTZ 控制 HTTP API（含 MJPEG 端点）---
+    _start_control_server()
+
+    # --- RTSP 管道（可选）---
+    if rtsp_enabled:
+        mtx_bin = _ensure_mediamtx()
+        _mediamtx_proc = _start_mediamtx(mtx_bin)
+        _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+        # 启动帧队列写入线程，与渲染主线程解耦
+        _writer = threading.Thread(
+            target=_pipe_writer, args=(_ffmpeg_proc,),
+            daemon=True, name="frame-writer"
+        )
+        _writer.start()
+    else:
+        print(f"[PTZ-RTSP] RTSP 已禁用，仅 MJPEG 预览")
+        print(f"[PTZ-RTSP] 预览地址：http://localhost:{_CTRL_PORT}/stream.mjpeg")
+
+    # --- 加载 USD 场景 ---
+    scene_abs = os.path.abspath(scene_path)
+    print("[PTZ-RTSP] ========== 场景加载诊断 ==========")
+    print(f"[PTZ-RTSP] scene_path(绝对)={scene_abs}")
+    print(f"[PTZ-RTSP] scene_basename={os.path.basename(scene_path)}")
+    print(
+        "[PTZ-RTSP] 提示: 基名含 scene_generated / dataset 一般为生成样本；"
+        "V4.0 等为母场景/基础场景"
+    )
+    print(f"[PTZ-RTSP] camera_prim(将绑定)={camera_prim}")
+    _stream_diag_update(
+        scene_path=scene_abs,
+        scene_basename=os.path.basename(scene_path),
+        camera_prim=camera_prim,
+        open_stage_detail="open_stage_pending",
+    )
+
+    print(f"[PTZ-RTSP] 调用 open_stage …")
+    usd_context = omni.usd.get_context()
+    result = usd_context.open_stage(scene_path)
+    # open_stage 根据版本返回 bool 或 (bool, str)
+    if isinstance(result, tuple):
+        ok, err = result
+    else:
+        ok, err = result, ""
+    if not ok:
+        detail = str(err) if err else "unknown"
+        _stream_diag_update(stage_open_ok=False, open_stage_detail=f"open_stage_failed: {detail}")
+        print(f"[PTZ-RTSP] open_stage 失败：{detail}")
+        raise RuntimeError(f"加载场景失败：{detail}")
+    _stream_diag_update(stage_open_ok=True, open_stage_detail="open_stage_ok")
+    print("[PTZ-RTSP] open_stage 成功")
+
+    # 等待场景完全加载
+    sim_app.update()
+    sim_app.update()
+
+    # --- 读取场景坐标轴（自动适配 Pan/Tilt 旋转轴）---
+    global _scene_up_axis
+    try:
+        import omni.usd as _ousd
+        from pxr import UsdGeom as _UsdGeom
+        _scene_up_axis = _UsdGeom.GetStageUpAxis(_ousd.get_context().get_stage())
+        print(f"[PTZ-RTSP] 场景 upAxis={_scene_up_axis}  "
+              f"Pan={'rotateZ' if _scene_up_axis=='Z' else 'rotateY'}  "
+              f"Tilt={'rotateX' if _scene_up_axis=='Z' else 'rotateZ'}")
+    except Exception as e:
+        print(f"[PTZ-RTSP] upAxis 读取失败（使用默认 Y-up）：{e}")
+
+    # --- 固定相机 rig、解析吊篮 prim、启动时随机一次吊篮高度并写入 stage ---
+    _init_gondola_paths_camera_and_random_height_once(usd_context.get_stage())
+    st0 = usd_context.get_stage()
+    _apply_ptz_state(st0)
+    with _ptz_lock:
+        _pp, _tt, _zz = _ptz_state["pan"], _ptz_state["tilt"], _ptz_state["zoom"]
+    print(
+        f"[PTZ-RTSP] 已应用默认相机姿态 pan={_pp}° tilt={_tt}° zoom={_zz}× "
+        f"(rig 位置见 _CAMERA_RIG_TRANSLATE_XYZ / USDA)"
+    )
+    _log_usd_ptz_debug_snapshot(st0)
+    _refresh_projection_metrics(st0)
+
+    # --- 初始化 World ---
+    stage_mpu = 0.01 if _scene_up_axis == "Y" else 1.0
+    world = World(stage_units_in_meters=stage_mpu)
+    world.reset()
+
+    # 让渲染管线稳定（需要几帧预热）
+    for _ in range(10):
+        world.step(render=True)
+
+    # --- 绑定相机 ---
+    try:
+        rp, annotator = _bind_camera(camera_prim, W, H)
+    except Exception as e:
+        _stream_diag_update(
+            camera_bound_ok=False,
+            open_stage_detail=f"camera_bind_failed: {e}",
+        )
+        print(f"[PTZ-RTSP] 相机绑定失败：{e}")
+        raise
+    _stream_diag_update(
+        camera_bound_ok=True,
+        render_product=str(rp),
+        open_stage_detail="streaming_ready",
+    )
+    print(
+        f"[PTZ-RTSP] 推流来源: Replicator RenderProduct={rp}  "
+        f"RGB→{'ffmpeg→RTSP' if rtsp_enabled else '仅MJPEG'}"
+    )
+    print(
+        "[render-pipeline] "
+        f"renderer={renderer_mode} "
+        f"camera_prim={camera_prim} "
+        f"render_product={rp} "
+        f"rtsp_url={rtsp_url if rtsp_enabled else 'disabled'}"
+    )
+
+    # Delegate/settings snapshot for C-branch troubleshooting
+    try:
+        import carb
+        _settings = carb.settings.get_settings()
+        keys = [
+            "/app/renderer/plugin",
+            "/rtx/rendermode",
+            "/omni/replicator/RTSubframes",
+            "/persistent/app/viewport/displayOptions",
+            "/renderer/multiGpu/currentGpu",
+        ]
+        for k in keys:
+            v = _settings.get(k)
+            if v is not None:
+                print(f"[render-delegate] {k}={v}")
+    except Exception as e:
+        print(f"[render-delegate] read settings failed: {e}")
+
+    def _log_camera_target_frustum():
+        try:
+            stage = omni.usd.get_context().get_stage()
+            cam_prim = stage.GetPrimAtPath(camera_prim)
+            tgt_prim = stage.GetPrimAtPath(_GONDOLA_PRIM) if _GONDOLA_PRIM else None
+            if not cam_prim.IsValid() or not tgt_prim or not tgt_prim.IsValid():
+                print("[camera-frustum] invalid camera or target prim")
+                return
+            from pxr import Usd, UsdGeom
+            bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+            target_bbox = bbox_cache.ComputeWorldBound(tgt_prim)
+            target_range = target_bbox.ComputeAlignedRange()
+            cam = UsdGeom.Camera(cam_prim)
+            xcache = UsdGeom.XformCache(Usd.TimeCode.Default())
+            cam_xf = xcache.GetLocalToWorldTransform(cam_prim)
+            gf_cam = cam.GetCamera(Usd.TimeCode.Default())
+            frustum = gf_cam.frustum
+            frustum.Transform(cam_xf)
+            inside = frustum.Intersects(target_bbox)
+            clip = gf_cam.clippingRange
+            target_mid = target_range.GetMidpoint()
+            cam_pos = cam_xf.ExtractTranslation()
+            dist = (target_mid - cam_pos).GetLength()
+            if hasattr(clip, "GetMin"):
+                near_clip = float(clip.GetMin())
+                far_clip = float(clip.GetMax())
+            else:
+                near_clip = float(clip[0])
+                far_clip = float(clip[1])
+            clip_state = "visible"
+            if dist < near_clip:
+                clip_state = "clipped_near"
+            elif dist > far_clip:
+                clip_state = "clipped_far"
+            elif not inside:
+                clip_state = "out_of_frustum"
+            print(
+                "[camera-frustum] "
+                f"camera_pos=({cam_pos[0]:.2f},{cam_pos[1]:.2f},{cam_pos[2]:.2f}) "
+                f"target_bbox_min={target_range.GetMin()} target_bbox_max={target_range.GetMax()} "
+                f"target_mid=({target_mid[0]:.2f},{target_mid[1]:.2f},{target_mid[2]:.2f}) "
+                f"distance={dist:.2f} near={near_clip:.4f} far={far_clip:.2f} "
+                f"in_frustum={inside} result={clip_state}"
+            )
+        except Exception as e:
+            print(f"[camera-frustum] failed: {e}")
+
+    _log_camera_target_frustum()
+    _refresh_projection_metrics(omni.usd.get_context().get_stage())
+
+    # 预热 Replicator（确保第一帧数据有效）
+    rep.orchestrator.step(rt_subframes=4, delta_time=0.0, pause_timeline=False)
+    sim_app.update()
+
+    print(f"[PTZ-RTSP] 开始推流 → {rtsp_url}")
+    print(f"[PTZ-RTSP] 客户端命令：vlc {rtsp_url}  或  ffplay {rtsp_url} -rtsp_transport tcp")
+    snap_u = f"http://127.0.0.1:{_CTRL_PORT}/snapshot.jpg"
+    print(f"[PTZ-RTSP] Web/代理快照源: {snap_u}（launcher 8080 会代理到本端口）")
+    print(f"[PTZ-RTSP] preview_enabled={preview_enabled}  renderer={renderer_mode}")
+    print("[PTZ-RTSP] 按 Ctrl-C 停止。\n")
+    if rtsp_enabled and _ffmpeg_proc is not None:
+        ff_ok = _ffmpeg_proc.poll() is None
+    else:
+        ff_ok = False
+    _stream_diag_update(ffmpeg_alive=ff_ok, mediamtx_started=_mediamtx_proc is not None)
+
+    # ── 分段耗时统计（Baseline 与优化后共用）────────────────────
+    frame_idx        = 0
+    last_stat_time   = time.monotonic()
+
+    # 主线程侧计数器
+    t_step_total     = 0.0   # world.step() 累计耗时
+    t_get_total      = 0.0   # annotator.get_data() 累计耗时
+    t_jpeg_total     = 0.0   # JPEG 编码累计耗时
+    t_tobytes_total  = 0.0   # rgba.tobytes() 累计耗时
+    render_count     = 0     # render=True 帧数
+    capture_count    = 0     # 执行采集的帧数
+    drop_count       = 0     # 队列满导致的丢帧数
+
+    while _running and sim_app.is_running():
+        # 只在推流帧时渲染，其余帧跳过 GPU 渲染节省资源
+        do_render = (frame_idx % skip_frames == 0)
+
+        t0 = time.monotonic()
+        world.step(render=do_render)
+        t_step_total += time.monotonic() - t0
+        if do_render:
+            render_count += 1
+
+        # 应用来自 Web UI 的 PTZ 指令（检测到脏标志时写入 USD Stage）
+        if _ptz_dirty.is_set():
+            _ptz_dirty.clear()
+            st = omni.usd.get_context().get_stage()
+            _apply_ptz_state(st)
+            _refresh_projection_metrics(st)
+            with _ptz_lock:
+                _cmd = _ptz_last_cmd
+                _cmd = dict(_cmd) if isinstance(_cmd, dict) else None
+                if isinstance(_cmd, dict) and isinstance(_cmd.get("input"), dict):
+                    _cmd["input"] = dict(_cmd["input"])
+            _log_ptz_applied_debug(st, _cmd)
+
+        # 应用场景控制指令（吊篮高度 + 工人数量）
+        if _scene_dirty.is_set():
+            _scene_dirty.clear()
+            st = omni.usd.get_context().get_stage()
+            _apply_scene_state(st)
+            _refresh_projection_metrics(st)
+
+        # 推流帧：采集并输出
+        if do_render:
+            # 触发 Replicator 更新 annotator 数据
+            rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=False)
+
+            t0 = time.monotonic()
+            rgba = annotator.get_data()  # shape (H, W, 4), dtype uint8
+            t_get_total += time.monotonic() - t0
+            capture_count += 1
+
+            if rgba is not None and rgba.size > 0:
+                if not _c_local_frame_saved and c_branch_geometry_only:
+                    _c_local_frame_saved = True
+                    try:
+                        debug_encoder = _init_jpeg_encoder(90)
+                        if debug_encoder is not None:
+                            jpg_local = debug_encoder(rgba)
+                            if jpg_local:
+                                local_path = os.path.join(os.path.dirname(__file__), "_local_render_buffer.jpg")
+                                with open(local_path, "wb") as fp:
+                                    fp.write(jpg_local)
+                                mean_luma = float(np.mean(rgba[:, :, :3]))
+                                print(f"[local-render-buffer] saved={local_path} mean_luma={mean_luma:.2f}")
+                    except Exception as e:
+                        print(f"[local-render-buffer] save failed: {e}")
+                # 验证 shape 与配置分辨率一致，不一致时 resize 避免花屏
+                if rgba.shape[:2] != (H, W):
+                    rgba = np.ascontiguousarray(
+                        np.resize(rgba, (H, W, rgba.shape[2] if rgba.ndim == 3 else 4))
+                    )
+
+                # ① MJPEG 帧缓冲更新（仅 preview_enabled=true 时执行）
+                if preview_enabled and _jpeg_encode_fn is not None:
+                    t0 = time.monotonic()
+                    jpg = _jpeg_encode_fn(rgba)
+                    t_jpeg_total += time.monotonic() - t0
+                    if jpg:
+                        with _mjpeg_lock:
+                            _mjpeg["jpeg"]     = jpg
+                            _mjpeg["frame_id"] += 1
+
+                # ② RTSP 推流（可选，供 VLC / NVR 外部接入）
+                # 丢旧保新：直接 tobytes()，省去 ascontiguousarray 的冗余拷贝
+                if rtsp_enabled and _ffmpeg_proc is not None \
+                        and _ffmpeg_proc.poll() is None:
+                    t0 = time.monotonic()
+                    raw = rgba.tobytes()
+                    t_tobytes_total += time.monotonic() - t0
+
+                    # 非阻塞放入队列，满时丢旧帧保新帧
+                    try:
+                        _frame_queue.put_nowait(raw)
+                    except queue.Full:
+                        try:
+                            _frame_queue.get_nowait()  # 丢旧帧
+                        except queue.Empty:
+                            pass
+                        try:
+                            _frame_queue.put_nowait(raw)  # 放新帧
+                        except queue.Full:
+                            pass
+                        drop_count += 1
+
+            # 每 5 秒打印一次主线程分段耗时统计
+            now = time.monotonic()
+            if now - last_stat_time >= 5.0:
+                elapsed = now - last_stat_time
+                render_fps = render_count / elapsed
+                avg_step_ms    = (t_step_total  / render_count   * 1000) if render_count   else 0
+                avg_get_ms     = (t_get_total   / capture_count  * 1000) if capture_count  else 0
+                avg_jpeg_ms    = (t_jpeg_total  / capture_count  * 1000) if capture_count  else 0
+                avg_tobytes_ms = (t_tobytes_total / capture_count * 1000) if capture_count else 0
+
+                print(
+                    f"[PTZ-RTSP][main] render_fps={render_fps:.1f}  "
+                    f"step={avg_step_ms:.1f}ms  "
+                    f"get_data={avg_get_ms:.1f}ms  "
+                    f"tobytes={avg_tobytes_ms:.1f}ms  "
+                    f"jpeg={avg_jpeg_ms:.1f}ms  "
+                    f"drop={drop_count}  sim_frame={frame_idx}"
+                )
+                # 重置计数器
+                t_step_total    = 0.0
+                t_get_total     = 0.0
+                t_jpeg_total    = 0.0
+                t_tobytes_total = 0.0
+                render_count    = 0
+                capture_count   = 0
+                drop_count      = 0
+                last_stat_time  = now
+
+        frame_idx += 1
+
+    # 主循环退出：发哨兵让写入线程退出，再清理子进程
+    _cleanup()
+    sim_app.close()
+    print("[PTZ-RTSP] 已退出。")
+
+
+if __name__ == "__main__":
+    main()

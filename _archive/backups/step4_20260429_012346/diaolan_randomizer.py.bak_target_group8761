@@ -1,0 +1,324 @@
+import random
+import math
+import yaml
+from pxr import Usd, UsdGeom, Gf
+
+def scan_diaolan_prims(stage):
+    """
+    Scan for DiaoLan prims and their components.
+    Returns a list of dicts with paths to the diaolan, Group1, and person nodes.
+    """
+    diaolans = []
+    for i in range(1, 7):
+        path = f"/World/DiaoLan_{i:02d}"
+        prim = stage.GetPrimAtPath(path)
+        if prim.IsValid():
+            group1_path = f"{path}/Model"
+            p1_path = f"{path}/Model/node______1"
+            p2_path = f"{path}/Model/node______2"
+            
+            # Verify they exist
+            if stage.GetPrimAtPath(group1_path).IsValid():
+                diaolans.append({
+                    "path": path,
+                    "group1": group1_path,
+                    "persons": [
+                        p for p in [p1_path, p2_path] if stage.GetPrimAtPath(p).IsValid()
+                    ]
+                })
+    return diaolans
+
+def pick_active_diaolan(all_diaolans, rng):
+    paths = [d.get("path") for d in all_diaolans]
+    print(f"[diaolan-pick-debug] candidates={paths}")
+    if not all_diaolans:
+        print("[diaolan-pick-debug] no candidates")
+        return None
+    for d in all_diaolans:
+        if d.get("path") == "/World/DiaoLan_01":
+            print("[diaolan-pick-debug] forced=/World/DiaoLan_01")
+            return d
+    print(f"[diaolan-pick-debug] fallback={all_diaolans[0].get('path')}")
+    return all_diaolans[0]
+
+def apply_diaolan_visibility(stage, active_diaolan, all_diaolans):
+    active_path = active_diaolan["path"]
+    for d in all_diaolans:
+        prim = stage.GetPrimAtPath(d["path"])
+        if not prim.IsValid(): continue
+        imageable = UsdGeom.Imageable(prim)
+        if d["path"] == active_path:
+            imageable.MakeVisible()
+        else:
+            imageable.MakeInvisible()
+
+def randomize_workers(stage, diaolan_info, rng):
+    persons = diaolan_info["persons"]
+    if not persons:
+        return 0
+    
+    # 0, 1, or 2 persons
+    count = rng.randint(0, len(persons))
+    
+    # Shuffle to pick random persons
+    person_paths = list(persons)
+    rng.shuffle(person_paths)
+    
+    visible_count = 0
+    for i, p_path in enumerate(person_paths):
+        prim = stage.GetPrimAtPath(p_path)
+        if not prim.IsValid(): continue
+        imageable = UsdGeom.Imageable(prim)
+        if i < count:
+            imageable.MakeVisible()
+            visible_count += 1
+        else:
+            imageable.MakeInvisible()
+            
+    return visible_count
+
+def sync_workers_to_group1(stage, group1_path, person_paths, active_count):
+    # This is handled by USD hierarchy if persons are children of Group1,
+    # but in this structure, they are siblings under Model.
+    # We need to copy the Z translation from Group1 to persons.
+    group1_prim = stage.GetPrimAtPath(group1_path)
+    if not group1_prim.IsValid(): return
+    
+    group1_xform = UsdGeom.Xformable(group1_prim)
+    ops = group1_xform.GetOrderedXformOps()
+    
+    z_val = 0.0
+    for op in ops:
+        if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+            val = op.Get()
+            if val is not None:
+                z_val = val[2]
+            break
+            
+    for p_path in person_paths:
+        p_prim = stage.GetPrimAtPath(p_path)
+        if not p_prim.IsValid(): continue
+        
+        p_xform = UsdGeom.Xformable(p_prim)
+        p_ops = p_xform.GetOrderedXformOps()
+        
+        # Find translate op or create one
+        trans_op = None
+        for op in p_ops:
+            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                trans_op = op
+                break
+                
+        if trans_op is None:
+            trans_op = p_xform.AddTranslateOp()
+            
+        current_val = trans_op.Get()
+        if current_val is None:
+            current_val = Gf.Vec3d(0, 0, 0)
+            
+        # Update Z
+        trans_op.Set(Gf.Vec3d(current_val[0], current_val[1], z_val))
+
+def check_safety_hazard(group1_world_z, persons_visible_count, ground_z_baseline=0.12, ground_eps=0.5):
+    is_on_ground = group1_world_z < ground_z_baseline + ground_eps
+    if not is_on_ground and persons_visible_count == 0:
+        return True, "吊篮在空中但人数为0"
+    if is_on_ground and persons_visible_count != 0:
+        return False, None  # 地面有人=合规
+    return False, None
+
+def compute_changjing_aabb(stage, changjing_path="/World/Changjing_AlgorithmVerification_2026_03"):
+    prim = stage.GetPrimAtPath(changjing_path)
+    if not prim.IsValid():
+        # Fallback if not found
+        return {
+            "xmin": 41.10, "xmax": 161.10,
+            "ymin": -92.60, "ymax": 93.40,
+            "zmin": -0.16, "zmax": 36.42,
+            "center": (101.1, 0.4, 18.13),
+            "size": (120.0, 186.0, 36.58)
+        }
+        
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    bbox = bbox_cache.ComputeWorldBound(prim)
+    box_range = bbox.ComputeAlignedRange()
+    
+    min_pt = box_range.GetMin()
+    max_pt = box_range.GetMax()
+    
+    aabb = {
+        "xmin": float(min_pt[0]), "xmax": float(max_pt[0]),
+        "ymin": float(min_pt[1]), "ymax": float(max_pt[1]),
+        "zmin": float(min_pt[2]), "zmax": float(max_pt[2]),
+        "center": (float((min_pt[0]+max_pt[0])/2), float((min_pt[1]+max_pt[1])/2), float((min_pt[2]+max_pt[2])/2)),
+        "size": (float(max_pt[0]-min_pt[0]), float(max_pt[1]-min_pt[1]), float(max_pt[2]-min_pt[2]))
+    }
+    
+    with open("changjing_aabb_report.yaml", "w") as f:
+        yaml.dump(aabb, f)
+        
+    return aabb
+
+def sample_camera_in_changjing(
+    stage,
+    changjing_path,
+    camera_rig_path,
+    rng,
+    seed=None,
+    cam_z_min=5.0,
+    cam_z_max=25.0,
+    max_retries=20,
+    sample_box=None,
+):
+    """
+    sample_box: 可选 dict，键 x_min/x_max/y_min/y_max/z_min/z_max；
+    若提供则在此轴对齐盒内均匀采样（并与场景 AABB 求交裁剪），用于避开背光/过低机位。
+    未提供时沿用原「大盒」策略（易采到受光差的位置）。
+
+    返回值: (x, y, z, seed, box_meta)
+    box_meta: dict，含 mode、effective_box、与 Changjing AABB 裁剪说明，供日志打印。
+    """
+    aabb = compute_changjing_aabb(stage, changjing_path)
+
+    mode = "legacy_wide"
+    fallback_invalid = False
+    clipped = []
+
+    if sample_box:
+        cx0 = float(sample_box["x_min"])
+        cx1 = float(sample_box["x_max"])
+        cy0 = float(sample_box["y_min"])
+        cy1 = float(sample_box["y_max"])
+        cz0 = float(sample_box["z_min"])
+        cz1 = float(sample_box["z_max"])
+        x_min = max(cx0, aabb["xmin"])
+        x_max = min(cx1, aabb["xmax"])
+        y_min = max(cy0, aabb["ymin"])
+        y_max = min(cy1, aabb["ymax"])
+        z_min = max(cz0, aabb["zmin"])
+        z_max = min(cz1, aabb["zmax"])
+        if x_min > cx0 + 1e-6:
+            clipped.append("x_min↑AABB")
+        if x_max < cx1 - 1e-6:
+            clipped.append("x_max↓AABB")
+        if y_min > cy0 + 1e-6:
+            clipped.append("y_min↑AABB")
+        if y_max < cy1 - 1e-6:
+            clipped.append("y_max↓AABB")
+        if z_min > cz0 + 1e-6:
+            clipped.append("z_min↑AABB")
+        if z_max < cz1 - 1e-6:
+            clipped.append("z_max↓AABB")
+        mode = "sample_box"
+    else:
+        x_min = max(aabb["xmin"], 70.0)
+        x_max = min(aabb["xmax"], 150.0)
+        y_min = max(aabb["ymin"], -60.0)
+        y_max = min(aabb["ymax"], 60.0)
+        z_min = cam_z_min
+        z_max = cam_z_max
+        clipped.append("legacy[70..150]×[-60..60]×z[5..25]∩AABB")
+
+    if x_max <= x_min or y_max <= y_min or z_max <= z_min:
+        fallback_invalid = True
+        mode = "fallback_invalid_box"
+        clipped = ["与AABB无有效交→回退legacy大盒"]
+        x_min = max(aabb["xmin"], 70.0)
+        x_max = min(aabb["xmax"], 150.0)
+        y_min = max(aabb["ymin"], -60.0)
+        y_max = min(aabb["ymax"], 60.0)
+        z_min = cam_z_min
+        z_max = cam_z_max
+
+    x = rng.uniform(x_min, x_max)
+    y = rng.uniform(y_min, y_max)
+    z = rng.uniform(z_min, z_max)
+
+    box_meta = {
+        "mode": mode,
+        "fallback_invalid": fallback_invalid,
+        "effective_box": {
+            "x_min": x_min,
+            "x_max": x_max,
+            "y_min": y_min,
+            "y_max": y_max,
+            "z_min": z_min,
+            "z_max": z_max,
+        },
+        "config_box": dict(sample_box) if sample_box else None,
+        "changjing_aabb": {
+            "xmin": aabb["xmin"],
+            "xmax": aabb["xmax"],
+            "ymin": aabb["ymin"],
+            "ymax": aabb["ymax"],
+            "zmin": aabb["zmin"],
+            "zmax": aabb["zmax"],
+        },
+        "aabb_clip_notes": clipped,
+    }
+
+    cam_prim = stage.GetPrimAtPath(camera_rig_path)
+    if cam_prim.IsValid():
+        xform = UsdGeom.Xformable(cam_prim)
+        ops = xform.GetOrderedXformOps()
+        trans_op = None
+        for op in ops:
+            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                trans_op = op
+                break
+        if trans_op is None:
+            trans_op = xform.AddTranslateOp()
+        trans_op.Set(Gf.Vec3d(x, y, z))
+
+    return (x, y, z, seed, box_meta)
+
+def check_preset_visibility(stage, camera_rig_path, presets_cfg, target_prim_path, fov_half_deg=60.0):
+    cam_prim = stage.GetPrimAtPath(camera_rig_path)
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    
+    if not cam_prim.IsValid() or not target_prim.IsValid():
+        return {k: False for k in presets_cfg}
+        
+    # Get camera world position
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    cam_bbox = bbox_cache.ComputeWorldBound(cam_prim)
+    cam_pos = cam_bbox.ComputeAlignedRange().GetMidpoint()
+    
+    # Get target world position
+    target_bbox = bbox_cache.ComputeWorldBound(target_prim)
+    target_pos = target_bbox.ComputeAlignedRange().GetMidpoint()
+    
+    # Vector from cam to target
+    vec_to_target = target_pos - cam_pos
+    dist = vec_to_target.GetLength()
+    if dist < 1e-5:
+        return {k: False for k in presets_cfg}
+        
+    dir_to_target = vec_to_target / dist
+    
+    results = {}
+    fov_cos = math.cos(math.radians(fov_half_deg))
+    
+    for preset_name, preset_data in presets_cfg.items():
+        pan = preset_data.get("pan", 0.0)
+        tilt = preset_data.get("tilt", 0.0)
+        
+        # Calculate forward vector based on pan/tilt in Z-up
+        # Assuming pan is rotation around Z (yaw), tilt is rotation around local X (pitch)
+        pan_rad = math.radians(pan)
+        tilt_rad = math.radians(tilt)
+        
+        # Base forward is +Y in this setup (or +X depending on camera rig orientation)
+        # Let's assume standard PTZ where pan=0, tilt=0 looks along +Y
+        # Forward vector:
+        fx = -math.sin(pan_rad) * math.cos(tilt_rad)
+        fy = math.cos(pan_rad) * math.cos(tilt_rad)
+        fz = math.sin(tilt_rad)
+        
+        forward = Gf.Vec3d(fx, fy, fz)
+        forward.Normalize()
+        
+        dot_prod = Gf.Dot(dir_to_target, forward)
+        results[preset_name] = dot_prod > fov_cos
+        
+    return results

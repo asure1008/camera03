@@ -1,0 +1,11 @@
+=== ss ports ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+=== ps python ptz mediamtx ===
+root        1358  0.0  0.0 112252   280 ?        Ssl  Mar30   0:00 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+uniubi    560720  0.5  0.1 355872 42228 ?        Sl   11:07   0:05 python3 ptz_launcher.py --config ./ptz_config.yaml
+uniubi    564456  0.0  0.1 1271684 36956 ?       Sl   11:16   0:00 /home/uniubi/xuanyuan/camera03/./mediamtx /home/uniubi/xuanyuan/camera03/mediamtx.yml
+uniubi   1237737  0.0  0.0  31912    12 ?        S    Apr13   0:00 /usr/bin/python3 /usr/bin/gnome-terminal --wait
+uniubi   2178926  0.0  0.1 921356 35680 ?        SNl  Apr07   1:34 /usr/bin/python3 /usr/bin/update-manager --no-update --no-focus-on-map
+uniubi   2329182  0.0  0.1 584948 58644 ?        Sl   Apr17   0:00 /usr/bin/python3 /usr/share/apport/apport-gtk
+uniubi   2548732  0.0  0.0  44368 25788 ?        S    Apr22   8:00 python3 /home/uniubi/siwei/scene_auto_controller.py

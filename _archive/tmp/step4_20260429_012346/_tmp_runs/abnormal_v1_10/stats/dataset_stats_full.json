@@ -1,0 +1,110 @@
+{
+  "total_samples": 10,
+  "target_scene_pattern_counts": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "scene_pattern_counts": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "height_relation_counts": {
+    "different_level": 3,
+    "same_level": 0,
+    "not_applicable": 7
+  },
+  "basket_state_counts": {
+    "ground_empty": 5,
+    "air_with_person": 10,
+    "ground_with_person": 5,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 0,
+    "fail": 0,
+    "skip": 10
+  },
+  "visibility_failed_samples": [],
+  "failed_rule_counts": {},
+  "failed_rule_sample_ids": {},
+  "abnormal_summary": {
+    "schema_version": "abnormal_v1",
+    "implemented_labels": [
+      "person_count_abnormal",
+      "height_abnormal",
+      "dual_basket_risk"
+    ],
+    "requested": {
+      "schema_version": "abnormal_v1",
+      "implemented_labels": [
+        "person_count_abnormal",
+        "height_abnormal",
+        "dual_basket_risk"
+      ],
+      "requested": {
+        "normal": 4,
+        "person_count_abnormal": 2,
+        "height_abnormal": 2,
+        "dual_basket_risk": 2,
+        "safety_violation_reserved": 0
+      },
+      "plan_size": 10
+    },
+    "actual_distribution": {
+      "normal": 4,
+      "person_count_abnormal": 3,
+      "height_abnormal": 1,
+      "dual_basket_risk": 2,
+      "safety_violation_reserved": 0
+    },
+    "actual_abnormal_count": 6,
+    "actual_abnormal_ratio": 0.6,
+    "legacy_missing_abnormal_label_count": 0
+  },
+  "abnormal_x_visibility": {
+    "normal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 4
+    },
+    "person_count_abnormal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 3
+    },
+    "height_abnormal": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 1
+    },
+    "dual_basket_risk": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 2
+    },
+    "safety_violation_reserved": {
+      "ok": 0,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "sample_id_list": [
+    "single_airborne_0001",
+    "single_airborne_0002",
+    "single_airborne_0003",
+    "single_airborne_0004",
+    "double_airborne_0001",
+    "double_airborne_0002",
+    "double_airborne_0003",
+    "all_ground_0001",
+    "all_ground_0002",
+    "all_ground_0003"
+  ],
+  "generated_files": [
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/abnormal_v1_10/logs/dataset_batch_summary.json",
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/abnormal_v1_10/manifests/dataset_manifest_full.jsonl",
+    "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/abnormal_v1_10/stats/dataset_stats_full.json"
+  ]
+}

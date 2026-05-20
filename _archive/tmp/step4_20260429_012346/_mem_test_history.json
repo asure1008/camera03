@@ -1,0 +1,1225 @@
+[
+  {
+    "ptz_launcher.py": 22.640625,
+    "time": 0,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.49609375,
+    "time": 1,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.49609375,
+    "time": 2,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.49609375,
+    "time": 3,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.49609375,
+    "time": 4,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.49609375,
+    "time": 5,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.68359375,
+    "ptz_stream.py": 252.24609375,
+    "time": 6,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.68359375,
+    "ptz_stream.py": 1498.7734375,
+    "time": 7,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.68359375,
+    "ptz_stream.py": 2083.140625,
+    "time": 8,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.68359375,
+    "ptz_stream.py": 2342.75390625,
+    "time": 9,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.68359375,
+    "ptz_stream.py": 2627.21484375,
+    "time": 10,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.6875,
+    "ptz_stream.py": 3603.85546875,
+    "time": 11,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.6875,
+    "ptz_stream.py": 4620.16796875,
+    "time": 12,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 4620.24609375,
+    "mediamtx": 30.66796875,
+    "time": 13,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 4620.26171875,
+    "mediamtx": 30.96484375,
+    "ffmpeg": 40.96875,
+    "time": 14,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 4620.26171875,
+    "mediamtx": 30.9765625,
+    "ffmpeg": 40.96875,
+    "time": 15,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 4780.99609375,
+    "mediamtx": 30.98828125,
+    "ffmpeg": 40.96875,
+    "time": 16,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 7587.08984375,
+    "mediamtx": 30.9921875,
+    "ffmpeg": 40.96875,
+    "time": 17,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 9189.453125,
+    "mediamtx": 31.00390625,
+    "ffmpeg": 40.96875,
+    "time": 18,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 11311.078125,
+    "mediamtx": 31.0078125,
+    "ffmpeg": 40.96875,
+    "time": 19,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14452.54296875,
+    "mediamtx": 31.015625,
+    "ffmpeg": 40.96875,
+    "time": 20,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14520.99609375,
+    "mediamtx": 31.02734375,
+    "ffmpeg": 40.96875,
+    "time": 21,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14585.96484375,
+    "mediamtx": 31.07421875,
+    "ffmpeg": 40.96875,
+    "time": 22,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14666.578125,
+    "mediamtx": 31.1171875,
+    "ffmpeg": 40.96875,
+    "time": 23,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14748.99609375,
+    "mediamtx": 31.12890625,
+    "ffmpeg": 40.96875,
+    "time": 24,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 14844.37109375,
+    "mediamtx": 31.1328125,
+    "ffmpeg": 40.96875,
+    "time": 25,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 17025.29296875,
+    "mediamtx": 31.140625,
+    "ffmpeg": 40.96875,
+    "time": 26,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 17652.6484375,
+    "mediamtx": 31.14453125,
+    "ffmpeg": 40.96875,
+    "time": 27,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 18214.75,
+    "mediamtx": 31.15625,
+    "ffmpeg": 40.96875,
+    "time": 28,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 19588.77734375,
+    "mediamtx": 31.171875,
+    "ffmpeg": 40.96875,
+    "time": 29,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 19655.51953125,
+    "mediamtx": 31.21484375,
+    "ffmpeg": 40.96875,
+    "time": 30,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 19749.1953125,
+    "mediamtx": 31.22265625,
+    "ffmpeg": 40.96875,
+    "time": 31,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22427.57421875,
+    "mediamtx": 31.2265625,
+    "ffmpeg": 40.96875,
+    "time": 32,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 23094.98828125,
+    "mediamtx": 31.234375,
+    "ffmpeg": 40.96875,
+    "time": 33,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 23095.0546875,
+    "mediamtx": 31.234375,
+    "ffmpeg": 40.96875,
+    "time": 34,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22580.234375,
+    "mediamtx": 31.24609375,
+    "ffmpeg": 40.96875,
+    "time": 35,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 24658.1875,
+    "mediamtx": 31.25,
+    "ffmpeg": 40.96875,
+    "time": 36,
+    "phase": "startup"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22853.78125,
+    "mediamtx": 37.50390625,
+    "ffmpeg": 170.67578125,
+    "time": 37,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.35546875,
+    "mediamtx": 39.4765625,
+    "ffmpeg": 170.67578125,
+    "time": 39,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.36328125,
+    "mediamtx": 39.55859375,
+    "ffmpeg": 170.67578125,
+    "time": 41,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.375,
+    "mediamtx": 39.80078125,
+    "ffmpeg": 170.67578125,
+    "time": 43,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.38671875,
+    "mediamtx": 39.98046875,
+    "ffmpeg": 170.67578125,
+    "time": 45,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.39453125,
+    "mediamtx": 40.53125,
+    "ffmpeg": 170.67578125,
+    "time": 47,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.41015625,
+    "mediamtx": 41.24609375,
+    "ffmpeg": 170.67578125,
+    "time": 49,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.41796875,
+    "mediamtx": 41.3203125,
+    "ffmpeg": 170.67578125,
+    "time": 51,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.42578125,
+    "mediamtx": 41.33203125,
+    "ffmpeg": 170.67578125,
+    "time": 53,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.4296875,
+    "mediamtx": 41.6953125,
+    "ffmpeg": 170.67578125,
+    "time": 55,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.43359375,
+    "mediamtx": 41.45703125,
+    "ffmpeg": 170.67578125,
+    "time": 57,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.44140625,
+    "mediamtx": 41.45703125,
+    "ffmpeg": 170.67578125,
+    "time": 59,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.44921875,
+    "mediamtx": 41.45703125,
+    "ffmpeg": 170.67578125,
+    "time": 61,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.45703125,
+    "mediamtx": 41.45703125,
+    "ffmpeg": 170.67578125,
+    "time": 63,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.46484375,
+    "mediamtx": 41.59375,
+    "ffmpeg": 170.67578125,
+    "time": 65,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.46875,
+    "mediamtx": 41.59765625,
+    "ffmpeg": 170.67578125,
+    "time": 67,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.47265625,
+    "mediamtx": 41.6015625,
+    "ffmpeg": 170.67578125,
+    "time": 69,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.48046875,
+    "mediamtx": 41.62109375,
+    "ffmpeg": 170.67578125,
+    "time": 71,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.484375,
+    "mediamtx": 41.62109375,
+    "ffmpeg": 170.67578125,
+    "time": 73,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.48828125,
+    "mediamtx": 41.38671875,
+    "ffmpeg": 170.67578125,
+    "time": 75,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.4921875,
+    "mediamtx": 41.38671875,
+    "ffmpeg": 170.67578125,
+    "time": 77,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.4921875,
+    "mediamtx": 41.390625,
+    "ffmpeg": 170.67578125,
+    "time": 79,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.49609375,
+    "mediamtx": 41.39453125,
+    "ffmpeg": 170.67578125,
+    "time": 81,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5,
+    "mediamtx": 41.43359375,
+    "ffmpeg": 170.67578125,
+    "time": 83,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.50390625,
+    "mediamtx": 41.44140625,
+    "ffmpeg": 170.67578125,
+    "time": 85,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5078125,
+    "mediamtx": 41.44140625,
+    "ffmpeg": 170.67578125,
+    "time": 87,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.51171875,
+    "mediamtx": 41.44921875,
+    "ffmpeg": 170.67578125,
+    "time": 89,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.51171875,
+    "mediamtx": 41.5,
+    "ffmpeg": 170.67578125,
+    "time": 91,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.515625,
+    "mediamtx": 41.5078125,
+    "ffmpeg": 170.67578125,
+    "time": 93,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.51953125,
+    "mediamtx": 41.5078125,
+    "ffmpeg": 170.67578125,
+    "time": 95,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5234375,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 97,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.52734375,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 99,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.53125,
+    "mediamtx": 41.515625,
+    "ffmpeg": 170.67578125,
+    "time": 101,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.53125,
+    "mediamtx": 41.51953125,
+    "ffmpeg": 170.67578125,
+    "time": 103,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.53515625,
+    "mediamtx": 41.53125,
+    "ffmpeg": 170.67578125,
+    "time": 105,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5390625,
+    "mediamtx": 41.53125,
+    "ffmpeg": 170.67578125,
+    "time": 107,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.54296875,
+    "mediamtx": 41.6484375,
+    "ffmpeg": 170.67578125,
+    "time": 109,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.546875,
+    "mediamtx": 41.6484375,
+    "ffmpeg": 170.67578125,
+    "time": 111,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.546875,
+    "mediamtx": 41.6484375,
+    "ffmpeg": 170.67578125,
+    "time": 113,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.55078125,
+    "mediamtx": 41.65234375,
+    "ffmpeg": 170.67578125,
+    "time": 115,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5546875,
+    "mediamtx": 41.40234375,
+    "ffmpeg": 170.67578125,
+    "time": 117,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.55859375,
+    "mediamtx": 41.40625,
+    "ffmpeg": 170.67578125,
+    "time": 119,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5625,
+    "mediamtx": 41.40625,
+    "ffmpeg": 170.67578125,
+    "time": 121,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.56640625,
+    "mediamtx": 41.41015625,
+    "ffmpeg": 170.67578125,
+    "time": 123,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.56640625,
+    "mediamtx": 41.47265625,
+    "ffmpeg": 170.67578125,
+    "time": 125,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5703125,
+    "mediamtx": 41.47265625,
+    "ffmpeg": 170.67578125,
+    "time": 127,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.57421875,
+    "mediamtx": 41.47265625,
+    "ffmpeg": 170.67578125,
+    "time": 129,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.578125,
+    "mediamtx": 41.47265625,
+    "ffmpeg": 170.67578125,
+    "time": 131,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.58203125,
+    "mediamtx": 41.47265625,
+    "ffmpeg": 170.67578125,
+    "time": 133,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5859375,
+    "mediamtx": 41.4765625,
+    "ffmpeg": 170.67578125,
+    "time": 135,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.5859375,
+    "mediamtx": 41.48046875,
+    "ffmpeg": 170.67578125,
+    "time": 137,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.58984375,
+    "mediamtx": 41.48828125,
+    "ffmpeg": 170.67578125,
+    "time": 139,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.59375,
+    "mediamtx": 41.48828125,
+    "ffmpeg": 170.67578125,
+    "time": 141,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.59765625,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 143,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6015625,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 145,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.60546875,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 147,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.60546875,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 149,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.609375,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 151,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.61328125,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 153,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6171875,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 155,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.625,
+    "mediamtx": 41.52734375,
+    "ffmpeg": 170.67578125,
+    "time": 157,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.62890625,
+    "mediamtx": 41.53125,
+    "ffmpeg": 170.67578125,
+    "time": 159,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.62890625,
+    "mediamtx": 41.625,
+    "ffmpeg": 170.67578125,
+    "time": 161,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6328125,
+    "mediamtx": 41.625,
+    "ffmpeg": 170.67578125,
+    "time": 163,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.63671875,
+    "mediamtx": 41.625,
+    "ffmpeg": 170.67578125,
+    "time": 165,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.640625,
+    "mediamtx": 41.625,
+    "ffmpeg": 170.67578125,
+    "time": 167,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.64453125,
+    "mediamtx": 41.6328125,
+    "ffmpeg": 170.67578125,
+    "time": 169,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6484375,
+    "mediamtx": 41.6328125,
+    "ffmpeg": 170.67578125,
+    "time": 171,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6484375,
+    "mediamtx": 41.6328125,
+    "ffmpeg": 170.67578125,
+    "time": 173,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.65234375,
+    "mediamtx": 41.6328125,
+    "ffmpeg": 170.67578125,
+    "time": 175,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.65625,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 177,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.66015625,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 179,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6640625,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 181,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.66796875,
+    "mediamtx": 41.51171875,
+    "ffmpeg": 170.67578125,
+    "time": 183,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.66796875,
+    "mediamtx": 41.5859375,
+    "ffmpeg": 170.67578125,
+    "time": 185,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.671875,
+    "mediamtx": 41.5859375,
+    "ffmpeg": 170.67578125,
+    "time": 187,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.67578125,
+    "mediamtx": 41.5859375,
+    "ffmpeg": 170.67578125,
+    "time": 189,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6796875,
+    "mediamtx": 41.5859375,
+    "ffmpeg": 170.67578125,
+    "time": 191,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.68359375,
+    "mediamtx": 41.5859375,
+    "ffmpeg": 170.67578125,
+    "time": 193,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6875,
+    "mediamtx": 41.08984375,
+    "ffmpeg": 170.67578125,
+    "time": 195,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6875,
+    "mediamtx": 41.08984375,
+    "ffmpeg": 170.67578125,
+    "time": 197,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.69140625,
+    "mediamtx": 41.08984375,
+    "ffmpeg": 170.67578125,
+    "time": 199,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.6953125,
+    "mediamtx": 41.08984375,
+    "ffmpeg": 170.67578125,
+    "time": 201,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.69921875,
+    "mediamtx": 41.18359375,
+    "ffmpeg": 170.67578125,
+    "time": 203,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.703125,
+    "mediamtx": 41.18359375,
+    "ffmpeg": 170.67578125,
+    "time": 205,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.70703125,
+    "mediamtx": 41.18359375,
+    "ffmpeg": 170.67578125,
+    "time": 207,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.70703125,
+    "mediamtx": 41.18359375,
+    "ffmpeg": 170.67578125,
+    "time": 209,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7109375,
+    "mediamtx": 41.1875,
+    "ffmpeg": 170.67578125,
+    "time": 211,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.71484375,
+    "mediamtx": 41.1875,
+    "ffmpeg": 170.67578125,
+    "time": 213,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.71875,
+    "mediamtx": 41.1953125,
+    "ffmpeg": 170.67578125,
+    "time": 215,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.72265625,
+    "mediamtx": 41.1953125,
+    "ffmpeg": 170.67578125,
+    "time": 217,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7265625,
+    "mediamtx": 41.19921875,
+    "ffmpeg": 170.67578125,
+    "time": 219,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7265625,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 221,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.73046875,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 223,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.734375,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 225,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.73828125,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 227,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7421875,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 229,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7421875,
+    "mediamtx": 41.203125,
+    "ffmpeg": 170.67578125,
+    "time": 231,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.74609375,
+    "mediamtx": 41.20703125,
+    "ffmpeg": 170.67578125,
+    "time": 233,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.75,
+    "mediamtx": 41.2734375,
+    "ffmpeg": 170.67578125,
+    "time": 235,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.75390625,
+    "mediamtx": 41.578125,
+    "ffmpeg": 170.67578125,
+    "time": 237,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7578125,
+    "mediamtx": 41.61328125,
+    "ffmpeg": 170.67578125,
+    "time": 239,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.76171875,
+    "mediamtx": 41.61328125,
+    "ffmpeg": 170.67578125,
+    "time": 241,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.76171875,
+    "mediamtx": 41.72265625,
+    "ffmpeg": 170.67578125,
+    "time": 243,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.765625,
+    "mediamtx": 41.73046875,
+    "ffmpeg": 170.67578125,
+    "time": 245,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.76953125,
+    "mediamtx": 41.73046875,
+    "ffmpeg": 170.67578125,
+    "time": 247,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7734375,
+    "mediamtx": 41.73046875,
+    "ffmpeg": 170.67578125,
+    "time": 249,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.77734375,
+    "mediamtx": 41.73046875,
+    "ffmpeg": 170.67578125,
+    "time": 251,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.78125,
+    "mediamtx": 41.49609375,
+    "ffmpeg": 170.67578125,
+    "time": 253,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.78125,
+    "mediamtx": 41.73828125,
+    "ffmpeg": 170.67578125,
+    "time": 255,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.78515625,
+    "mediamtx": 41.73828125,
+    "ffmpeg": 170.67578125,
+    "time": 257,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.7890625,
+    "mediamtx": 41.76171875,
+    "ffmpeg": 170.67578125,
+    "time": 259,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.79296875,
+    "mediamtx": 41.59375,
+    "ffmpeg": 170.67578125,
+    "time": 261,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.796875,
+    "mediamtx": 41.59375,
+    "ffmpeg": 170.67578125,
+    "time": 263,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.80078125,
+    "mediamtx": 41.59375,
+    "ffmpeg": 170.67578125,
+    "time": 265,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.80078125,
+    "mediamtx": 41.59375,
+    "ffmpeg": 170.67578125,
+    "time": 267,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.8046875,
+    "mediamtx": 41.8515625,
+    "ffmpeg": 170.67578125,
+    "time": 269,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.80859375,
+    "mediamtx": 42.0390625,
+    "ffmpeg": 170.67578125,
+    "time": 271,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.8125,
+    "mediamtx": 42.04296875,
+    "ffmpeg": 170.67578125,
+    "time": 273,
+    "phase": "running"
+  },
+  {
+    "ptz_launcher.py": 34.69140625,
+    "ptz_stream.py": 22857.81640625,
+    "mediamtx": 1.7734375,
+    "ffmpeg": 1.7734375,
+    "time": 275,
+    "phase": "running"
+  }
+]

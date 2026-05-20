@@ -1,0 +1,1 @@
+40:scene_path: /home/uniubi/xuanyuan/camera03/scene_4diaolan_ptz.usda

@@ -1,0 +1,62 @@
+launcher_port: 8080
+ctrl_port: 8081
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda
+camera_prim: /World/CameraRig/CamTilt/Camera
+rtsp_url: rtsp://localhost:8554/ptz_cam
+resolution:
+- 960
+- 540
+fps: 10
+bitrate: 1M
+sim_hz: 60
+rtsp_enabled: true
+preview_enabled: false
+mjpeg_quality: 80
+renderer: RaytracedLighting
+osd_time:
+  enabled: true
+  fmt: '%Y-%m-%d %H:%M:%S'
+  x: 10
+  y: 10
+  size: 28
+  font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+# 广角基焦距（mm），与 USDA Camera.focalLength 一致；zoom=1× 时沿用此值
+focal_length_1x: 6
+# 斜向立面观察位（低机位、拉近）；与 USDA / _CAMERA_RIG_TRANSLATE_XYZ 一致
+initial_pan: 100.0
+initial_tilt: -48.0
+initial_zoom: 1.0
+mediamtx:
+  path: ./mediamtx
+  port: 8554
+  auto_download: true
+  version: v1.17.0
+# 可选：强制 ONVIF GetStreamUri 返回的 RTSP 主机名（留空则自动：从 Host 解析 IPv4；环回时用通往 ODM 的网卡 IP）
+onvif_rtsp_host: ""
+presets:
+  '1':
+    name: Preset639101228041322270
+    pan: 0.0
+    tilt: 0.0
+    zoom: 1.0
+  '2':
+    name: 水平正视
+    pan: 0.0
+    tilt: 0.0
+    zoom: 1.0
+  '3':
+    name: 左90°
+    pan: -90.0
+    tilt: -45.0
+    zoom: 1.0
+  '4':
+    name: 右90°
+    pan: 90.0
+    tilt: -45.0
+    zoom: 1.0
+  '5':
+    name: 俯视
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.0

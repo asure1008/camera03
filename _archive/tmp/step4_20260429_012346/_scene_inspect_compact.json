@@ -1,0 +1,402 @@
+[
+  {
+    "path": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/usd/scene_generated_dataset_dataset_single_airborne_0006.usd",
+    "exists": true,
+    "open_ok": true,
+    "root_layer": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/usd/scene_generated_dataset_dataset_single_airborne_0006.usd",
+    "sub_layers": [
+      "/home/uniubi/xuanyuan/camera05/camera03/V4.0.usd"
+    ],
+    "default_prim": null,
+    "up_axis": "Y",
+    "references": [
+      {
+        "prim": "/World/DiaoLanChangJing_2026",
+        "items": [
+          "Sdf.Reference('DiaoLan.usd')",
+          "Sdf.Reference('Changjing_AlgorithmVerification_2026.03.usd')"
+        ]
+      },
+      {
+        "prim": "/World/Architectur_2026_03",
+        "items": [
+          "Sdf.Reference('Changjing_AlgorithmVerification_2026.03.usd')"
+        ]
+      }
+    ],
+    "payloads": [],
+    "prim_exists": {
+      "/World/DiaoLan_01": false,
+      "/World/DiaoLan_02": false,
+      "/World/DiaoLan_02/Model/Group1": false,
+      "/World/DiaoLan/Model/Group1": true
+    },
+    "similar_prim_paths": [
+      "/World/DiaoLan/Looks",
+      "/World/DiaoLan/Model",
+      "/World/DiaoLan/Model/Group1",
+      "/World/DiaoLan/Model/Group1/Group2",
+      "/World/DiaoLan/Model/Group1/Group2/Group3",
+      "/World/DiaoLan/Model/Group1/Group2/Group3/Mesh1",
+      "/World/DiaoLan/Model/Group1/Group2/Group3/Mesh1/Mesh1",
+      "/World/DiaoLan/Model/Group1/Group2/Group4",
+      "/World/DiaoLan/Model/Group1/Group2/Group4/Mesh2",
+      "/World/DiaoLan/Model/Group1/Group2/Group4/Mesh2/Mesh2",
+      "/World/DiaoLan/Model/Group1/Group2/Group5",
+      "/World/DiaoLan/Model/Group1/Group2/Group5/Mesh3",
+      "/World/DiaoLan/Model/Group1/Group2/Group5/Mesh3/Mesh3",
+      "/World/DiaoLan/Model/Group1/Group2/node___19_1",
+      "/World/DiaoLan/Model/Group1/Group2/node___19_1/Mesh4",
+      "/World/DiaoLan/Model/Group1/Group2/node___19_1/Mesh4/Mesh4",
+      "/World/DiaoLan/Model/Group1/Group2/node___20_1",
+      "/World/DiaoLan/Model/Group1/Group2/node___20_1/Mesh5",
+      "/World/DiaoLan/Model/Group1/Group2/node___20_1/Mesh5/Mesh5",
+      "/World/DiaoLan/Model/Group1/Group6",
+      "/World/DiaoLan/Model/Group1/Group6/Group7",
+      "/World/DiaoLan/Model/Group1/Group6/Group7/Mesh6",
+      "/World/DiaoLan/Model/Group1/Group6/Group7/Mesh6/Mesh6",
+      "/World/DiaoLan/Model/Group1/Group6/Group8",
+      "/World/DiaoLan/Model/Group1/Group6/Group8/Mesh7",
+      "/World/DiaoLan/Model/Group1/Group6/Group8/Mesh7/Mesh7",
+      "/World/DiaoLan/Model/Group1/Group6/Group9",
+      "/World/DiaoLan/Model/Group1/Group6/Group9/Mesh8",
+      "/World/DiaoLan/Model/Group1/Group6/Group9/Mesh8/Mesh8",
+      "/World/DiaoLan/Model/Group1/Group6/node___19_2",
+      "/World/DiaoLan/Model/Group1/Group6/node___19_2/Mesh9",
+      "/World/DiaoLan/Model/Group1/Group6/node___19_2/Mesh9/Mesh9",
+      "/World/DiaoLan/Model/Group1/Group6/node___20_2",
+      "/World/DiaoLan/Model/Group1/Group6/node___20_2/Mesh10",
+      "/World/DiaoLan/Model/Group1/Group6/node___20_2/Mesh10/Mesh10",
+      "/World/DiaoLan/Model/Group1/Group10",
+      "/World/DiaoLan/Model/Group1/Group10/Group11",
+      "/World/DiaoLan/Model/Group1/Group10/Group11/Mesh11",
+      "/World/DiaoLan/Model/Group1/Group10/Group11/Mesh11/Mesh11",
+      "/World/DiaoLan/Model/Group1/Group10/Group12",
+      "/World/DiaoLan/Model/Group1/Group10/Group12/Mesh12",
+      "/World/DiaoLan/Model/Group1/Group10/Group12/Mesh12/Mesh12",
+      "/World/DiaoLan/Model/Group1/Group10/Group13",
+      "/World/DiaoLan/Model/Group1/Group10/Group13/Mesh13",
+      "/World/DiaoLan/Model/Group1/Group10/Group13/Mesh13/Mesh13",
+      "/World/DiaoLan/Model/Group1/Group10/node___19_3",
+      "/World/DiaoLan/Model/Group1/Group10/node___19_3/Mesh14",
+      "/World/DiaoLan/Model/Group1/Group10/node___19_3/Mesh14/Mesh14",
+      "/World/DiaoLan/Model/Group1/Group10/node___20_3",
+      "/World/DiaoLan/Model/Group1/Group10/node___20_3/Mesh15",
+      "/World/DiaoLan/Model/Group1/Group10/node___20_3/Mesh15/Mesh15",
+      "/World/DiaoLan/Model/Group1/Group14",
+      "/World/DiaoLan/Model/Group1/Group14/Group15",
+      "/World/DiaoLan/Model/Group1/Group14/Group15/Mesh16",
+      "/World/DiaoLan/Model/Group1/Group14/Group15/Mesh16/Mesh16",
+      "/World/DiaoLan/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset___",
+      "/World/DiaoLan/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset______",
+      "/World/DiaoLan/Model/Group1/Group14/Group16",
+      "/World/DiaoLan/Model/Group1/Group14/Group16/Group17",
+      "/World/DiaoLan/Model/Group1/Group14/Group16/Group17/Mesh17"
+    ],
+    "target": {
+      "path": "/World/DiaoLan/Model/Group1",
+      "type": "Xform",
+      "active": true,
+      "visibility": "inherited",
+      "bbox_min": [
+        71.83372043460612,
+        -6.682373061832088,
+        0.11999990463275706
+      ],
+      "bbox_max": [
+        72.73872043460614,
+        -2.0143725735508387,
+        1.6410296630861265
+      ]
+    },
+    "camera": {
+      "path": "/World/CameraRig/CamTilt/Camera",
+      "focalLength": 18.14756202697754,
+      "horizontalAperture": 20.954999923706055,
+      "verticalAperture": 15.290800094604492,
+      "clippingRange": [
+        1.0,
+        10000000.0
+      ],
+      "focusDistance": 400.0,
+      "active": true,
+      "visibility": "inherited",
+      "world_matrix": "( (2.220446049250313e-18, 0.01, 0, 0), (-2.220446049250313e-18, 4.930380657631324e-34, 0.01, 0), (0.01, -2.220446049250313e-18, 2.220446049250313e-18, 0), (106.80370307302358, 11.40099398400987, 12.51804416462964, 1) )"
+    },
+    "rig": {
+      "path": "/World/CameraRig",
+      "local_matrix": "(1, 0, 0, 0)",
+      "active": true,
+      "parent": "/World"
+    },
+    "cam_tilt": {
+      "path": "/World/CameraRig/CamTilt",
+      "local_matrix": "(1, 0, 0, 0)",
+      "active": true,
+      "parent": "/World/CameraRig"
+    },
+    "lights": [
+      {
+        "path": "/Environment/DomeLight",
+        "type": "DomeLight",
+        "intensity": 1000.0
+      }
+    ],
+    "background_candidates": []
+  },
+  {
+    "path": "/home/uniubi/xuanyuan/camera05/camera03/DiaoLan_ChangJing_2026.03.18.usd",
+    "exists": true,
+    "open_ok": true,
+    "root_layer": "/home/uniubi/xuanyuan/camera05/camera03/DiaoLan_ChangJing_2026.03.18.usd",
+    "sub_layers": [],
+    "default_prim": "/Root",
+    "up_axis": "Y",
+    "references": [
+      {
+        "prim": "/Root",
+        "items": [
+          "Sdf.Reference('./DiaoLan_ChangJing_2026.03.18_unpacked/main.usdc')"
+        ]
+      }
+    ],
+    "payloads": [],
+    "prim_exists": {
+      "/World/DiaoLan_01": false,
+      "/World/DiaoLan_02": false,
+      "/World/DiaoLan_02/Model/Group1": false,
+      "/World/DiaoLan/Model/Group1": false
+    },
+    "similar_prim_paths": [],
+    "lights": [],
+    "background_candidates": []
+  },
+  {
+    "path": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "exists": true,
+    "open_ok": true,
+    "root_layer": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "sub_layers": [],
+    "default_prim": "/World",
+    "up_axis": "Z",
+    "references": [
+      {
+        "prim": "/World/SceneRoot",
+        "items": [
+          "Sdf.Reference('./DiaoLan_ChangJing_2026.03.18.usdz')"
+        ]
+      }
+    ],
+    "payloads": [],
+    "prim_exists": {
+      "/World/DiaoLan_01": false,
+      "/World/DiaoLan_02": false,
+      "/World/DiaoLan_02/Model/Group1": false,
+      "/World/DiaoLan/Model/Group1": false
+    },
+    "similar_prim_paths": [
+      "/World/SceneRoot/DiaoLan_01",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group3",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group3/Mesh1",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group3/Mesh1/Mesh1",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group4",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group4/Mesh2",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group4/Mesh2/Mesh2",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group5",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group5/Mesh3",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/Group5/Mesh3/Mesh3",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___19_1",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___19_1/Mesh4",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___19_1/Mesh4/Mesh4",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___20_1",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___20_1/Mesh5",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group2/node___20_1/Mesh5/Mesh5",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group7",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group7/Mesh6",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group7/Mesh6/Mesh6",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group8",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group8/Mesh7",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group8/Mesh7/Mesh7",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group9",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group9/Mesh8",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/Group9/Mesh8/Mesh8",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___19_2",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___19_2/Mesh9",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___19_2/Mesh9/Mesh9",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___20_2",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___20_2/Mesh10",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group6/node___20_2/Mesh10/Mesh10",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group11",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group11/Mesh11",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group11/Mesh11/Mesh11",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group12",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group12/Mesh12",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group12/Mesh12/Mesh12",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group13",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group13/Mesh13",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/Group13/Mesh13/Mesh13",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___19_3",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___19_3/Mesh14",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___19_3/Mesh14/Mesh14",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___20_3",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___20_3/Mesh15",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group10/node___20_3/Mesh15/Mesh15",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group15",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset___",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset______",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group16",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group16/Group17",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group16/Group17/Mesh17",
+      "/World/SceneRoot/DiaoLan_01/Model/Group1/Group14/Group16/Group17/Mesh17/Mesh17"
+    ],
+    "camera": {
+      "path": "/World/CameraRig/CamTilt/Camera",
+      "focalLength": 6.0,
+      "horizontalAperture": 20.954999923706055,
+      "verticalAperture": 15.290800094604492,
+      "clippingRange": [
+        0.019999999552965164,
+        100000.0
+      ],
+      "focusDistance": 0.0,
+      "active": true,
+      "visibility": "inherited",
+      "world_matrix": "( (-0.11619331041538378, -0.6589650089199633, -0.7431448254773945, 0), (0.9848077530122081, -0.1736481776669303, 0, 0), (-0.1290457446867585, -0.7318547857410425, 0.669130606358858, 0), (82, -72, 28, 1) )"
+    },
+    "rig": {
+      "path": "/World/CameraRig",
+      "local_matrix": "(-0.1736481776669303, -0.9848077530122081, 0, 0)",
+      "active": true,
+      "parent": "/World"
+    },
+    "cam_tilt": {
+      "path": "/World/CameraRig/CamTilt",
+      "local_matrix": "(0.669130606358858, 0, -0.7431448254773945, 0)",
+      "active": true,
+      "parent": "/World/CameraRig"
+    },
+    "lights": [
+      {
+        "path": "/World/KeyLight",
+        "type": "DistantLight",
+        "intensity": 3000.0
+      },
+      {
+        "path": "/World/FillLight",
+        "type": "DomeLight",
+        "intensity": 650.0
+      }
+    ],
+    "background_candidates": []
+  },
+  {
+    "path": "/home/uniubi/xuanyuan/camera05/camera03/DiaoLan_ChangJing_2026.03.18_unpacked/main.usdc",
+    "exists": true,
+    "open_ok": true,
+    "root_layer": "/home/uniubi/xuanyuan/camera05/camera03/DiaoLan_ChangJing_2026.03.18_unpacked/main.usdc",
+    "sub_layers": [],
+    "default_prim": "/World",
+    "up_axis": "Z",
+    "references": [],
+    "payloads": [],
+    "prim_exists": {
+      "/World/DiaoLan_01": true,
+      "/World/DiaoLan_02": true,
+      "/World/DiaoLan_02/Model/Group1": true,
+      "/World/DiaoLan/Model/Group1": false
+    },
+    "similar_prim_paths": [
+      "/World/DiaoLan_01",
+      "/World/DiaoLan_01/Looks",
+      "/World/DiaoLan_01/Model",
+      "/World/DiaoLan_01/Model/Group1",
+      "/World/DiaoLan_01/Model/Group1/Group2",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group3",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group3/Mesh1",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group3/Mesh1/Mesh1",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group4",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group4/Mesh2",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group4/Mesh2/Mesh2",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group5",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group5/Mesh3",
+      "/World/DiaoLan_01/Model/Group1/Group2/Group5/Mesh3/Mesh3",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___19_1",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___19_1/Mesh4",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___19_1/Mesh4/Mesh4",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___20_1",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___20_1/Mesh5",
+      "/World/DiaoLan_01/Model/Group1/Group2/node___20_1/Mesh5/Mesh5",
+      "/World/DiaoLan_01/Model/Group1/Group6",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group7",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group7/Mesh6",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group7/Mesh6/Mesh6",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group8",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group8/Mesh7",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group8/Mesh7/Mesh7",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group9",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group9/Mesh8",
+      "/World/DiaoLan_01/Model/Group1/Group6/Group9/Mesh8/Mesh8",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___19_2",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___19_2/Mesh9",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___19_2/Mesh9/Mesh9",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___20_2",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___20_2/Mesh10",
+      "/World/DiaoLan_01/Model/Group1/Group6/node___20_2/Mesh10/Mesh10",
+      "/World/DiaoLan_01/Model/Group1/Group10",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group11",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group11/Mesh11",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group11/Mesh11/Mesh11",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group12",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group12/Mesh12",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group12/Mesh12/Mesh12",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group13",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group13/Mesh13",
+      "/World/DiaoLan_01/Model/Group1/Group10/Group13/Mesh13/Mesh13",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___19_3",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___19_3/Mesh14",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___19_3/Mesh14/Mesh14",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___20_3",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___20_3/Mesh15",
+      "/World/DiaoLan_01/Model/Group1/Group10/node___20_3/Mesh15/Mesh15",
+      "/World/DiaoLan_01/Model/Group1/Group14",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group15",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset___",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group15/Mesh16/Mesh16/subset______",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group16",
+      "/World/DiaoLan_01/Model/Group1/Group14/Group16/Group17"
+    ],
+    "target": {
+      "path": "/World/DiaoLan_02/Model/Group1",
+      "type": "Xform",
+      "active": true,
+      "visibility": "inherited",
+      "bbox_min": [
+        71.80685818516895,
+        -29.70956294361012,
+        0.11999990463241597
+      ],
+      "bbox_max": [
+        72.71185818516895,
+        -25.04156245532887,
+        1.6410296630857855
+      ]
+    },
+    "lights": [
+      {
+        "path": "/Environment/DomeLight",
+        "type": "DomeLight",
+        "intensity": 1000.0
+      }
+    ],
+    "background_candidates": []
+  }
+]

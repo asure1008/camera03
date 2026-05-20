@@ -1,0 +1,9 @@
+=== grep 于本机 /home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log ===
+关键词：FileNotFoundError / HDRI file not found
+结果：无匹配。
+
+关键词：sky_sun / whitelist_exists
+结果：多条 [HDRI] 与 whitelist_exists JSON，其中 A1 path 为
+/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr ，"exists": true
+
+结论（本采集主机）：当前 isaac_stream.log 未记录 HDRI FileNotFoundError；与磁盘上文件存在一致。

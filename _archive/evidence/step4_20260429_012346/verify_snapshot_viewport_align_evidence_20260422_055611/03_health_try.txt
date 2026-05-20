@@ -1,0 +1,1 @@
+{"ok": true, "service": "ptz_stream", "listen": "0.0.0.0", "ctrl_port": 8081, "timestamp": "2026-04-22T05:57:22"}

@@ -1,0 +1,2 @@
+3185:    def do_POST(self):
+3214:        if path == "/start":

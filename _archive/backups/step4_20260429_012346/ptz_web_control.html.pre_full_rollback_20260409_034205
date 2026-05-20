@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTZ 球机控制台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #080d16;
+    --bg1: #0c1422;
+    --bg2: #111d30;
+    --bg3: #162033;
+    --border: #1e3552;
+    --accent: #00c8ff;
+    --accent2: #00ffa3;
+    --accent3: #ff6b35;
+    --text: #c4d8ee;
+    --text2: #7a9abf;
+    --text3: #3a5a7a;
+    --danger: #ff4466;
+    --warn: #ffaa00;
+    --glow: rgba(0,200,255,0.15);
+    --onvif: #a78bfa;
+    --onvif-glow: rgba(167,139,250,0.12);
+  }
+
+  body {
+    background: var(--bg0);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ─── Header ─────────────────────────────────────────────── */
+  header {
+    flex-shrink: 0;
+    background: var(--bg1);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .pills {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pill {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    white-space: nowrap;
+    transition: all .3s;
+  }
+  .pill.ok      { border-color: var(--accent2); color: var(--accent2); }
+  .pill.err     { border-color: var(--danger);  color: var(--danger);  }
+  .pill.warn    { border-color: var(--warn);    color: var(--warn);    }
+  .pill.neutral { border-color: var(--text3);   color: var(--text3);   }
+  .pill.rtsp    { border-color: var(--accent3); color: var(--accent3); font-family: 'Courier New', monospace; font-size: 0.62rem; cursor: default; }
+
+  /* ─── Power button ──────────────────────────────────────── */
+  .power-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 14px;
+    border: 1px solid;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all .2s;
+    background: transparent;
+    white-space: nowrap;
+  }
+  .power-btn:disabled { opacity: .45; cursor: default; }
+  .power-btn.start { border-color: var(--accent2); color: var(--accent2); }
+  .power-btn.start:not(:disabled):hover { background: rgba(0,255,163,.12); }
+  .power-btn.stop  { border-color: var(--danger);  color: var(--danger);  }
+  .power-btn.stop:not(:disabled):hover  { background: rgba(255,68,102,.12); }
+  .power-btn.loading { border-color: var(--warn); color: var(--warn); animation: pulse 1.2s infinite; }
+
+  /* ─── Isaac overlay (page-level) ───────────────────────── */
+  #isaac-overlay {
+    position: fixed;
+    inset: 44px 0 0 0;
+    background: rgba(8,13,22,.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  #isaac-overlay .ovl-icon { font-size: 3.5rem; }
+  #isaac-overlay .ovl-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: .05em;
+  }
+  #isaac-overlay .ovl-sub {
+    font-size: 0.75rem;
+    color: var(--text3);
+    max-width: 340px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  #isaac-overlay .ovl-btn {
+    margin-top: 8px;
+    padding: 10px 28px;
+    border-radius: 20px;
+    border: 1px solid var(--accent2);
+    color: var(--accent2);
+    background: rgba(0,255,163,.08);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  #isaac-overlay .ovl-btn:hover { background: rgba(0,255,163,.2); }
+  #isaac-overlay .ovl-btn:disabled { opacity: .4; cursor: default; animation: pulse 1.2s infinite; }
+  #isaac-overlay .ovl-log {
+    font-size: 0.62rem;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    margin-top: -8px;
+    max-width: 340px;
+    text-align: center;
+  }
+
+  /* ─── Main layout: 3-column ─────────────────────────────── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 340px 1fr 280px;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid var(--border);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .col:last-child { border-right: none; }
+  .col::-webkit-scrollbar { width: 4px; }
+  .col::-webkit-scrollbar-track { background: transparent; }
+  .col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ─── Card ──────────────────────────────────────────────── */
+  .card {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    background: var(--bg1);
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 3px; height: 10px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .card-title.onvif-accent::before { background: var(--onvif); }
+  .card-title.scene-accent::before { background: var(--warn); }
+
+  /* ─── 2D Joystick ───────────────────────────────────────── */
+  .joystick-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .joystick-area {
+    position: relative;
+    width: 176px;
+    height: 176px;
+    flex-shrink: 0;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: crosshair;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .joystick-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 44px 44px;
+    background-position: -1px -1px;
+  }
+  .joystick-area::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(0,200,255,.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,.18) 1px, transparent 1px);
+    background-size: 176px 176px;
+    background-position: 50% 50%;
+  }
+
+  .joystick-dot {
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,200,255,.25), 0 0 12px rgba(0,200,255,.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: box-shadow .15s;
+  }
+  .joystick-area.dragging .joystick-dot {
+    box-shadow: 0 0 0 5px rgba(0,200,255,.35), 0 0 20px rgba(0,200,255,.8);
+  }
+
+  .joystick-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    font-size: 0.55rem;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+  }
+  .jl-n { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); }
+  .jl-s { position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); }
+  .jl-w { position: absolute; left: 3px; top: 50%; transform: translateY(-50%); }
+  .jl-e { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); }
+
+  .joystick-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .axis-readout {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 7px 10px;
+  }
+  .axis-label {
+    font-size: 0.62rem;
+    color: var(--text3);
+    letter-spacing: .06em;
+    margin-bottom: 2px;
+  }
+  .axis-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+
+  .nudge-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .nbtn {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+    font-size: 0.65rem;
+    padding: 5px 3px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+  }
+  .nbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--glow); }
+  .nbtn:active { transform: scale(.95); }
+
+  .reset-btn {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text3);
+    font-size: 0.65rem;
+    padding: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    grid-column: span 2;
+  }
+  .reset-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ─── Zoom slider ───────────────────────────────────────── */
+  .zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .zoom-label { font-size: 0.75rem; color: var(--text); white-space: nowrap; }
+  .zoom-val {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    color: var(--accent);
+    min-width: 48px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--bg0);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    margin-top: -6px;
+    box-shadow: 0 0 6px rgba(0,200,255,.5);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 6px rgba(0,200,255,.5);
+  }
+
+  .zoom-btns { display: flex; gap: 5px; }
+  .zbtn {
+    flex: 1;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+    font-size: 0.7rem;
+    padding: 6px 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+  }
+  .zbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--glow); }
+
+  /* ─── Presets ───────────────────────────────────────────── */
+  .preset-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .preset-card {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    display: grid;
+    gap: 6px;
+  }
+  .preset-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .preset-name { font-size: 0.82rem; color: var(--text); font-weight: 600; }
+  .preset-meta { font-size: 0.66rem; color: var(--text3); font-family: 'Courier New', monospace; }
+  .preset-actions { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 5px; }
+  .pbtn {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-size: 0.72rem;
+    padding: 8px 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .pbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--glow); }
+  .pbtn.goto { border-color: var(--accent2); color: var(--accent2); }
+  .pbtn.save { border-color: var(--accent); color: var(--accent); }
+  .pbtn.del  { border-color: #aa5566; color: #ff8ea1; }
+  .pbtn:disabled { opacity: .35; cursor: default; }
+  .preset-empty { color: var(--text3); font-size: 0.68rem; }
+
+  /* ─── Info table ────────────────────────────────────────── */
+  .info-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-key { font-size: 0.62rem; color: var(--text3); margin-bottom: 2px; letter-spacing: .04em; }
+  .info-val { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--text); word-break: break-all; }
+  .info-val.ac { color: var(--accent); }
+  .info-val.oc { color: var(--accent3); }
+
+  /* ─── Keyboard hints ────────────────────────────────────── */
+  .kbd-hint { font-size: 0.62rem; color: var(--text3); line-height: 1.7; padding-top: 4px; }
+  kbd {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.6rem;
+    color: var(--text2);
+  }
+
+  .model-card { border-color: rgba(0,183,255,.25); }
+  .model-grid { display: grid; gap: 10px; }
+  .model-key { font-size: 0.62rem; color: var(--text3); margin-bottom: 4px; letter-spacing: .04em; }
+  .model-input {
+    width: 100%;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 9px 10px;
+    font-size: 0.72rem;
+    outline: none;
+  }
+  .model-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,183,255,.08); }
+  .model-check { display: flex; gap: 8px; align-items: center; font-size: 0.68rem; color: var(--text2); }
+  .model-actions { display: flex; gap: 8px; }
+  .model-btn {
+    flex: 1;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.72rem;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .model-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--glow); }
+  .model-status, .selfcheck-status {
+    min-height: 16px;
+    font-size: 0.62rem;
+    color: var(--text3);
+  }
+  .model-active, .selfcheck-details {
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem;
+    line-height: 1.55;
+    color: var(--text3);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .selfcheck-card { border-color: rgba(0,255,153,.25); }
+  .selfcheck-row { display: flex; gap: 8px; align-items: center; }
+  .selfcheck-btn {
+    flex: 1;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.72rem;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .selfcheck-btn:hover { border-color: #00ff99; color: #00ff99; }
+  .selfcheck-badge {
+    min-width: 76px;
+    text-align: center;
+    font-size: 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 8px;
+    color: var(--text3);
+    background: var(--bg0);
+  }
+  .selfcheck-badge.ok { border-color: #00ff99; color: #00ff99; }
+  .selfcheck-badge.err { border-color: #ff6b6b; color: #ff6b6b; }
+
+  /* ─── ONVIF Settings Module ─────────────────────────────── */
+  .onvif-card { background: var(--bg1); border-color: rgba(167,139,250,.2); }
+
+  .mode-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: center;
+    letter-spacing: .04em;
+  }
+  .mode-tab.active { background: var(--bg2); color: var(--onvif); border: 1px solid rgba(167,139,250,.3); }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+  }
+  .form-label {
+    font-size: 0.62rem;
+    color: var(--text3);
+    letter-spacing: .04em;
+  }
+  .form-input {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.75rem;
+    padding: 6px 8px;
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    transition: border-color .2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--onvif); }
+  .form-input::placeholder { color: var(--text3); }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--onvif);
+    background: var(--onvif-glow);
+    color: var(--onvif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .04em;
+  }
+  .btn-primary:hover { background: rgba(167,139,250,.22); }
+  .btn-primary:disabled { opacity: .4; cursor: default; }
+  .btn-primary.accent2 { border-color: var(--accent2); color: var(--accent2); background: rgba(0,255,163,.06); }
+  .btn-primary.accent2:hover { background: rgba(0,255,163,.14); }
+  .btn-primary.warn { border-color: var(--warn); color: var(--warn); background: rgba(255,170,0,.06); }
+  .btn-primary.warn:hover { background: rgba(255,170,0,.14); }
+
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .device-info {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    display: none;
+  }
+  .device-info.visible { display: block; }
+  .device-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .di-key { font-size: 0.6rem; color: var(--text3); margin-bottom: 1px; }
+  .di-val { font-family: 'Courier New', monospace; font-size: 0.72rem; color: var(--text); word-break: break-all; }
+  .di-val.ok { color: var(--accent2); }
+  .di-val.accent { color: var(--onvif); }
+
+  .onvif-log {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 8px;
+    margin-top: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem;
+    color: var(--text3);
+    max-height: 80px;
+    overflow-y: auto;
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .onvif-log .log-ok   { color: var(--accent2); }
+  .onvif-log .log-err  { color: var(--danger); }
+  .onvif-log .log-info { color: var(--accent); }
+  .onvif-log .log-warn { color: var(--warn); }
+
+  .ptz-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .ptz-input-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .ptz-input-label { font-size: 0.6rem; color: var(--text3); }
+  .ptz-input {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    padding: 5px 6px;
+    width: 100%;
+    text-align: center;
+  }
+  .ptz-input:focus { outline: none; border-color: var(--onvif); }
+
+  /* ─── Snapshot preview ──────────────────────────────────── */
+  .snap-preview {
+    margin-top: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .snap-preview.visible { display: flex; }
+  .snap-img-wrap {
+    position: relative;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .snap-img {
+    max-width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    display: block;
+  }
+  .snap-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  .snap-time { font-size: 0.6rem; color: var(--text3); font-family: 'Courier New', monospace; }
+  .snap-dl {
+    font-size: 0.62rem;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .snap-dl:hover { border-color: var(--accent); background: var(--glow); }
+
+  /* ─── Scene Control ─────────────────────────────────────── */
+  .scene-card { border-color: rgba(255,170,0,.2); }
+  .scene-row { display: flex; flex-direction: column; gap: 6px; }
+  .scene-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: var(--text2);
+    letter-spacing: .04em;
+  }
+  .scene-val { font-family: 'Courier New', monospace; color: var(--warn); font-weight: 600; }
+  .scene-slider-wrap { position: relative; }
+  .scene-slider { width: 100%; height: 4px; accent-color: var(--warn); cursor: pointer; }
+  .scene-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    color: var(--text3);
+    margin-top: 2px;
+    padding: 0 1px;
+  }
+  .scene-input-row { display: flex; gap: 5px; align-items: center; margin-top: 2px; }
+  .scene-num {
+    width: 70px;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.75rem;
+    padding: 4px 6px;
+  }
+  .scene-unit { font-size: 0.65rem; color: var(--text3); }
+  .scene-btn {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+    font-size: 0.65rem;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .scene-btn:hover { border-color: var(--warn); color: var(--warn); }
+
+  .workers-btns { display: flex; gap: 5px; }
+  .wbtn {
+    flex: 1;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text2);
+    font-size: 0.72rem;
+    padding: 8px 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+  }
+  .wbtn small { font-size: .6rem; display: block; color: var(--text3); }
+  .wbtn:hover { border-color: var(--warn); color: var(--warn); }
+  .wbtn.active { border-color: var(--warn); color: var(--warn); background: rgba(255,170,0,.08); }
+  .workers-hint { font-size: 0.62rem; color: var(--text3); text-align: center; min-height: 16px; }
+  .workers-random-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .workers-random-row .scene-btn { flex-shrink: 0; }
+  .workers-random-status {
+    font-size: 0.62rem;
+    color: var(--text2);
+    min-height: 16px;
+    line-height: 1.4;
+  }
+
+  /* ─── Responsive ────────────────────────────────────────── */
+  @media (max-width: 1200px) {
+    main { grid-template-columns: 320px 1fr; }
+    .col-scene { order: 3; grid-column: span 1; border-top: 1px solid var(--border); }
+    main { grid-template-rows: auto auto; }
+  }
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
+    body { overflow: auto; height: auto; min-height: 100vh; }
+    .col { max-height: none; overflow: visible; }
+  }
+
+  /* ─── Divider / section ─────────────────────────────────── */
+  .section-divider {
+    font-size: 0.6rem;
+    color: var(--text3);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 6px 0 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .mt8 { margin-top: 8px; }
+  .mt4 { margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    PTZ 安防球机控制台
+  </div>
+  <div class="pills" style="flex:1;justify-content:flex-end;">
+    <span class="pill neutral" id="p-isaac">Isaac ...</span>
+    <span class="pill" id="p-api">API 连接中...</span>
+    <span class="pill rtsp" id="p-rtsp" title="VLC 拉流地址">▶ rtsp://...</span>
+    <button class="power-btn start" id="power-btn" onclick="toggleIsaac()">⏻ 启动仿真</button>
+  </div>
+</header>
+
+<!-- Isaac overlay (page-level) -->
+<div id="isaac-overlay">
+  <div class="ovl-icon">🎬</div>
+  <div class="ovl-title">Isaac Sim 未运行</div>
+  <div class="ovl-sub">点击下方按钮启动 Isaac Sim 仿真服务，首次启动约需 60~120 秒加载场景。<br>视频预览请使用 VLC 拉取 RTSP 流。</div>
+  <button class="ovl-btn" id="ovl-start-btn" onclick="toggleIsaac()">⏻ 启动仿真</button>
+  <div class="ovl-log" id="ovl-log"></div>
+</div>
+
+<main>
+
+  <!-- ══════════════════ 模块1: PTZ 控制 ══════════════════ -->
+  <div class="col" id="col-ptz">
+
+    <!-- 云台方向控制 -->
+    <div class="card">
+      <div class="card-title">云台方向控制</div>
+      <div class="joystick-wrap">
+        <div class="joystick-area" id="joystick">
+          <div class="joystick-labels">
+            <span class="jl-n">仰 -90°</span>
+            <span class="jl-s">俯 +30°</span>
+            <span class="jl-w">-170°</span>
+            <span class="jl-e">+170°</span>
+          </div>
+          <div class="joystick-dot" id="jdot"></div>
+        </div>
+        <div class="joystick-side">
+          <div class="axis-readout">
+            <div class="axis-label">PAN  水平旋转</div>
+            <div class="axis-value" id="pan-val">0.0°</div>
+          </div>
+          <div class="axis-readout">
+            <div class="axis-label">TILT  俯仰角</div>
+            <div class="axis-value" id="tilt-val">-45.0°</div>
+          </div>
+          <div class="nudge-grid">
+            <button class="nbtn" onclick="nudge('pan',-10)">◀ Pan-10°</button>
+            <button class="nbtn" onclick="nudge('pan', 10)">Pan+10° ▶</button>
+            <button class="nbtn" onclick="nudge('tilt',-10)">▲ Tilt-10°</button>
+            <button class="nbtn" onclick="nudge('tilt', 10)">▼ Tilt+10°</button>
+            <button class="reset-btn" onclick="resetPT()">↺ 默认位 (Pan=-56°, Tilt=9°)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 光学变焦 -->
+    <div class="card">
+      <div class="card-title">光学变焦</div>
+      <div class="zoom-row">
+        <span class="zoom-label">Zoom</span>
+        <input type="range" id="zoom-slider" min="1" max="32" step="0.1" value="1">
+        <span class="zoom-val" id="zoom-val">1.0×</span>
+      </div>
+      <div class="zoom-btns">
+        <button class="zbtn" onclick="setZoom(1)">1×</button>
+        <button class="zbtn" onclick="setZoom(2)">2×</button>
+        <button class="zbtn" onclick="setZoom(4)">4×</button>
+        <button class="zbtn" onclick="setZoom(8)">8×</button>
+        <button class="zbtn" onclick="setZoom(16)">16×</button>
+        <button class="zbtn" onclick="setZoom(32)">32×</button>
+      </div>
+    </div>
+
+    <!-- 预置位 -->
+    <div class="card">
+      <div class="card-title">预置位（1~5）</div>
+      <div class="preset-grid" id="preset-grid"></div>
+    </div>
+
+    <!-- RTSP 接入信息 -->
+    <div class="card">
+      <div class="card-title">RTSP / ONVIF 接入信息</div>
+      <div class="info-table">
+        <div class="info-cell">
+          <div class="info-key">RTSP 流（VLC）</div>
+          <div class="info-val oc" id="info-rtsp">rtsp://...:8554/ptz_cam</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-key">设备服务</div>
+          <div class="info-val ac" id="info-device-svc">:8080/onvif/device_service</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-key">快照地址</div>
+          <div class="info-val ac" id="info-snap">:8080/onvif-snap.jpg</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-key">PTZ 服务</div>
+          <div class="info-val ac" id="info-ptz-svc">:8080/onvif/ptz_service</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-key">焦距 (1×)</div>
+          <div class="info-val">18.15 mm</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-key">最大变焦</div>
+          <div class="info-val">32×</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card model-card">
+      <div class="card-title">模型配置</div>
+      <div class="model-grid">
+        <div>
+          <div class="model-key">scene_path</div>
+          <input id="model-scene-path" class="model-input" type="text" placeholder="./scene_4diaolan_ptz.usda">
+        </div>
+        <div>
+          <div class="model-key">camera_prim</div>
+          <input id="model-camera-prim" class="model-input" type="text" placeholder="/World/CameraRig/CamTilt/Camera">
+        </div>
+        <label class="model-check">
+          <input id="model-restart" type="checkbox" checked>
+          运行中自动重启并应用配置
+        </label>
+        <div class="model-actions">
+          <button class="model-btn" id="model-refresh-btn" onclick="loadModelConfig()">读取当前配置</button>
+          <button class="model-btn" id="model-apply-btn" onclick="applyModelConfig()">应用配置</button>
+        </div>
+        <div class="model-status" id="model-status">等待操作...</div>
+        <div class="model-active" id="model-active"></div>
+      </div>
+    </div>
+
+    <div class="card selfcheck-card">
+      <div class="card-title">PTZ 自检</div>
+      <div class="selfcheck-row">
+        <button class="selfcheck-btn" id="selfcheck-btn" onclick="runPtzSelfcheck()">立即自检</button>
+        <span class="selfcheck-badge" id="selfcheck-badge">未检查</span>
+      </div>
+      <div class="selfcheck-status" id="selfcheck-status">点击“立即自检”可验证当前 PTZ 语义与 USD 实际写入是否一致。</div>
+      <div class="selfcheck-details" id="selfcheck-details"></div>
+    </div>
+
+    <!-- 键盘快捷键 -->
+    <div class="card">
+      <div class="card-title">键盘快捷键</div>
+      <div class="kbd-hint">
+        <div><kbd>←</kbd><kbd>→</kbd> Pan ±5°</div>
+        <div><kbd>↑</kbd><kbd>↓</kbd> Tilt ±5°</div>
+        <div><kbd>+</kbd><kbd>-</kbd> Zoom ±1×</div>
+        <div><kbd>Home</kbd> 归中默认</div>
+      </div>
+    </div>
+
+  </div><!-- /col-ptz -->
+
+  <!-- ══════════════════ 模块2: ONVIF 设置 ══════════════════ -->
+  <div class="col" id="col-onvif">
+
+    <!-- 连接配置 -->
+    <div class="card onvif-card">
+      <div class="card-title onvif-accent">ONVIF 连接配置</div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-local" onclick="switchMode('local')">当前服务</button>
+        <button class="mode-tab" id="tab-ext" onclick="switchMode('ext')">外部设备</button>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Device Service URL</label>
+        <input class="form-input" id="input-device-svc" type="text" placeholder="http://host:8080/onvif/device_service">
+      </div>
+
+      <div id="svc-urls-section" style="display:none;">
+        <div class="form-row">
+          <label class="form-label">Media Service URL</label>
+          <input class="form-input" id="input-media-svc" type="text" placeholder="（测试连接后自动填充）">
+        </div>
+        <div class="form-row">
+          <label class="form-label">PTZ Service URL</label>
+          <input class="form-input" id="input-ptz-svc" type="text" placeholder="（测试连接后自动填充）">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">用户名</label>
+          <input class="form-input" id="input-user" type="text" placeholder="（留空跳过认证）">
+        </div>
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">密码</label>
+          <input class="form-input" id="input-pass" type="password" placeholder="">
+        </div>
+      </div>
+
+      <div class="mt8">
+        <button class="btn-primary" id="btn-connect" onclick="testConnection()">⚡ 测试连接</button>
+      </div>
+
+      <!-- 设备信息展示 -->
+      <div class="device-info" id="device-info">
+        <div class="device-info-grid">
+          <div>
+            <div class="di-key">厂商</div>
+            <div class="di-val" id="di-mfr">—</div>
+          </div>
+          <div>
+            <div class="di-key">型号</div>
+            <div class="di-val" id="di-model">—</div>
+          </div>
+          <div>
+            <div class="di-key">固件</div>
+            <div class="di-val" id="di-fw">—</div>
+          </div>
+          <div>
+            <div class="di-key">序列号</div>
+            <div class="di-val" id="di-sn">—</div>
+          </div>
+          <div>
+            <div class="di-key">ProfileToken</div>
+            <div class="di-val accent" id="di-token">—</div>
+          </div>
+          <div>
+            <div class="di-key">连接状态</div>
+            <div class="di-val ok" id="di-status">已连接</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 连接日志 -->
+      <div class="onvif-log" id="log-connect"></div>
+    </div>
+
+    <!-- ONVIF PTZ 控制 -->
+    <div class="card onvif-card">
+      <div class="card-title onvif-accent">ONVIF PTZ 控制</div>
+      <p style="font-size:.62rem;color:var(--text3);margin-bottom:10px;">
+        直接发送标准 ONVIF SOAP 命令（AbsoluteMove），坐标范围 −1.0 ~ +1.0。
+        成功后同步到左侧摇杆。
+      </p>
+
+      <div class="ptz-inputs">
+        <div class="ptz-input-wrap">
+          <span class="ptz-input-label">Pan（-1~+1）</span>
+          <input class="ptz-input" id="onvif-pan" type="number" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="ptz-input-wrap">
+          <span class="ptz-input-label">Tilt（-1~+1）</span>
+          <input class="ptz-input" id="onvif-tilt" type="number" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="ptz-input-wrap">
+          <span class="ptz-input-label">Zoom（0~1）</span>
+          <input class="ptz-input" id="onvif-zoom" type="number" min="0" max="1" step="0.01" value="0">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" onclick="onvifAbsoluteMove()">↗ AbsoluteMove</button>
+        <button class="btn-primary warn" onclick="onvifGoHome()">⌂ GoToHome</button>
+      </div>
+
+      <div class="onvif-log mt8" id="log-ptz"></div>
+    </div>
+
+    <!-- ONVIF 快照抓图 -->
+    <div class="card onvif-card">
+      <div class="card-title onvif-accent">ONVIF 快照抓图</div>
+      <p style="font-size:.62rem;color:var(--text3);margin-bottom:10px;">
+        通过 GetSnapshotUri 获取 ONVIF 标准快照地址，再拉取图片展示。
+      </p>
+
+      <button class="btn-primary accent2" id="btn-snap" onclick="onvifSnapshot()">📷 抓图</button>
+
+      <div class="snap-preview" id="snap-preview">
+        <div class="snap-img-wrap">
+          <img class="snap-img" id="snap-img" src="" alt="快照">
+        </div>
+        <div class="snap-meta">
+          <span class="snap-time" id="snap-time">—</span>
+          <a class="snap-dl" id="snap-dl" href="#" download="snapshot.jpg">⬇ 下载</a>
+        </div>
+        <div style="font-size:.6rem;color:var(--text3);word-break:break-all;" id="snap-url-display"></div>
+      </div>
+
+      <div class="onvif-log mt8" id="log-snap"></div>
+    </div>
+
+  </div><!-- /col-onvif -->
+
+  <!-- ══════════════════ 模块3: 场景控制 ══════════════════ -->
+  <div class="col col-scene" id="col-scene">
+
+    <div class="card scene-card">
+      <div class="card-title scene-accent">场景控制</div>
+
+      <!-- 吊篮高度 -->
+      <div class="scene-row">
+        <div class="scene-label">
+          <span>吊篮高度</span>
+          <span class="scene-val" id="gondola-val">0 cm</span>
+        </div>
+        <div class="scene-slider-wrap">
+          <input type="range" id="gondola-slider" class="scene-slider"
+                 min="0" max="3300" step="10" value="0"
+                 oninput="onGondolaInput(this.value)">
+          <div class="scene-ticks">
+            <span>0</span><span>825</span><span>1650</span><span>2475</span><span>3300</span>
+          </div>
+        </div>
+        <div class="scene-input-row">
+          <input type="number" id="gondola-num" class="scene-num"
+                 min="0" max="3300" step="10" value="0"
+                 onchange="setGondola(+this.value)">
+          <span class="scene-unit">cm</span>
+          <button class="scene-btn" onclick="setGondola(0)">落地</button>
+          <button class="scene-btn" onclick="setGondola(1650)">中</button>
+          <button class="scene-btn" onclick="setGondola(3300)">顶</button>
+        </div>
+      </div>
+
+      <!-- 工人数量 -->
+      <div class="scene-row" style="margin-top:14px;">
+        <div class="scene-label">
+          <span>工人数量</span>
+          <span class="scene-val" id="workers-val">2 人</span>
+        </div>
+        <div class="workers-btns">
+          <button class="wbtn" id="wbtn-0" onclick="setWorkers(0)">0 人</button>
+          <button class="wbtn" id="wbtn-1" onclick="setWorkers(1)">1 人</button>
+          <button class="wbtn active" id="wbtn-2" onclick="setWorkers(2)">2 人</button>
+        </div>
+        <div class="workers-hint" id="workers-hint">两人均显示，Y 跟随吊篮</div>
+        <div class="workers-random-row">
+          <button class="scene-btn" id="manual-random-btn" onclick="manualRandom()">手动随机</button>
+          <div class="workers-random-status" id="workers-random-status">切到“1 人”后可手动随机切换工人</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /col-scene -->
+
+</main>
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+const HOST     = location.hostname || 'localhost';
+const PORT     = location.port || '8080';
+const API      = `http://${HOST}:${PORT}`;
+const FOCAL_1X = 18.14756;
+const MODEL_API = `${API}/runtime/model`;
+const PTZ_SELFCHECK_API = `${API}/ptz/selfcheck`;
+
+// ONVIF 默认端点（当前服务）
+const DEFAULT_DEVICE_SVC = `http://${HOST}:${PORT}/onvif/device_service`;
+const DEFAULT_MEDIA_SVC  = `http://${HOST}:${PORT}/onvif/media_service`;
+const DEFAULT_PTZ_SVC    = `http://${HOST}:${PORT}/onvif/ptz_service`;
+const RTSP_URL           = `rtsp://${HOST}:8554/ptz_cam`;
+
+// ── Isaac Sim 状态 ─────────────────────────────────────────────
+let isaacState = 'stopped';
+
+// ── PTZ State ─────────────────────────────────────────────────
+const state = { pan: -56, tilt: 9, zoom: 1 };
+const LIMITS = { pan: [-170, 170], tilt: [-90, 30], zoom: [1, 32] };
+const presetStore = new Map();
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function formatFetchError(err) {
+  const msg = (err && err.message ? String(err.message) : String(err || 'unknown error')).trim();
+  const lower = msg.toLowerCase();
+  if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('typeerror')) {
+    return `无法连接 ${API}`;
+  }
+  if (lower.includes('aborted') || lower.includes('timeout')) {
+    return `请求超时：${API}`;
+  }
+  return msg || '未知错误';
+}
+
+// ── ONVIF 模块状态 ─────────────────────────────────────────────
+const onvif = {
+  mode: 'local',         // 'local' | 'ext'
+  deviceSvc: DEFAULT_DEVICE_SVC,
+  mediaSvc:  DEFAULT_MEDIA_SVC,
+  ptzSvc:    DEFAULT_PTZ_SVC,
+  profileToken: 'PTZProfile_1',
+  connected: false,
+};
+
+// ── 初始化 Header 信息 ─────────────────────────────────────────
+(function initHeader() {
+  document.getElementById('p-rtsp').textContent = `▶ ${RTSP_URL}`;
+  document.getElementById('p-rtsp').title = `VLC 拉流：${RTSP_URL}`;
+  document.getElementById('info-rtsp').textContent = RTSP_URL;
+  document.getElementById('info-device-svc').textContent = DEFAULT_DEVICE_SVC;
+  document.getElementById('info-snap').textContent = `http://${HOST}:${PORT}/onvif-snap.jpg`;
+  document.getElementById('info-ptz-svc').textContent = DEFAULT_PTZ_SVC;
+  document.getElementById('input-device-svc').value = DEFAULT_DEVICE_SVC;
+  document.getElementById('input-media-svc').value = DEFAULT_MEDIA_SVC;
+  document.getElementById('input-ptz-svc').value = DEFAULT_PTZ_SVC;
+})();
+
+const modelSceneInput = document.getElementById('model-scene-path');
+const modelCameraInput = document.getElementById('model-camera-prim');
+const modelRestartInput = document.getElementById('model-restart');
+const modelStatusEl = document.getElementById('model-status');
+const modelActiveEl = document.getElementById('model-active');
+const selfcheckBadgeEl = document.getElementById('selfcheck-badge');
+const selfcheckStatusEl = document.getElementById('selfcheck-status');
+const selfcheckDetailsEl = document.getElementById('selfcheck-details');
+
+// ── DOM refs ──────────────────────────────────────────────────
+const joystick   = document.getElementById('joystick');
+const jdot       = document.getElementById('jdot');
+const zoomSlider = document.getElementById('zoom-slider');
+
+// ── Joystick ──────────────────────────────────────────────────
+const JW = 176, JH = 176;
+
+function stateToPixel() {
+  return {
+    x: ((state.pan  - (-170)) / 340) * JW,
+    y: ((state.tilt - (-90))  / 120) * JH,
+  };
+}
+function pixelToState(px, py) {
+  return {
+    pan:  clamp((px / JW) * 340 - 170, -170, 170),
+    tilt: clamp((py / JH) * 120 - 90,  -90,   30),
+  };
+}
+function updateDotPos() {
+  const { x, y } = stateToPixel();
+  jdot.style.left = x + 'px';
+  jdot.style.top  = y + 'px';
+}
+
+let dragging = false;
+function getRelPos(e) {
+  const rect = joystick.getBoundingClientRect();
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  return { px: clamp(cx, 0, JW), py: clamp(cy, 0, JH) };
+}
+
+joystick.addEventListener('mousedown', e => {
+  dragging = true; joystick.classList.add('dragging');
+  const { px, py } = getRelPos(e);
+  Object.assign(state, pixelToState(px, py));
+  updateAll(); scheduleApply();
+});
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const { px, py } = getRelPos(e);
+  Object.assign(state, pixelToState(px, py));
+  updateAll(); scheduleApply();
+});
+document.addEventListener('mouseup', () => {
+  dragging = false; joystick.classList.remove('dragging');
+});
+joystick.addEventListener('touchstart', e => {
+  e.preventDefault(); dragging = true; joystick.classList.add('dragging');
+  Object.assign(state, pixelToState(...Object.values(getRelPos(e))));
+  updateAll(); scheduleApply();
+}, { passive: false });
+document.addEventListener('touchmove', e => {
+  if (!dragging) return; e.preventDefault();
+  Object.assign(state, pixelToState(...Object.values(getRelPos(e))));
+  updateAll(); scheduleApply();
+}, { passive: false });
+document.addEventListener('touchend', () => { dragging = false; joystick.classList.remove('dragging'); });
+joystick.addEventListener('dblclick', () => resetPT());
+
+// ── Zoom slider ───────────────────────────────────────────────
+zoomSlider.addEventListener('input', () => {
+  state.zoom = parseFloat(zoomSlider.value);
+  updateAll(); scheduleApply();
+});
+
+// ── Display update ────────────────────────────────────────────
+function updateAll() {
+  document.getElementById('pan-val').textContent  = state.pan.toFixed(1)  + '°';
+  document.getElementById('tilt-val').textContent = state.tilt.toFixed(1) + '°';
+  document.getElementById('zoom-val').textContent = state.zoom.toFixed(1) + '×';
+  if (!dragging) zoomSlider.value = state.zoom;
+  updateDotPos();
+}
+
+// ── Presets ───────────────────────────────────────────────────
+function presetLabel(token) { return `预置位${token}`; }
+
+function renderPresets() {
+  const root = document.getElementById('preset-grid');
+  root.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const token = String(i);
+    const item  = presetStore.get(token);
+    const card  = document.createElement('div');
+    card.className = 'preset-card';
+    card.innerHTML = `
+      <div class="preset-head">
+        <div class="preset-name">${item?.name || presetLabel(token)}</div>
+        <div class="preset-meta">#${token}</div>
+      </div>
+      <div class="preset-meta">${item
+        ? `P ${item.pan.toFixed(1)}° | T ${item.tilt.toFixed(1)}° | Z ${item.zoom.toFixed(1)}×`
+        : '<span class="preset-empty">空槽位</span>'}
+      </div>
+      <div class="preset-actions">
+        <button class="pbtn goto" ${item ? '' : 'disabled'} onclick="gotoPreset('${token}')">调用</button>
+        <button class="pbtn save" onclick="savePreset('${token}')">保存</button>
+        <button class="pbtn del" ${item ? '' : 'disabled'} onclick="deletePreset('${token}')">删除</button>
+      </div>`;
+    root.appendChild(card);
+  }
+}
+
+async function loadPresets() {
+  try {
+    const r = await fetch(`${API}/presets`, { signal: AbortSignal.timeout(2000) });
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    presetStore.clear();
+    for (const item of (data.items || [])) presetStore.set(String(item.token), item);
+  } catch (_) { presetStore.clear(); }
+  renderPresets();
+}
+
+async function savePreset(token) {
+  const current = presetStore.get(token);
+  const name = window.prompt(`保存到预置位 ${token}，请输入名称：`, current?.name || presetLabel(token));
+  if (name === null) return;
+  try {
+    const r = await fetch(`${API}/presets/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, ptz: state }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadPresets();
+    setApiStatus(true);
+  } catch (e) { setApiStatus(false); }
+}
+
+async function gotoPreset(token) {
+  try {
+    const r = await fetch(`${API}/presets/${token}/goto`, { method: 'POST' });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    if (data.item) {
+      state.pan = data.item.pan; state.tilt = data.item.tilt; state.zoom = data.item.zoom;
+      updateAll();
+    }
+    setApiStatus(true);
+  } catch (e) { setApiStatus(false); }
+}
+
+async function deletePreset(token) {
+  if (!window.confirm(`确认删除预置位 ${token}？`)) return;
+  try {
+    const r = await fetch(`${API}/presets/${token}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error(await r.text());
+    await loadPresets();
+    setApiStatus(true);
+  } catch (e) { setApiStatus(false); }
+}
+
+// ── REST API communication ────────────────────────────────────
+let sendTimer = null;
+function scheduleApply() {
+  clearTimeout(sendTimer);
+  sendTimer = setTimeout(sendControl, 80);
+}
+
+async function sendControl() {
+  if (isaacState !== 'running') return;
+  try {
+    const r = await fetch(`${API}/control`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pan: state.pan, tilt: state.tilt, zoom: state.zoom }),
+    });
+    setApiStatus(r.ok);
+  } catch { setApiStatus(false); }
+}
+
+function setApiStatus(ok) {
+  const el = document.getElementById('p-api');
+  el.textContent = ok ? 'API ✓' : 'API ✗';
+  el.className   = 'pill ' + (ok ? 'ok' : 'err');
+}
+
+function setModelStatus(msg, ok = null) {
+  modelStatusEl.textContent = msg;
+  if (ok === true) modelStatusEl.style.color = '#00ff99';
+  else if (ok === false) modelStatusEl.style.color = '#ff6b6b';
+  else modelStatusEl.style.color = 'var(--text3)';
+}
+
+function renderModelActive(model) {
+  if (!model) {
+    modelActiveEl.textContent = '';
+    return;
+  }
+  const scene = model.scene_path || '(未设置)';
+  const cam = model.camera_prim || '(未设置)';
+  modelActiveEl.textContent = `当前配置: ${scene} | ${cam}`;
+}
+
+async function loadModelConfig() {
+  const btn = document.getElementById('model-refresh-btn');
+  btn.disabled = true;
+  setModelStatus('读取中...');
+  try {
+    const r = await fetch(MODEL_API, { signal: AbortSignal.timeout(3000) });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    const model = data.model || {};
+    modelSceneInput.value = model.scene_path || '';
+    modelCameraInput.value = model.camera_prim || '';
+    renderModelActive(model);
+    setModelStatus('已同步当前配置', true);
+  } catch (err) {
+    setModelStatus('读取失败: ' + formatFetchError(err), false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function applyModelConfig() {
+  const btn = document.getElementById('model-apply-btn');
+  const scenePath = modelSceneInput.value.trim();
+  const cameraPrim = modelCameraInput.value.trim();
+  const restartIfRunning = !!modelRestartInput.checked;
+  if (!scenePath || !cameraPrim) {
+    setModelStatus('请填写 scene_path 和 camera_prim', false);
+    return;
+  }
+
+  btn.disabled = true;
+  setModelStatus('提交中...');
+  try {
+    const r = await fetch(MODEL_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scene_path: scenePath,
+        camera_prim: cameraPrim,
+        restart_if_running: restartIfRunning,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    renderModelActive(data.new || {});
+    if (data.restart_triggered) setModelStatus('配置已更新，正在重启 Isaac 应用新模型...', true);
+    else setModelStatus('配置已更新，将在下次启动时生效', true);
+  } catch (err) {
+    setModelStatus('应用失败: ' + formatFetchError(err), false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function _setSelfcheckBadge(ok, text) {
+  selfcheckBadgeEl.textContent = text;
+  selfcheckBadgeEl.className = 'selfcheck-badge ' + (ok ? 'ok' : 'err');
+}
+
+function _setSelfcheckIdle(text) {
+  selfcheckBadgeEl.textContent = text;
+  selfcheckBadgeEl.className = 'selfcheck-badge';
+}
+
+function _fmtNum(v, digits = 2) {
+  return typeof v === 'number' && Number.isFinite(v) ? v.toFixed(digits) : 'n/a';
+}
+
+function _buildSelfcheckSummary(data) {
+  const pan = data.pan || {};
+  const tilt = data.tilt || {};
+  const zoom = data.zoom || {};
+  return [
+    `status=${data.selfcheck_status || 'n/a'}  camera=${data.camera_prim || 'n/a'}  upAxis=${data.scene_up_axis || 'n/a'}  pending=${data.ptz_dirty_pending ? 'yes' : 'no'}`,
+    `pan: cmd=${_fmtNum(pan.cmd_deg, 1)}° zero=${_fmtNum(pan.zero_op_deg, 1)}° sign=${_fmtNum(pan.sign, 0)} exp=${_fmtNum(pan.expected_op_deg, 1)}° act=${_fmtNum(pan.actual_op_deg, 1)}° Δ=${_fmtNum(pan.delta_deg, 2)}°`,
+    `tilt: cmd=${_fmtNum(tilt.cmd_deg, 1)}° zero=${_fmtNum(tilt.zero_op_deg, 1)}° sign=${_fmtNum(tilt.sign, 0)} exp=${_fmtNum(tilt.expected_op_deg, 1)}° act=${_fmtNum(tilt.actual_op_deg, 1)}° Δ=${_fmtNum(tilt.delta_deg, 2)}°`,
+    `zoom: cmd=${_fmtNum(zoom.cmd_x, 2)}x sign=${_fmtNum(zoom.sign, 0)} expFL=${_fmtNum(zoom.expected_focal_length_mm, 3)}mm actFL=${_fmtNum(zoom.actual_focal_length_mm, 3)}mm Δ=${_fmtNum(zoom.delta_mm, 4)}mm`,
+  ].join('\n');
+}
+
+async function runPtzSelfcheck() {
+  const btn = document.getElementById('selfcheck-btn');
+  if (isaacState !== 'running') {
+    _setSelfcheckIdle('未就绪');
+    selfcheckStatusEl.textContent = 'Isaac 未运行，无法自检。';
+    selfcheckStatusEl.style.color = '#ff6b6b';
+    return;
+  }
+
+  btn.disabled = true;
+  _setSelfcheckIdle('检测中');
+  selfcheckStatusEl.textContent = '正在读取 PTZ 自检信息...';
+  selfcheckStatusEl.style.color = 'var(--text3)';
+  try {
+    const r = await fetch(PTZ_SELFCHECK_API, { signal: AbortSignal.timeout(3000) });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    selfcheckDetailsEl.textContent = _buildSelfcheckSummary(data);
+    if (data.ptz_dirty_pending) {
+      _setSelfcheckIdle('等待');
+      selfcheckStatusEl.textContent = '检测到控制命令待应用，请稍后再试。';
+      selfcheckStatusEl.style.color = 'var(--text3)';
+    } else if (data.selfcheck_ok) {
+      _setSelfcheckBadge(true, '通过');
+      selfcheckStatusEl.textContent = '当前 PTZ 命令与 USD 实际写入一致。';
+      selfcheckStatusEl.style.color = '#00ff99';
+    } else {
+      _setSelfcheckBadge(false, '异常');
+      selfcheckStatusEl.textContent = '检测到 PTZ 写入偏差，请结合 details 查看。';
+      selfcheckStatusEl.style.color = '#ff6b6b';
+    }
+  } catch (err) {
+    _setSelfcheckBadge(false, '失败');
+    selfcheckStatusEl.textContent = '自检失败: ' + formatFetchError(err);
+    selfcheckStatusEl.style.color = '#ff6b6b';
+    selfcheckDetailsEl.textContent = '';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Isaac Sim 启停 ─────────────────────────────────────────────
+async function toggleIsaac() {
+  if (isaacState === 'stopped') {
+    _applyIsaacState('starting');
+    try {
+      const r = await fetch(`${API}/start`, { method: 'POST' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+    } catch (e) { _applyIsaacState('stopped'); }
+  } else if (isaacState === 'running') {
+    _applyIsaacState('stopping');
+    try { await fetch(`${API}/stop`, { method: 'POST' }); } catch { /* pollStatus 会同步 */ }
+  }
+}
+
+function _applyIsaacState(st) {
+  isaacState = st;
+  const btn    = document.getElementById('power-btn');
+  const ovl    = document.getElementById('isaac-overlay');
+  const ovlBtn = document.getElementById('ovl-start-btn');
+  const pill   = document.getElementById('p-isaac');
+
+  switch (st) {
+    case 'stopped':
+      btn.className = 'power-btn start'; btn.textContent = '⏻ 启动仿真'; btn.disabled = false;
+      ovl.style.display = 'flex';
+      ovlBtn.disabled = false; ovlBtn.textContent = '⏻ 启动仿真';
+      pill.textContent = 'Isaac 已停止'; pill.className = 'pill neutral';
+      setApiStatus(false);
+      _setSelfcheckIdle('未就绪');
+      selfcheckStatusEl.textContent = 'Isaac 未运行，无法自检。';
+      selfcheckStatusEl.style.color = 'var(--text3)';
+      selfcheckDetailsEl.textContent = '';
+      break;
+    case 'starting':
+      btn.className = 'power-btn loading'; btn.textContent = '⏳ 启动中...'; btn.disabled = true;
+      ovl.style.display = 'flex';
+      ovlBtn.disabled = true; ovlBtn.textContent = '⏳ 加载中 (60~120s)...';
+      pill.textContent = 'Isaac 启动中'; pill.className = 'pill warn';
+      _pollLog();
+      break;
+    case 'running':
+      btn.className = 'power-btn stop'; btn.textContent = '⏹ 停止仿真'; btn.disabled = false;
+      ovl.style.display = 'none';
+      pill.textContent = 'Isaac 运行中'; pill.className = 'pill ok';
+      setTimeout(syncSceneState, 500);
+      setTimeout(loadPresets, 200);
+      break;
+    case 'stopping':
+      btn.className = 'power-btn loading'; btn.textContent = '⏳ 停止中...'; btn.disabled = true;
+      pill.textContent = 'Isaac 停止中'; pill.className = 'pill warn';
+      _setSelfcheckIdle('等待');
+      selfcheckStatusEl.textContent = 'Isaac 正在停止，自检暂不可用。';
+      selfcheckStatusEl.style.color = 'var(--text3)';
+      break;
+  }
+}
+
+let _logPollTimer = null;
+async function _pollLog() {
+  clearTimeout(_logPollTimer);
+  if (isaacState !== 'starting') return;
+  try {
+    const r = await fetch(`${API}/log`);
+    if (r.ok) {
+      const txt   = await r.text();
+      const lines = txt.split('\n').filter(l => l.trim());
+      const last  = lines.slice(-3).join(' | ');
+      const el = document.getElementById('ovl-log');
+      if (el) el.textContent = last.slice(-120);
+    }
+  } catch { /* ignore */ }
+  _logPollTimer = setTimeout(_pollLog, 3000);
+}
+
+// ── 状态轮询 ───────────────────────────────────────────────────
+async function pollStatus() {
+  try {
+    const r = await fetch(`${API}/status`, { signal: AbortSignal.timeout(2000) });
+    if (!r.ok) return;
+    const s = await r.json();
+    if (s.isaac_state && s.isaac_state !== isaacState) _applyIsaacState(s.isaac_state);
+    if (s.isaac_state === 'running' && s.ptz && !dragging) {
+      state.pan = s.ptz.pan; state.tilt = s.ptz.tilt; state.zoom = s.ptz.zoom;
+      updateAll();
+    }
+    if (s.isaac_state === 'running') setApiStatus(true);
+  } catch { /* ignore */ }
+}
+setInterval(pollStatus, 3000);
+
+// ── Utility controls ──────────────────────────────────────────
+function nudge(axis, delta) {
+  const [lo, hi] = LIMITS[axis];
+  state[axis] = clamp(state[axis] + delta, lo, hi);
+  updateAll(); scheduleApply();
+}
+function setZoom(z) {
+  state.zoom = clamp(z, 1, 32);
+  updateAll(); scheduleApply();
+}
+function resetPT() {
+  state.pan = -56; state.tilt = 9;
+  updateAll(); sendControl();
+}
+function go(pan, tilt, zoom) {
+  state.pan = pan; state.tilt = tilt; state.zoom = zoom;
+  updateAll(); sendControl();
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const map = {
+    'ArrowLeft':  () => nudge('pan',  -5),
+    'ArrowRight': () => nudge('pan',   5),
+    'ArrowUp':    () => nudge('tilt', -5),
+    'ArrowDown':  () => nudge('tilt',  5),
+    '+':          () => nudge('zoom',  1),
+    '=':          () => nudge('zoom',  1),
+    '-':          () => nudge('zoom', -1),
+    'Home':       () => go(-56, 9, 1),
+  };
+  if (map[e.key]) { e.preventDefault(); map[e.key](); }
+});
+
+// ── 场景控制 ───────────────────────────────────────────────────
+const sceneState = { gondola_y: 0, workers: 2, lastManualRandom: null };
+
+function onGondolaInput(v) {
+  const y = parseFloat(v);
+  sceneState.gondola_y = y;
+  document.getElementById('gondola-val').textContent = y.toFixed(0) + ' cm';
+  document.getElementById('gondola-num').value = y.toFixed(0);
+  scheduleGondola();
+}
+function setGondola(y) {
+  y = Math.max(0, Math.min(3300, y));
+  sceneState.gondola_y = y;
+  document.getElementById('gondola-slider').value = y;
+  document.getElementById('gondola-val').textContent = y.toFixed(0) + ' cm';
+  document.getElementById('gondola-num').value = y.toFixed(0);
+  sendGondola();
+}
+
+let _gondolaTimer = null;
+function scheduleGondola() {
+  clearTimeout(_gondolaTimer);
+  _gondolaTimer = setTimeout(sendGondola, 80);
+}
+async function sendGondola() {
+  if (isaacState !== 'running') return;
+  try {
+    await fetch(`${API}/scene/gondola`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ y: sceneState.gondola_y }),
+    });
+  } catch { /* ignore */ }
+}
+
+const WORKER_HINTS = [
+  '工人全部隐藏',
+  '显示 1 名工人，可配合“手动随机”切换',
+  '两人均显示，Y 跟随吊篮',
+];
+function setWorkers(n, opts = {}) {
+  const send = opts.send !== false;
+  sceneState.workers = n;
+  document.getElementById('workers-val').textContent = n + ' 人';
+  document.getElementById('workers-hint').textContent = WORKER_HINTS[n];
+  [0, 1, 2].forEach(i => document.getElementById(`wbtn-${i}`).classList.toggle('active', i === n));
+  updateManualRandomAvailability();
+  if (send) sendWorkers();
+}
+function updateManualRandomAvailability() {
+  const btn = document.getElementById('manual-random-btn');
+  if (!btn) return;
+  btn.disabled = isaacState !== 'running' || sceneState.workers !== 1;
+}
+function renderManualRandomStatus(summary, isError = false) {
+  const el = document.getElementById('workers-random-status');
+  if (!el) return;
+  if (!summary) {
+    el.textContent = sceneState.workers === 1
+      ? '点击“手动随机”可重新选择当前显示工人'
+      : '切到“1 人”后可手动随机切换工人';
+    el.style.color = 'var(--text2)';
+    return;
+  }
+  if (isError) {
+    el.textContent = summary.message || String(summary);
+    el.style.color = 'var(--danger)';
+    return;
+  }
+  const reqId = summary.req_id || '-';
+  const workerLabel = summary.selected_worker_index ? `worker#${summary.selected_worker_index}` : 'none';
+  const pathLabel = summary.selected_worker_path || 'n/a';
+  el.textContent = `${reqId} | ${workerLabel} | ${pathLabel}`;
+  el.style.color = 'var(--accent2)';
+}
+function applySceneStateResponse(s) {
+  if (!s) return;
+  if (s.gondola_y !== undefined) {
+    sceneState.gondola_y = s.gondola_y;
+    document.getElementById('gondola-slider').value = s.gondola_y;
+    document.getElementById('gondola-val').textContent = s.gondola_y.toFixed(0) + ' cm';
+    document.getElementById('gondola-num').value = s.gondola_y.toFixed(0);
+  }
+  if (s.workers !== undefined) setWorkers(s.workers, { send: false });
+  if (s.last_manual_random) {
+    sceneState.lastManualRandom = s.last_manual_random;
+    renderManualRandomStatus(s.last_manual_random);
+  } else if (!sceneState.lastManualRandom) {
+    renderManualRandomStatus(null);
+  }
+}
+async function sendWorkers() {
+  if (isaacState !== 'running') return;
+  try {
+    const r = await fetch(`${API}/scene/workers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count: sceneState.workers }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + r.status));
+    applySceneStateResponse(data.state);
+    setApiStatus(true);
+  } catch {
+    setApiStatus(false);
+  }
+}
+async function manualRandom() {
+  if (isaacState !== 'running') return;
+  const btn = document.getElementById('manual-random-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const r = await fetch(`${API}/scene/manual-random`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'web' }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + r.status));
+    if (data.state) applySceneStateResponse(data.state);
+    sceneState.lastManualRandom = data.summary || null;
+    renderManualRandomStatus(sceneState.lastManualRandom);
+    setApiStatus(true);
+  } catch (e) {
+    renderManualRandomStatus({ message: e.message || '手动随机失败' }, true);
+    setApiStatus(false);
+  } finally {
+    updateManualRandomAvailability();
+  }
+}
+async function syncSceneState() {
+  if (isaacState !== 'running') return;
+  try {
+    const r = await fetch(`${API}/scene/state`, { signal: AbortSignal.timeout(2000) });
+    if (!r.ok) return;
+    const s = await r.json();
+    applySceneStateResponse(s);
+  } catch { /* ignore */ }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ONVIF 模块
+// ══════════════════════════════════════════════════════════════
+
+// ── 日志工具 ───────────────────────────────────────────────────
+function appendLog(elId, msg, cls = '') {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const line = document.createElement('div');
+  if (cls) line.className = 'log-' + cls;
+  line.textContent = `[${new Date().toLocaleTimeString('zh-CN', { hour12: false })}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  // 最多保留 30 条
+  while (el.children.length > 30) el.removeChild(el.firstChild);
+}
+
+// ── 模式切换 ───────────────────────────────────────────────────
+function switchMode(mode) {
+  onvif.mode = mode;
+  document.getElementById('tab-local').classList.toggle('active', mode === 'local');
+  document.getElementById('tab-ext').classList.toggle('active', mode === 'ext');
+  const extSection = document.getElementById('svc-urls-section');
+  extSection.style.display = mode === 'ext' ? 'block' : 'none';
+
+  if (mode === 'local') {
+    document.getElementById('input-device-svc').value = DEFAULT_DEVICE_SVC;
+    document.getElementById('input-media-svc').value  = DEFAULT_MEDIA_SVC;
+    document.getElementById('input-ptz-svc').value    = DEFAULT_PTZ_SVC;
+    onvif.deviceSvc = DEFAULT_DEVICE_SVC;
+    onvif.mediaSvc  = DEFAULT_MEDIA_SVC;
+    onvif.ptzSvc    = DEFAULT_PTZ_SVC;
+  }
+}
+
+// ── SOAP Builder ──────────────────────────────────────────────
+function buildSoap(bodyXml, ns = {}) {
+  const nsStr = Object.entries({
+    's':    'http://www.w3.org/2003/05/soap-envelope',
+    'tds':  'http://www.onvif.org/ver10/device/wsdl',
+    'trt':  'http://www.onvif.org/ver10/media/wsdl',
+    'tptz': 'http://www.onvif.org/ver20/ptz/wsdl',
+    'tt':   'http://www.onvif.org/ver10/schema',
+    ...ns,
+  }).map(([k, v]) => `xmlns:${k}="${v}"`).join(' ');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope ${nsStr}>
+  <s:Body>
+    ${bodyXml}
+  </s:Body>
+</s:Envelope>`;
+}
+
+// ── 代理判断（本机服务直连；外部设备走 /onvif-proxy）────────────
+function isSameOrigin(url) {
+  try {
+    const u = new URL(url, location.href);
+    return u.origin === location.origin;
+  } catch { return false; }
+}
+
+function isCurrentServiceUrl(url) {
+  try {
+    const u = new URL(url, location.href);
+    return (
+      u.origin === location.origin ||
+      u.origin === new URL(DEFAULT_DEVICE_SVC).origin ||
+      u.origin === new URL(DEFAULT_MEDIA_SVC).origin ||
+      u.origin === new URL(DEFAULT_PTZ_SVC).origin
+    );
+  } catch { return false; }
+}
+
+function buildProxyHeaders(extra = {}) {
+  const headers = { ...extra };
+  const user = document.getElementById('input-user').value.trim();
+  const pass = document.getElementById('input-pass').value;
+  if (user || pass) {
+    headers.Authorization = `Basic ${btoa(`${user}:${pass}`)}`;
+  }
+  return headers;
+}
+
+async function soapRequest(url, soapXml, action = '') {
+  if (onvif.mode === 'ext' && !isCurrentServiceUrl(url)) {
+    // 外部设备：通过代理转发
+    const r = await fetch(`${API}/onvif-proxy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'soap',
+        target_url: url,
+        body: soapXml,
+        headers: buildProxyHeaders({
+          'Content-Type': 'application/soap+xml; charset=utf-8',
+          ...(action ? { SOAPAction: action } : {}),
+        }),
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error(`代理错误 ${r.status}: ${await r.text()}`);
+    return await r.text();
+  } else {
+    // 本机服务：直接发 SOAP
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/soap+xml; charset=utf-8',
+        ...(action ? { 'SOAPAction': action } : {}),
+      },
+      body: soapXml,
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.text();
+  }
+}
+
+// XML 解析工具
+function parseXml(text) {
+  return new DOMParser().parseFromString(text, 'text/xml');
+}
+function xmlText(doc, ...tags) {
+  for (const tag of tags) {
+    const el = doc.querySelector(tag) || [...doc.getElementsByTagNameNS('*', tag)][0];
+    if (el) return el.textContent.trim();
+  }
+  return '';
+}
+
+// ── 连接测试 ───────────────────────────────────────────────────
+async function testConnection() {
+  const btn = document.getElementById('btn-connect');
+  btn.disabled = true;
+  btn.textContent = '连接中...';
+
+  const deviceSvc = document.getElementById('input-device-svc').value.trim() || DEFAULT_DEVICE_SVC;
+  onvif.deviceSvc = deviceSvc;
+
+  document.getElementById('log-connect').innerHTML = '';
+  document.getElementById('device-info').classList.remove('visible');
+
+  try {
+    // Step 1: GetSystemDateAndTime
+    appendLog('log-connect', 'GetSystemDateAndTime...', 'info');
+    const dtSoap = buildSoap('<tds:GetSystemDateAndTime/>');
+    await soapRequest(deviceSvc, dtSoap);
+    appendLog('log-connect', '时钟获取成功', 'ok');
+
+    // Step 2: GetCapabilities
+    appendLog('log-connect', 'GetCapabilities...', 'info');
+    const capSoap = buildSoap('<tds:GetCapabilities><tds:Category>All</tds:Category></tds:GetCapabilities>');
+    const capXml  = await soapRequest(deviceSvc, capSoap);
+    const capDoc  = parseXml(capXml);
+
+    // 自动解析服务地址
+    const mediaXAddr = xmlText(capDoc, 'Media') ? '' : '';
+    const allXAddrs = [...capDoc.getElementsByTagNameNS('*', 'XAddr')].map(e => e.textContent.trim());
+    let mediaSvcUrl = DEFAULT_MEDIA_SVC;
+    let ptzSvcUrl   = DEFAULT_PTZ_SVC;
+
+    // 根据 Capabilities 中的节点类型推断地址
+    const caps = capDoc.querySelector('Capabilities') || capDoc.querySelector('GetCapabilitiesResponse');
+    if (caps) {
+      const mediaNode = [...caps.getElementsByTagNameNS('*', 'Media')][0];
+      const ptzNode   = [...caps.getElementsByTagNameNS('*', 'PTZ')][0];
+      if (mediaNode) {
+        const xa = [...mediaNode.getElementsByTagNameNS('*', 'XAddr')][0];
+        if (xa && xa.textContent.trim()) mediaSvcUrl = xa.textContent.trim();
+      }
+      if (ptzNode) {
+        const xa = [...ptzNode.getElementsByTagNameNS('*', 'XAddr')][0];
+        if (xa && xa.textContent.trim()) ptzSvcUrl = xa.textContent.trim();
+      }
+    }
+
+    onvif.mediaSvc = mediaSvcUrl;
+    onvif.ptzSvc   = ptzSvcUrl;
+    document.getElementById('input-media-svc').value = mediaSvcUrl;
+    document.getElementById('input-ptz-svc').value   = ptzSvcUrl;
+    appendLog('log-connect', `Media: ${mediaSvcUrl.split('/').pop()}`, 'ok');
+    appendLog('log-connect', `PTZ:   ${ptzSvcUrl.split('/').pop()}`, 'ok');
+
+    // Step 3: GetDeviceInformation
+    appendLog('log-connect', 'GetDeviceInformation...', 'info');
+    const diSoap = buildSoap('<tds:GetDeviceInformation/>');
+    const diXml  = await soapRequest(deviceSvc, diSoap);
+    const diDoc  = parseXml(diXml);
+    document.getElementById('di-mfr').textContent   = xmlText(diDoc, 'Manufacturer')   || '—';
+    document.getElementById('di-model').textContent = xmlText(diDoc, 'Model')           || '—';
+    document.getElementById('di-fw').textContent    = xmlText(diDoc, 'FirmwareVersion') || '—';
+    document.getElementById('di-sn').textContent    = xmlText(diDoc, 'SerialNumber')    || '—';
+
+    // Step 4: GetProfiles
+    appendLog('log-connect', 'GetProfiles...', 'info');
+    const profSoap = buildSoap('<trt:GetProfiles/>');
+    const profXml  = await soapRequest(mediaSvcUrl, profSoap);
+    const profDoc  = parseXml(profXml);
+    const profileEl = [...profDoc.getElementsByTagNameNS('*', 'Profiles')][0]
+                   || [...profDoc.getElementsByTagNameNS('*', 'Profile')][0];
+    if (profileEl) {
+      const token = profileEl.getAttribute('token') || 'PTZProfile_1';
+      onvif.profileToken = token;
+      document.getElementById('di-token').textContent = token;
+    }
+
+    onvif.connected = true;
+    document.getElementById('di-status').textContent = '已连接';
+    document.getElementById('device-info').classList.add('visible');
+    appendLog('log-connect', '连接成功 ✓', 'ok');
+
+  } catch (e) {
+    appendLog('log-connect', `连接失败: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ 测试连接';
+  }
+}
+
+// ── ONVIF AbsoluteMove ─────────────────────────────────────────
+async function onvifAbsoluteMove() {
+  const pan  = parseFloat(document.getElementById('onvif-pan').value)  || 0;
+  const tilt = parseFloat(document.getElementById('onvif-tilt').value) || 0;
+  const zoom = parseFloat(document.getElementById('onvif-zoom').value) || 0;
+
+  const panC  = clamp(pan,  -1, 1);
+  const tiltC = clamp(tilt, -1, 1);
+  const zoomC = clamp(zoom,  0, 1);
+
+  const ptzSvc = (onvif.mode === 'ext'
+    ? document.getElementById('input-ptz-svc').value.trim()
+    : DEFAULT_PTZ_SVC) || DEFAULT_PTZ_SVC;
+
+  appendLog('log-ptz', `AbsoluteMove pan=${panC} tilt=${tiltC} zoom=${zoomC}`, 'info');
+
+  const soap = buildSoap(`
+    <tptz:AbsoluteMove>
+      <tptz:ProfileToken>${onvif.profileToken}</tptz:ProfileToken>
+      <tptz:Position>
+        <tt:PanTilt x="${panC}" y="${tiltC}" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace"/>
+        <tt:Zoom x="${zoomC}" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace"/>
+      </tptz:Position>
+    </tptz:AbsoluteMove>`);
+
+  try {
+    await soapRequest(ptzSvc, soap);
+    appendLog('log-ptz', 'AbsoluteMove 成功 ✓', 'ok');
+    // 同步到摇杆：触发 pollStatus 拿后端已转换的角度值
+    setTimeout(pollStatus, 300);
+  } catch (e) {
+    appendLog('log-ptz', `失败: ${e.message}`, 'err');
+  }
+}
+
+// ── ONVIF GoToHomePosition ─────────────────────────────────────
+async function onvifGoHome() {
+  const ptzSvc = (onvif.mode === 'ext'
+    ? document.getElementById('input-ptz-svc').value.trim()
+    : DEFAULT_PTZ_SVC) || DEFAULT_PTZ_SVC;
+
+  appendLog('log-ptz', 'GoToHomePosition...', 'info');
+
+  const soap = buildSoap(`
+    <tptz:GotoHomePosition>
+      <tptz:ProfileToken>${onvif.profileToken}</tptz:ProfileToken>
+    </tptz:GotoHomePosition>`);
+
+  try {
+    await soapRequest(ptzSvc, soap);
+    appendLog('log-ptz', 'GoToHomePosition 成功 ✓', 'ok');
+    setTimeout(pollStatus, 300);
+  } catch (e) {
+    appendLog('log-ptz', `失败: ${e.message}`, 'err');
+  }
+}
+
+// ── ONVIF Snapshot ────────────────────────────────────────────
+async function onvifSnapshot() {
+  const btn = document.getElementById('btn-snap');
+  btn.disabled = true; btn.textContent = '抓图中...';
+
+  const mediaSvc = (onvif.mode === 'ext'
+    ? document.getElementById('input-media-svc').value.trim()
+    : DEFAULT_MEDIA_SVC) || DEFAULT_MEDIA_SVC;
+
+  document.getElementById('log-snap').innerHTML = '';
+  appendLog('log-snap', 'GetSnapshotUri...', 'info');
+
+  try {
+    // Step 1: GetSnapshotUri
+    const soap = buildSoap(`
+      <trt:GetSnapshotUri>
+        <trt:ProfileToken>${onvif.profileToken}</trt:ProfileToken>
+      </trt:GetSnapshotUri>`);
+
+    const respXml = await soapRequest(mediaSvc, soap);
+    const doc = parseXml(respXml);
+    const uriEl = [...doc.getElementsByTagNameNS('*', 'Uri')][0];
+    if (!uriEl) throw new Error('响应中未找到 Uri 字段');
+
+    const snapUrl = uriEl.textContent.trim();
+    if (!snapUrl) throw new Error('快照 URI 为空');
+
+    appendLog('log-snap', `URI: ${snapUrl}`, 'info');
+
+    // Step 2: 拉取图片
+    let imgBlob;
+    const snapFetchUrl = snapUrl + (snapUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    if (onvif.mode !== 'ext' || isCurrentServiceUrl(snapUrl) || isSameOrigin(snapUrl)) {
+      const r = await fetch(snapFetchUrl, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(`图片 GET 失败: ${r.status}`);
+      imgBlob = await r.blob();
+    } else {
+      // 外部设备快照：通过代理
+      const r = await fetch(`${API}/onvif-proxy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'snapshot',
+          target_url: snapFetchUrl,
+          headers: buildProxyHeaders(),
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok) throw new Error(`代理抓图失败: ${r.status}`);
+      imgBlob = await r.blob();
+    }
+
+    const blobUrl = URL.createObjectURL(imgBlob);
+    const imgEl   = document.getElementById('snap-img');
+    // 释放旧的 blob URL
+    if (imgEl.src && imgEl.src.startsWith('blob:')) URL.revokeObjectURL(imgEl.src);
+    imgEl.src = blobUrl;
+
+    const dlEl = document.getElementById('snap-dl');
+    dlEl.href     = blobUrl;
+    dlEl.download = `snapshot_${Date.now()}.jpg`;
+
+    const timeStr = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    document.getElementById('snap-time').textContent = timeStr;
+    document.getElementById('snap-url-display').textContent = snapUrl;
+
+    document.getElementById('snap-preview').classList.add('visible');
+    appendLog('log-snap', `抓图成功 ✓ (${(imgBlob.size / 1024).toFixed(1)} KB)`, 'ok');
+
+  } catch (e) {
+    appendLog('log-snap', `抓图失败: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '📷 抓图';
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────
+setWorkers(2);
+renderManualRandomStatus(null);
+updateAll();
+
+// 首次立即检测 Isaac 状态
+(async () => {
+  try {
+    const r = await fetch(`${API}/status`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      const s = await r.json();
+      _applyIsaacState(s.isaac_state || 'stopped');
+      if (s.ptz) { Object.assign(state, s.ptz); updateAll(); }
+    }
+  } catch { _applyIsaacState('stopped'); }
+})();
+
+loadPresets();
+loadModelConfig();
+setTimeout(pollStatus, 3000);
+</script>
+</body>
+</html>

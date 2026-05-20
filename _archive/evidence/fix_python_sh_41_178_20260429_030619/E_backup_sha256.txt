@@ -1,0 +1,1 @@
+3d9a679a2b64372e1bf6e5440f2dbdd23e22a01090120571c97b953e7cd0c785  /home/uniubi/xuanyuan/camera03/backup_cursor/fix_python_sh_20260429_110652/ptz_config.yaml

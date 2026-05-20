@@ -1122,7 +1122,7 @@
           <span class="scene-val" id="active-diaolan-current">-</span>
         </div>
         <div class="scene-unit" id="active-target-current">篮体高度目标: -</div>
-        <div class="scene-unit" id="lookat-target-current">楼体朝向目标: -</div>
+        <div class="scene-unit" id="lookat-target-current">自动朝向目标: -</div>
         <div class="scene-input-row" style="margin-top:8px;">
           <label class="scene-label" for="diaolan-select" style="min-width:86px;">吊篮实例</label>
           <select id="diaolan-select" class="scene-num"></select>
@@ -1903,6 +1903,17 @@ function updateHdriSummary(data = {}) {
 }
 
 /** 统一吊篮候选：兼容 scene/state 的对象列表与 randomize 历史里误存的字符串列表 */
+function getDiaolanPathParts(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+  const clusterName = parts[0] === 'World' && parts.length >= 2 ? parts[1] : '';
+  const instanceName = parts[0] === 'World' && parts.length >= 3 ? parts[2] : (parts[parts.length - 1] || String(path || ''));
+  return {
+    cluster_path: clusterName ? `/World/${clusterName}` : '',
+    cluster_label: clusterName || 'Diaolan',
+    instance_name: instanceName,
+  };
+}
+
 function normalizeDiaolanCandidates(raw, selPath, fallbackTarget) {
   const out = [];
   const seen = new Set();
@@ -1914,29 +1925,40 @@ function normalizeDiaolanCandidates(raw, selPath, fallbackTarget) {
         const p = item.trim();
         if (!p || seen.has(p)) continue;
         seen.add(p);
-        const label = p.split('/').filter(Boolean).pop() || p;
-        out.push({ path: p, label, target_prim_path: '' });
+        const parts = getDiaolanPathParts(p);
+        const label = parts.cluster_label && parts.instance_name ? `${parts.cluster_label} / ${parts.instance_name}` : (parts.instance_name || p);
+        out.push({ path: p, label, target_prim_path: '', ...parts });
       } else if (item && typeof item === 'object') {
         const p = String(item.path || '').trim();
         if (!p || seen.has(p)) continue;
         seen.add(p);
-        const label = (item.label && String(item.label).trim()) || p.split('/').filter(Boolean).pop() || p;
+        const parts = getDiaolanPathParts(p);
+        const clusterPath = String(item.cluster_path || parts.cluster_path || '').trim();
+        const clusterLabel = String(item.cluster_label || parts.cluster_label || '').trim();
+        const instanceName = String(item.instance_name || parts.instance_name || '').trim();
+        const label = (item.label && String(item.label).trim())
+          || (clusterLabel && instanceName ? `${clusterLabel} / ${instanceName}` : (instanceName || p));
         const tp = String(item.target_prim_path || '').trim();
         out.push({
           path: p,
           label,
           target_prim_path: tp,
           workers_max: item.workers_max,
+          cluster_path: clusterPath,
+          cluster_label: clusterLabel,
+          instance_name: instanceName,
         });
       }
     }
   }
   if (sp && !seen.has(sp)) {
     seen.add(sp);
+    const parts = getDiaolanPathParts(sp);
     out.unshift({
       path: sp,
-      label: sp.split('/').filter(Boolean).pop() || sp,
+      label: parts.cluster_label && parts.instance_name ? `${parts.cluster_label} / ${parts.instance_name}` : (parts.instance_name || sp),
       target_prim_path: ft,
+      ...parts,
     });
   }
   return out;
@@ -2008,16 +2030,33 @@ function renderDiaolanControl(data = {}) {
   if (targetEl) targetEl.textContent = `篮体高度目标: ${displayTarget || '-'}`;
   const lookatEl = document.getElementById('lookat-target-current');
   const lookatPath = (data.lookat_target_prim_path || data.active_lookat_target_prim_path || '').trim();
-  if (lookatEl) lookatEl.textContent = `楼体朝向目标: ${lookatPath || '-'}`;
+  if (lookatEl) lookatEl.textContent = `自动朝向目标: ${lookatPath || '-'}`;
   if (!selectEl) return;
   const previousValue = selectEl.value;
   selectEl.innerHTML = '';
+  const groups = new Map();
   (sceneState.diaolan_candidates || []).forEach(item => {
-    const option = document.createElement('option');
-    option.value = item.path || '';
-    option.textContent = item.label || item.path || '-';
-    if (option.value === selPath) option.selected = true;
-    selectEl.appendChild(option);
+    const key = (item.cluster_path || '').trim() || '/World/Diaolan';
+    if (!groups.has(key)) {
+      groups.set(key, {
+        label: (item.cluster_label || key.split('/').filter(Boolean).pop() || key).trim(),
+        items: [],
+      });
+    }
+    groups.get(key).items.push(item);
+  });
+  groups.forEach(group => {
+    const parent = document.createElement('optgroup');
+    parent.label = group.label;
+    selectEl.appendChild(parent);
+    group.items.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.path || '';
+      option.textContent = item.instance_name || item.label || item.path || '-';
+      option.title = item.path || '';
+      if (option.value === selPath) option.selected = true;
+      parent.appendChild(option);
+    });
   });
   if (previousValue && Array.from(selectEl.options).some(option => option.value === previousValue)) {
     selectEl.value = previousValue;
@@ -2499,7 +2538,7 @@ function renderRandomResult(result = sceneState.last_random_result, error = '') 
     `请求吊篮: ${result.requested_active_diaolan_path || result.forced_active_diaolan_path || '-'}`,
     `吊篮路径: ${result.active_diaolan_path || '-'}`,
     `篮体高度目标: ${result.selected_target_path || result.target_prim_path || '-'}`,
-    `楼体朝向目标: ${result.lookat_target_prim_path || result.active_lookat_target_prim_path || '-'}`,
+    `自动朝向目标: ${result.lookat_target_prim_path || result.active_lookat_target_prim_path || '-'}`,
     `吊篮高度: ${result.gondola_height_cm ?? '-'} cm`,
     `选中吊篮·可见逻辑人数: ${workerCount}（workers_count / workers）`,
     `选中吊篮·在册逻辑容量: ${cap ?? '-'}（workers_total_available）`,
@@ -2545,8 +2584,12 @@ function renderRandomResult(result = sceneState.last_random_result, error = '') 
   if (Array.isArray(result.visible_worker_paths)) {
     lines.push(`可见工人路径: ${result.visible_worker_paths.join(', ') || '-'}`);
   }
-  if (Array.isArray(result.gondola_visible_renderable_paths)) {
-    lines.push(`可见吊篮渲染节点数: ${result.gondola_visible_renderable_paths.length}`);
+  if (result.gondola_renderable_counts || Array.isArray(result.gondola_visible_renderable_paths)) {
+    const grc = result.gondola_renderable_counts || {};
+    const visibleCount = Number.isFinite(Number(grc.visible))
+      ? Number(grc.visible)
+      : result.gondola_visible_renderable_paths.length;
+    lines.push(`可见吊篮渲染节点数: ${visibleCount}`);
   }
   if (result.height_debug) {
     lines.push(`高度换算: ${result.height_debug.input_height_cm ?? '-'} cm -> ${result.height_debug.converted_stage_units ?? '-'} 场景单位`);

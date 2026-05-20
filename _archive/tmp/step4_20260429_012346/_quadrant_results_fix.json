@@ -1,0 +1,42 @@
+[
+  {
+    "black_ratio": 4.8225308641975306e-05,
+    "std_dev": 32.81296900666311,
+    "size": 45893,
+    "name": "1_old_raytraced",
+    "img_path": "_quadrant_1_old_raytraced.jpg",
+    "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "renderer": "RaytracedLighting",
+    "vis_enabled": false
+  },
+  {
+    "black_ratio": 5.787037037037037e-05,
+    "std_dev": 32.8442903366097,
+    "size": 46527,
+    "name": "2_old_hydrastorm",
+    "img_path": "_quadrant_2_old_hydrastorm.jpg",
+    "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "renderer": "HydraStorm",
+    "vis_enabled": false
+  },
+  {
+    "black_ratio": 0.6120891203703703,
+    "std_dev": 100.95378740462753,
+    "size": 11479,
+    "name": "3_new_raytraced_novis",
+    "img_path": "_quadrant_3_new_raytraced_novis.jpg",
+    "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+    "renderer": "RaytracedLighting",
+    "vis_enabled": false
+  },
+  {
+    "black_ratio": 0.6141493055555556,
+    "std_dev": 59.73929153814353,
+    "size": 91370,
+    "name": "4_new_raytraced_vis",
+    "img_path": "_quadrant_4_new_raytraced_vis.jpg",
+    "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+    "renderer": "RaytracedLighting",
+    "vis_enabled": true
+  }
+]

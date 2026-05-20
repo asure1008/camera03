@@ -42,6 +42,11 @@ def main() -> None:
     xyzs: list[tuple[float, float, float]] = []
     group_hints: list[str] = []
     notes_samples: list[str] = []
+    constraint_modes: list[str] = []
+    within_constraints: list[bool] = []
+    inset_valids: list[bool] = []
+    inset_distances: list[float] = []
+    mounted_on_wall_values: list[bool] = []
 
     payload = {
         "random_config": {
@@ -70,6 +75,16 @@ def main() -> None:
         seeds.append(bool(wh.get("seed_filter_applied")))
         gh = str(wh.get("selected_mount_group_hint") or "")
         group_hints.append(gh)
+        constraint_modes.append(str(wh.get("constraint_mode") or ""))
+        within_constraints.append(bool(wh.get("within_wall_constraint_box")))
+        inset_valids.append(bool(wh.get("inset_wall_mount_valid")))
+        mounted_on_wall_values.append(bool(wh.get("mounted_on_wall")))
+        try:
+            d = wh.get("inset_actual_distance_to_wall_surface")
+            if d is not None:
+                inset_distances.append(float(d))
+        except (TypeError, ValueError):
+            pass
         ab = meta.get("aabb_clip_notes")
         if isinstance(ab, list) and ab:
             notes_samples.append(";".join(str(x) for x in ab[:6]))
@@ -86,6 +101,19 @@ def main() -> None:
         print(f"  {c}\t{path}")
     gc = Counter(group_hints)
     print("selected_mount_group_hint distribution:", dict(gc))
+    print("constraint_mode distribution:", dict(Counter(constraint_modes)))
+    print("within_wall_constraint_box:", dict(Counter(within_constraints)))
+    print("inset_wall_mount_valid:", dict(Counter(inset_valids)))
+    print("mounted_on_wall:", dict(Counter(mounted_on_wall_values)))
+    if inset_distances:
+        print(
+            "inset_actual_distance_to_wall_surface: min",
+            round(min(inset_distances), 3),
+            "max",
+            round(max(inset_distances), 3),
+            "mean",
+            round(sum(inset_distances) / len(inset_distances), 3),
+        )
 
     if xyzs:
         mx = sum(x[0] for x in xyzs) / len(xyzs)

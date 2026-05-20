@@ -1,0 +1,434 @@
+=== D.1 grep env_isaaclab ===
+/home/uniubi/xuanyuan/camera03/run_4quadrant_regression_fix.py:20:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/run_4quadrant_regression.py:24:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/run_generate_scene_usd.sh:12:CONDA_PREFIX="${CONDA_PREFIX:-/home/uniubi/miniconda3/envs/env_isaaclab}"
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.formal_verify_backup_20260403_053042:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/phase25_ab_test.py:81:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+/home/uniubi/xuanyuan/camera03/generate_scene_usd.py:44:        os.path.expanduser("~/miniconda3/envs/env_isaaclab"),
+/home/uniubi/xuanyuan/camera03/generate_scene_usd.py:56:        os.path.expanduser("~/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache"),
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:83:# conda activate env_isaaclab 会通过 etc/conda/activate.d/setenv.sh source IsaacLab/_isaac_sim/setup_conda_env.sh，
+/home/uniubi/xuanyuan/camera03/phase25_restore_verify.py:74:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+/home/uniubi/xuanyuan/camera03/usd_print_prim_tree.py:24:    for base in (os.environ.get("CONDA_PREFIX"), os.path.expanduser("~/miniconda3/envs/env_isaaclab")):
+/home/uniubi/xuanyuan/camera03/usd_print_prim_tree.py:34:        os.path.expanduser("~/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache"),
+/home/uniubi/xuanyuan/camera03/usd_print_prim_tree.py:72:        "无法导入 pxr。请设置 ISAAC_PXR_DIR 或使用 env_isaaclab + isaacsim（omni.usd.libs）。"
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.verify_backup_20260403_052642:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/start_safe.sh:5:PY_BIN="/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3"
+/home/uniubi/xuanyuan/camera03/run_2diaolan_test.py:20:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.single_var_backup_20260403:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/phase25_main_verify.py:77:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+=== D.2 grep isaac/python patterns ===
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:429:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:439:  input[type="range"]::-webkit-slider-runnable-track {
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:443:  input[type="range"]::-webkit-slider-thumb {
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:444:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:453:  input[type="range"]::-webkit-slider-thumb:hover {
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:534:  .sidebar::-webkit-scrollbar { width: 4px; }
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:535:  .sidebar::-webkit-scrollbar-track { background: transparent; }
+/home/uniubi/xuanyuan/camera03/text01/ptz_web_control.html:536:  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/home/uniubi/xuanyuan/camera03/text01/stream_runtime.py:83:        self._runtime_kit_cache = os.path.join(self._runtime_cache_root, "kit_cache")
+/home/uniubi/xuanyuan/camera03/text01/stream_runtime.py:111:        os.makedirs(self._runtime_kit_cache, exist_ok=True)
+/home/uniubi/xuanyuan/camera03/text01/stream_runtime.py:118:            tokens.set_value("cache", self._runtime_kit_cache.replace("\\", "/"))
+/home/uniubi/xuanyuan/camera03/run_4quadrant_regression_fix.py:20:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:441:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:451:  input[type="range"]::-webkit-slider-runnable-track {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:455:  input[type="range"]::-webkit-slider-thumb {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:456:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:465:  input[type="range"]::-webkit-slider-thumb:hover {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:578:  .sidebar::-webkit-scrollbar { width: 4px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:579:  .sidebar::-webkit-scrollbar-track { background: transparent; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step7_bak_20260407_093647:580:  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:30:# python.sh 会设置 CARB_APP_PATH=$ISAAC_SIM_ROOT/kit/
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:32:# SimulationApp 依赖 EXP_PATH 指向 apps/ 目录（存放 .kit 配置文件）。
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:39:    # CARB_APP_PATH = $ISAAC_SIM_ROOT/kit/，上一级为根目录
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:65:import yaml  # Isaac Sim kit python 内置 PyYAML
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:834:        import omni.kit.viewport.utility as vpu  # type: ignore
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:972:        import omni.kit.viewport.utility as vpu
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:975:            _d["capture_method"] = "unavailable:omni.kit.viewport.utility"
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:977:        return None, rp_path, f"ImportError:omni.kit.viewport.utility:{e}"
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:1071:                        import omni.kit.renderer_capture as _rcap
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:1212:        import omni.kit.viewport.utility as vpu
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:1214:        return None, f"ImportError:omni.kit.viewport.utility:{e}"
+/home/uniubi/xuanyuan/camera03/ptz_stream.py:5896:# /status 内嵌的 renderer_runtime_observation：与全量 status TTL 解耦，单独限频（减轻 omni.kit.viewport / carb 轮询压力）
+/home/uniubi/xuanyuan/camera03/run_4quadrant_regression.py:24:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/README.md:93:nohup /path/to/isaac/python3 \
+/home/uniubi/xuanyuan/camera03/README.md:140:nohup /path/to/isaac/python3 \
+/home/uniubi/xuanyuan/camera03/setup_camera_v4.py:19:    "/home/uniubi/projects/issac/.isaac_sim_unzip/"
+/home/uniubi/xuanyuan/camera03/setup_camera_v4.py:25:    "/home/uniubi/projects/issac/.isaac_sim_unzip/omni.usd.libs:"
+/home/uniubi/xuanyuan/camera03/setup_camera_v4.py:26:    "/home/uniubi/projects/issac/.isaac_sim_unzip/kit/python/lib:"
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.formal_verify_backup_20260403_053042:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/phase25_ab_test.py:81:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+/home/uniubi/xuanyuan/camera03/generate_scene_usd.py:56:        os.path.expanduser("~/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache"),
+/home/uniubi/xuanyuan/camera03/generate_scene_usd.py:57:        os.path.expanduser("~/projects/issac/.isaac_sim_unzip/extscache"),
+/home/uniubi/xuanyuan/camera03/generate_scene_usd.py:173:            "~/projects/issac/.isaac_sim_unzip/extscache/"
+/home/uniubi/xuanyuan/camera03/fix_ptz_orientation.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh fix_ptz_orientation.py [options]
+/home/uniubi/xuanyuan/camera03/fix_ptz_orientation.py:31:    "/home/uniubi/projects/issac/.isaac_sim_unzip/"
+/home/uniubi/xuanyuan/camera03/fix_ptz_orientation.py:37:    "/home/uniubi/projects/issac/.isaac_sim_unzip/omni.usd.libs:"
+/home/uniubi/xuanyuan/camera03/fix_ptz_orientation.py:38:    "/home/uniubi/projects/issac/.isaac_sim_unzip/kit/python/lib:"
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:28:# python.sh 会设置 CARB_APP_PATH=$ISAAC_SIM_ROOT/kit/
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:30:# SimulationApp 依赖 EXP_PATH 指向 apps/ 目录（存放 .kit 配置文件）。
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:37:    # CARB_APP_PATH = $ISAAC_SIM_ROOT/kit/，上一级为根目录
+/home/uniubi/xuanyuan/camera03/ptz_stream.py.internal_probe_backup_20260403:63:import yaml  # Isaac Sim kit python 内置 PyYAML
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:441:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:451:  input[type="range"]::-webkit-slider-runnable-track {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:455:  input[type="range"]::-webkit-slider-thumb {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:456:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:465:  input[type="range"]::-webkit-slider-thumb:hover {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:578:  .sidebar::-webkit-scrollbar { width: 4px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:579:  .sidebar::-webkit-scrollbar-track { background: transparent; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step8_bak_20260407_093748:580:  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:70:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:83:# conda activate env_isaaclab 会通过 etc/conda/activate.d/setenv.sh source IsaacLab/_isaac_sim/setup_conda_env.sh，
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:84:# 注入 ISAAC_PATH / CARB_APP_PATH / EXP_PATH 以及大量 *_isaac_sim 的 LD_LIBRARY_PATH；仅清 PYTHONPATH 仍会让 Kit 走不完整运行时并依赖在线注册表 → exit 55。
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:91:    "/_isaac_sim/",
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:92:    "IsaacLab/_isaac_sim",
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:93:    "/.isaac_sim_unzip/",
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:151:    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:160:        if not cfg.get("isaac_child_preserve_pythonpath", False):
+/home/uniubi/xuanyuan/camera03/phase25_restore_verify.py:74:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:430:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:440:  input[type="range"]::-webkit-slider-runnable-track {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:444:  input[type="range"]::-webkit-slider-thumb {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:445:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:454:  input[type="range"]::-webkit-slider-thumb:hover {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:567:  .sidebar::-webkit-scrollbar { width: 4px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:568:  .sidebar::-webkit-scrollbar-track { background: transparent; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html.step5_bak_20260407_093339:569:  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:187:  .col::-webkit-scrollbar { width: 4px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:188:  .col::-webkit-scrollbar-track { background: transparent; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:189:  .col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:362:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:372:  input[type="range"]::-webkit-slider-thumb {
+/home/uniubi/xuanyuan/camera03/ptz_web_control.html:373:    -webkit-appearance: none;
+/home/uniubi/xuanyuan/camera03/usd_print_prim_tree.py:34:        os.path.expanduser("~/miniconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache"),
+/home/uniubi/xuanyuan/camera03/usd_print_prim_tree.py:35:        os.path.expanduser("~/projects/issac/.isaac_sim_unzip/extscache"),
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.verify_backup_20260403_052642:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/start_safe.sh:5:PY_BIN="/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3"
+/home/uniubi/xuanyuan/camera03/run_2diaolan_test.py:20:    "python_sh": "/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3",
+/home/uniubi/xuanyuan/camera03/ptz_config.yaml.single_var_backup_20260403:27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:8:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:9:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --config ./ptz_rtsp_config.yaml
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:10:    /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh ptz_rtsp_stream.py --scene ./MyScene.usd --camera /World/PTZCamera/Pan/Tilt/Camera
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:28:# python.sh 会设置 CARB_APP_PATH=$ISAAC_SIM_ROOT/kit/
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:30:# SimulationApp 依赖 EXP_PATH 指向 apps/ 目录（存放 .kit 配置文件）。
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:37:    # CARB_APP_PATH = $ISAAC_SIM_ROOT/kit/，上一级为根目录
+/home/uniubi/xuanyuan/camera03/ptz_stream_novis.py:63:import yaml  # Isaac Sim kit python 内置 PyYAML
+/home/uniubi/xuanyuan/camera03/phase25_main_verify.py:77:    cmd = ["/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3", "/home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py", "--config", "ptz_config.yaml"]
+=== D.3 ptz_config.yaml ===
+27:python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+41:environment_mode: hdri
+90:dynamic_startup_pan_offset_deg: 0.0
+91:dynamic_startup_tilt_offset_deg: 0.0
+99:  auto_random_on_start: true
+=== D.4 ptz_launcher.py ===
+1:#!/usr/bin/env python3
+6:通过 Web UI 按需启动 / 停止 Isaac Sim 仿真进程（ptz_stream.py）。
+9:    python3 ptz_launcher.py [--config ./ptz_config.yaml]
+18:    POST http://localhost:8080/start              启动 Isaac Sim
+43:import subprocess
+70:                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+71:STREAM_SCRIPT = os.path.join(script_dir, "ptz_stream.py")
+72:ISAAC_LOG     = os.path.join(script_dir, "isaac_stream.log")
+76:_ISAAC_LITE_HTTP_TIMEOUT_S = max(0.35, float(cfg.get("isaac_launcher_lite_http_timeout_s", 1.15)))
+78:    _ISAAC_LITE_HTTP_TIMEOUT_S, float(cfg.get("isaac_startup_ctrl_http_timeout_s", 4.0))
+80:_ISAAC_STATUS_BODY_MAX_BYTES = max(65536, int(cfg.get("isaac_status_body_max_bytes", 6291456)))
+81:_ISAAC_STATUS_FETCH_TIMEOUT_CAP_S = max(0.5, float(cfg.get("isaac_status_fetch_timeout_cap_s", 2.0)))
+83:# conda activate env_isaaclab 会通过 etc/conda/activate.d/setenv.sh source IsaacLab/_isaac_sim/setup_conda_env.sh，
+84:# 注入 ISAAC_PATH / CARB_APP_PATH / EXP_PATH 以及大量 *_isaac_sim 的 LD_LIBRARY_PATH；仅清 PYTHONPATH 仍会让 Kit 走不完整运行时并依赖在线注册表 → exit 55。
+91:    "/_isaac_sim/",
+92:    "IsaacLab/_isaac_sim",
+93:    "/.isaac_sim_unzip/",
+110:def _read_isaac_log_tail(max_lines: int = 48) -> list[str]:
+111:    """启动失败时摘取 isaac_stream.log 末尾若干行（仅 ASCII/UTF-8 文本）。"""
+135:def _isaac_log_oom_hints(max_scan_lines: int = 400, max_hints: int = 8) -> list[str]:
+136:    """只读：从 isaac_stream.log 尾部扫描显存/OOM/驱动崩溃相关关键词，供诊断字段使用。"""
+150:def _env_for_ptz_stream_subprocess() -> dict:
+151:    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+153:    可通过 ptz_config.yaml 设置 isaac_child_preserve_isaaclab_runtime: true 恢复旧行为（仅调试）。
+156:    preserve = bool(cfg.get("isaac_child_preserve_isaaclab_runtime", False))
+160:        if not cfg.get("isaac_child_preserve_pythonpath", False):
+175:# 与 ptz_stream._resolve_orientation_profile 中 default_initial 一致：启动/随机后「可见中性朝向」相对几何 look-at 的偏置
+181:    """从磁盘读取 ptz 推流相关字段（与 ptz_stream 启动时读取一致；用于诊断/确认样本 USD）。"""
+272:    status = _get_status_from_isaac()
+388:_isaac_proc: subprocess.Popen | None = None
+390:_isaac_state = "stopped"   # "stopped" | "starting" | "running" | "stopping"
+400:_ISAAC_STARTUP_READY_TIMEOUT_S = float(cfg.get("isaac_startup_ready_timeout_s", 180.0))
+401:_ISAAC_STARTUP_READY_CONSECUTIVE = max(1, int(cfg.get("isaac_startup_ready_consecutive", 3)))
+402:_ISAAC_SNAPSHOT_READY_MIN_BYTES = max(512, int(cfg.get("isaac_snapshot_ready_min_bytes", 2048)))
+403:_isaac_startup_streak = 0
+406:def _http_get_isaac_ex(path: str, timeout: float = 5.0) -> tuple[int | None, bytes, str | None]:
+433:def _isaac_fetch_health_stream_parallel(
+440:        fut_h = pool.submit(_http_get_isaac_ex, "/api/health", t)
+441:        fut_s = pool.submit(_http_get_isaac_ex, "/api/stream_ready", t)
+470:def _isaac_ctrl_degraded_probe_detail(http_st: int | None, err: str | None) -> dict:
+493:def _http_get_isaac(path: str, timeout: float = 5.0) -> tuple[int | None, bytes]:
+494:    st, data, _err = _http_get_isaac_ex(path, timeout)
+498:def _http_get_isaac_json_small(path: str, timeout: float, max_bytes: int = 262144) -> dict | None:
+516:def _isaac_api_path_ok(path: str, timeout: float) -> bool:
+518:    st, body = _http_get_isaac(path, timeout)
+528:def _is_isaac_api_health_ok() -> bool:
+529:    return _isaac_api_path_ok("/api/health", _ISAAC_LITE_HTTP_TIMEOUT_S)
+532:def _is_isaac_scene_state_ok() -> bool:
+534:    st, _body, _err = _http_get_isaac_ex(
+544:    if not _is_isaac_api_health_ok():
+545:        h_st, _b, h_err = _http_get_isaac_ex("/api/health", _ISAAC_LITE_HTTP_TIMEOUT_S)
+547:    if not _is_isaac_scene_state_ok():
+548:        s_st, _b, s_err = _http_get_isaac_ex(
+555:def _isaac_child_operational_truth(proc: subprocess.Popen) -> tuple[bool, str]:
+563:    if not _is_isaac_api_health_ok():
+564:        h_st, _b, h_err = _http_get_isaac_ex("/api/health", _ISAAC_LITE_HTTP_TIMEOUT_S)
+566:    if not _is_isaac_scene_state_ok():
+567:        s_st, _b, s_err = _http_get_isaac_ex(
+574:def _wait_prev_isaac_stop_complete(timeout_s: float = 90.0) -> tuple[bool, str]:
+575:    """stop_isaac 异步收尾期间须阻塞 start，避免旧句柄+未释放资源误判。"""
+580:            st = _isaac_state
+581:            p = _isaac_proc
+583:            last = f"isaac_state={st!r} proc_pid={getattr(p,'pid',None)} poll={poll}"
+590:def _is_isaac_stream_init_ready() -> bool:
+591:    """ptz_stream 主线程完成相机/吊篮首帧初始化后 /api/stream_ready 才返回 200。"""
+592:    return _isaac_api_path_ok("/api/stream_ready", _ISAAC_LITE_HTTP_TIMEOUT_S)
+595:def _is_isaac_snapshot_jpeg_ready() -> bool:
+596:    st, body = _http_get_isaac("/snapshot.jpg", 12.0)
+602:def _is_isaac_http_ready() -> bool:
+616:def _isaac_deemed_ready_for_launcher(preview_enabled: bool) -> bool:
+622:    if not _isaac_api_path_ok("/api/health", t0):
+624:    if not _isaac_api_path_ok("/api/stream_ready", t0):
+636:        (h_st, h_body, h_err), (s_st, s_body, s_err) = _isaac_fetch_health_stream_parallel(
+659:            "[PTZ-Launcher] isaac_ctrl_probe "
+669:        proc0 = _isaac_proc
+694:        "isaac_process_running": proc_alive_or_listener,
+695:        "isaac_port_listening": port_busy,
+696:        "isaac_ctrl_ready": http_ready,
+697:        "isaac_ctrl_degraded": ctrl_deg,
+698:        "isaac_ctrl_degraded_reason": deg_reason,
+699:        "isaac": {
+706:            "isaac_state": _isaac_state,
+707:            "isaac_process_running": proc_alive_or_listener,
+708:            "isaac_port_listening": port_busy,
+709:            "isaac_ctrl_ready": http_ready,
+710:            "isaac_ctrl_degraded": ctrl_deg,
+711:            "isaac_ctrl_degraded_reason": deg_reason,
+723:def _get_isaac_status_cached(timeout: float = 90.0, max_age: float = _STATUS_CACHE_TTL_S) -> dict | None:
+793:    return data, "isaac-snapshot", None
+812:                _cache_snapshot_proxy(data, source or "isaac-snapshot")
+813:                return data, source or "isaac-snapshot"
+831:def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
+856:def _wait_isaac_post_spawn_ready(
+857:    proc: subprocess.Popen | None, preview_enabled: bool
+868:        if _isaac_deemed_ready_for_launcher(preview_enabled):
+882:def _watch_isaac(proc: subprocess.Popen) -> None:
+883:    """启动就绪已在 start_isaac 内同步探测；此处仅监控子进程是否存活。"""
+884:    global _isaac_state, _isaac_proc
+889:                if _isaac_proc is proc:
+890:                    _isaac_proc = None
+891:                if _isaac_state != "stopping":
+892:                    _isaac_state = "stopped"
+894:                f"[PTZ-Launcher] _watch_isaac: 子进程退出 pid={proc.pid} returncode={rc} "
+895:                f"(stopping 中则不抢改 isaac_state，仅回收句柄)",
+902:def start_isaac(force_restart: bool = False) -> dict:
+903:    global _isaac_proc, _start_time, _isaac_state, _isaac_startup_streak
+904:    spawned_proc: subprocess.Popen | None = None
+908:    ok_wait, wait_detail = _wait_prev_isaac_stop_complete(90.0)
+910:        print(f"[PTZ-Launcher] start_isaac: 等待 stop 收尾失败: {wait_detail}", flush=True)
+919:    stale_to_kill: subprocess.Popen | None = None
+921:        if _isaac_proc is not None and _isaac_proc.poll() is not None:
+922:            _isaac_proc = None
+924:        if _isaac_proc is not None and _isaac_proc.poll() is None:
+925:            if _isaac_state == "starting":
+927:                    "[PTZ-Launcher] start_isaac: 另一路启动尚未完成，拒绝并发 start",
+931:            truth_ok, truth_why = _isaac_child_operational_truth(_isaac_proc)
+934:                    "[PTZ-Launcher] start_isaac: 判定已在运行 "
+935:                    f"({_isaac_child_operational_truth.__name__}: {truth_why})",
+940:                "[PTZ-Launcher] start_isaac: 进程对象残留但非真运行，将清理后重拉 "
+944:            stale_to_kill = _isaac_proc
+945:            _isaac_proc = None
+946:            _isaac_state = "stopped"
+950:            f"[PTZ-Launcher] start_isaac: terminate 假运行子进程 pid={stale_to_kill.pid} "
+954:        _terminate_isaac_spawn(stale_to_kill)
+957:            f"[PTZ-Launcher] start_isaac: 假运行清理后 pid={stale_to_kill.pid} "
+962:            if _isaac_proc is stale_to_kill:
+963:                _isaac_proc = None
+964:            _isaac_state = "stopped"
+967:        # stop_isaac 异步收尾：子进程已退出但句柄尚未置 None 时，避免误判「已在运行」从而拒绝 spawn（8081 无人监听）。
+968:        if _isaac_proc is not None and _isaac_proc.poll() is not None:
+969:            _isaac_proc = None
+977:                ok, msg, killed_pids = _force_kill_project_isaac_ctrl(ISAAC_PORT)
+993:                        f"[PTZ-Launcher] [force_restart] port freed; spawning new ptz_stream (killed={killed_pids}).",
+1001:                    f"[PTZ-Launcher] start_isaac: ctrl_port_precheck port={ISAAC_PORT} "
+1006:                    ok_kill, msg_kill, killed_bad = _force_kill_project_isaac_ctrl(ISAAC_PORT)
+1008:                        f"[PTZ-Launcher] start_isaac: bad_residual_cleanup ok={ok_kill} "
+1016:                            "error": "控制端口被占用且无法识别为本项目 ptz_stream，未自动杀进程",
+1039:                        "[PTZ-Launcher] start_isaac: bad_residual freed; will spawn new ptz_stream.",
+1050:                _isaac_state = "starting"
+1052:                _isaac_proc  = None  # 无法持有旧进程句柄，置 None
+1059:            print("[PTZ-Launcher] ========== 本次 Isaac 子进程将加载（ptz_stream 读盘）==========", flush=True)
+1091:            spawned_proc = subprocess.Popen(
+1097:                env=_env_for_ptz_stream_subprocess(),
+1099:            _isaac_proc = spawned_proc
+1101:            _isaac_state = "starting"
+1104:    ok_ready, ready_msg, ready_elapsed = _wait_isaac_post_spawn_ready(
+1107:    _isaac_startup_streak = 0
+1110:            _terminate_isaac_spawn(spawned_proc)
+1112:            ok_orphan, msg_orphan, killed_orphan = _force_kill_project_isaac_ctrl(ISAAC_PORT)
+1114:                f"[PTZ-Launcher] start_isaac: reuse_external_failed → cleanup project listeners "
+1119:            if spawned_proc is not None and _isaac_proc is spawned_proc:
+1120:                _isaac_proc = None
+1121:            _isaac_state = "stopped"
+1123:        oom_hints = _isaac_log_oom_hints()
+1126:                "[PTZ-Launcher] isaac_stream.log OOM/GPU 相关摘录:\n" + "\n".join(oom_hints),
+1139:            "isaac_log_oom_hints": oom_hints,
+1142:            fail["isaac_exit_code"] = int(spawned_proc.returncode or 0)
+1143:        tail_lines = _read_isaac_log_tail(48)
+1145:            fail["isaac_log_tail"] = tail_lines
+1147:                "[PTZ-Launcher] isaac_stream.log 末尾摘录:\n" + "\n".join(tail_lines[-12:]),
+1153:        _isaac_state = "running"
+1168:    threading.Thread(target=_watch_isaac, args=(spawned_proc,), daemon=True).start()
+1188:def stop_isaac() -> dict:
+1189:    global _isaac_proc, _isaac_state
+1191:        if _isaac_proc is not None and _isaac_proc.poll() is None:
+1194:            if _isaac_proc is not None:
+1195:                _isaac_proc = None
+1196:            _isaac_state = "stopped"
+1198:    if _isaac_proc is None or _isaac_proc.poll() is not None:
+1199:        # 无存活托管子进程：处理「launcher 认为未运行但 8081 仍被旧 ptz_stream 占口」
+1209:        project_pids = [pid for pid in pids if _is_project_ptz_stream_pid(pid)]
+1211:            f"[PTZ-Launcher] stop_isaac: no_managed_proc but ctrl_port busy "
+1218:                "error": "控制端口已被占用，但监听者不是本项目 ptz_stream，未自动杀进程",
+1225:        ok_kill, msg_kill, killed = _force_kill_project_isaac_ctrl(ISAAC_PORT)
+1226:        oom_hints = _isaac_log_oom_hints()
+1229:                "[PTZ-Launcher] stop_isaac: isaac_log_oom_hints=\n" + "\n".join(oom_hints),
+1233:            f"[PTZ-Launcher] stop_isaac: orphan_project_cleanup ok={ok_kill} "
+1241:            "action_taken": "orphan_project_ptz_stream_stopped" if ok_kill else "orphan_stop_failed",
+1244:            "isaac_log_oom_hints": oom_hints,
+1245:            "note": "launcher 未持有子进程句柄，但已按本项目 ptz_stream 证据回收占口进程。"
+1251:        if _isaac_proc is None or _isaac_proc.poll() is not None:
+1252:            _isaac_proc = None
+1253:            _isaac_state = "stopped"
+1256:        _isaac_state = "stopping"
+1257:        pid  = _isaac_proc.pid
+1258:        proc = _isaac_proc
+1264:            f"[PTZ-Launcher] stop_isaac: 进入 stopping pid={pid} pgid={pgid} "
+1270:        global _isaac_proc, _isaac_state
+1274:            print(f"[PTZ-Launcher] stop_isaac[_wait]: SIGTERM killpg 跳过: {e!r}", flush=True)
+1283:                f"[PTZ-Launcher] stop_isaac[_wait]: SIGTERM 后 15s 内端口仍不可连 "
+1289:            f"[PTZ-Launcher] stop_isaac[_wait]: SIGTERM 阶段结束 pid={pid} poll={proc.poll()} "
+1297:            print(f"[PTZ-Launcher] stop_isaac[_wait]: SIGKILL killpg 跳过: {e!r}", flush=True)
+1301:        except (subprocess.TimeoutExpired, ChildProcessError) as e:
+1303:                f"[PTZ-Launcher] stop_isaac[_wait]: proc.wait 异常 pid={pid} poll={proc.poll()} "
+1314:        global _isaac_proc, _isaac_state
+1316:            _isaac_proc = None
+1317:            _isaac_state = "stopped"
+1319:            f"[PTZ-Launcher] stop_isaac[_wait]: 收尾完成 pid={pid} final_poll={proc.poll()} "
+1325:    threading.Thread(target=_wait, daemon=True, name="isaac-stopper").start()
+1331:    global _isaac_state, _isaac_startup_streak, _start_time
+1333:        proc   = _isaac_proc
+1334:        state  = _isaac_state
+1342:    if state == "stopped" and not has_proc_handle and port_alive and _is_isaac_api_health_ok():
+1345:            if _isaac_proc is None and _isaac_state == "stopped":
+1346:                if _isaac_deemed_ready_for_launcher(preview):
+1347:                    _isaac_state = "running"
+1349:                    _isaac_state = "starting"
+1353:            state = _isaac_state
+1357:        _isaac_state = "stopped"
+1360:        _isaac_state = "stopped"
+1364:        _isaac_startup_streak = 0
+1367:        if _isaac_deemed_ready_for_launcher(preview):
+1368:            _isaac_startup_streak += 1
+1369:            if _isaac_startup_streak >= _ISAAC_STARTUP_READY_CONSECUTIVE:
+1370:                _isaac_state = "running"
+1372:                _isaac_startup_streak = 0
+1374:            _isaac_startup_streak = 0
+1377:        "isaac_state": state,
+1378:        "isaac_port":  ISAAC_PORT,
+1402:            fut_ptz = pool3.submit(_http_get_isaac_ex, "/ptz_state", eff_ptz_to)
+1403:            fut_h = pool3.submit(_http_get_isaac_ex, "/api/health", _ISAAC_LITE_HTTP_TIMEOUT_S)
+1404:            fut_s = pool3.submit(_http_get_isaac_ex, "/api/stream_ready", _ISAAC_LITE_HTTP_TIMEOUT_S)
+1430:        result["isaac_process_running"] = bool(proc_alive_launcher or (port_alive and health_ok2))
+1431:        result["isaac_port_listening"] = bool(port_alive)
+1432:        result["isaac_ctrl_ready"] = ctrl_ready
+1433:        result["isaac_ctrl_degraded"] = ctrl_deg2
+1434:        result["isaac_ctrl_degraded_reason"] = deg_reason2
+1447:            status = _get_isaac_status_cached(
+1460:                _isaac_state = "stopped"
+1461:                result["isaac_state"] = "stopped"
+1463:                result["isaac_ctrl_degraded"] = True
+1464:                result["isaac_ctrl_degraded_reason"] = "ptz_state_and_status_unreachable_but_port_listening"
+1465:                result["isaac_ctrl_degraded_detail"] = _isaac_ctrl_degraded_probe_detail(
+1469:        (hst, hbody, herr), (sst, sbody, serr) = _isaac_fetch_health_stream_parallel(
+1485:        result["isaac_process_running"] = bool(proc_alive_launcher or (port_alive and health_ok2))
+1486:        result["isaac_port_listening"] = bool(port_alive)
+1487:        result["isaac_ctrl_ready"] = ctrl_ready
+1488:        result["isaac_ctrl_degraded"] = ctrl_deg2
+1489:        result["isaac_ctrl_degraded_reason"] = deg_reason2
+1491:        result["isaac_process_running"] = proc_alive_launcher
+1492:        result["isaac_port_listening"] = bool(port_alive)
+1493:        result["isaac_ctrl_ready"] = False
+1494:        result["isaac_ctrl_degraded"] = False
+1495:        result["isaac_ctrl_degraded_reason"] = None
+1517:        # 只要 Isaac Sim 端口可达就尝试拉帧（不依赖 _isaac_state 是否同步）
+1518:        if _isaac_state == "running" or _port_in_use(ISAAC_PORT):
+1891:        out = subprocess.check_output(
+1893:            stderr=subprocess.DEVNULL,
+1911:    """读取 /proc/<pid>/cmdline（尽力而为），用于判断是否属于本项目 ptz_stream。"""
+1927:def _is_project_ptz_stream_pid(pid: int) -> bool:
+1931:    # 启动 argv 含本项目 ptz_stream.py 绝对路径
+1934:    if "ptz_stream.py" not in cmd:
+1945:def _force_kill_project_isaac_ctrl(port: int) -> tuple[bool, str, list[int]]:
+1946:    """当 force_restart=true 时，尽力杀掉本项目的 ptz_stream（只在监听者确认为本项目时）。"""
+1951:    project_pids = [pid for pid in pids if _is_project_ptz_stream_pid(pid)]
+1953:        return (False, "port busy but listeners not recognized as project ptz_stream", pids)
+1955:    # SIGTERM -> 等待 -> SIGKILL（只针对本项目 ptz_stream）
+1965:            return (True, "project ptz_stream killed; port freed", project_pids)
+1977:        "project ptz_stream killed; port freed by SIGKILL" if ok else "force_kill failed",
+1990:        "isaac_ctrl_port": ISAAC_PORT,
+1991:        "isaac_state": None,
+1992:        "isaac_diagnostics": None,
+1997:            "isaac_diagnostics": f"http://127.0.0.1:{ISAAC_PORT}/diagnostics",
+1998:            "isaac_snapshot": f"http://127.0.0.1:{ISAAC_PORT}/snapshot.jpg",
+2001:            "修改 ptz_config.yaml 的 scene_path 后 POST /stop 再 POST /start；"
+2002:            "或 ./start_abnormal_web.sh <样本.usd>；"
+2007:        st = _isaac_state
+2008:    out["isaac_state"] = st
+2014:                out["isaac_diagnostics"] = json.loads(r.read().decode())
+2016:            out["isaac_diagnostics"] = {"error": str(e), "hint": "端口已占用但 HTTP 未就绪或进程异常"}
+2075:        if _isaac_state != "running" or not _port_in_use(8554):
+2093:        proc = subprocess.Popen(
+2094:            cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0
+2223:def _get_ptz_from_isaac() -> dict:
+2225:    st = _get_isaac_status_cached(timeout=_ISAAC_STATUS_FETCH_TIMEOUT_CAP_S, max_age=1.5)
+2240:def _get_status_from_isaac() -> dict:
+2241:    status = _get_isaac_status_cached(timeout=2.0)
+2257:    status = _get_status_from_isaac()
+2329:def _set_ptz_to_isaac(pan_deg: float, tilt_deg: float, zoom_x: float) -> bool:
+2780:        if not _set_ptz_to_isaac(
+2792:        cur = _get_ptz_from_isaac()
+2793:        if not _set_ptz_to_isaac(
+2806:        cur = _get_ptz_from_isaac()
+2807:        if not _set_ptz_to_isaac(
+2824:        if not _set_ptz_to_isaac(resolved["pan"], resolved["tilt"], float(preset["zoom"])):
+2833:        preset = _save_preset(token, name, _get_ptz_from_isaac())
+2853:        st         = _get_ptz_from_isaac()
+3142:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+3149:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+3176:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+3196:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+3214:        if path == "/start":
+3231:            self._json(start_isaac(force_restart=force_restart))
+3235:            self._json(stop_isaac())
+3264:            if _isaac_state != "running" and not _port_in_use(ISAAC_PORT):
+3360:            if not _set_ptz_to_isaac(resolved["pan"], resolved["tilt"], resolved["zoom"]):
+3381:        ptz = req.get("ptz") if isinstance(req.get("ptz"), dict) else _get_ptz_from_isaac()
+3735:def _sync_isaac_state_on_startup() -> None:
+3737:    global _isaac_state, _start_time
+3740:        if _isaac_deemed_ready_for_launcher(preview):
+3741:            _isaac_state = "running"
+3745:            _isaac_state = "starting"
+3758:    _sync_isaac_state_on_startup()
+3788:        stop_isaac()

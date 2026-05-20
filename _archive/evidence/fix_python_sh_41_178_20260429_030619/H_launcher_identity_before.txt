@@ -1,0 +1,6 @@
+ss_line=LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=554536,fd=5))      
+PID=554536
+cmdline:
+python3 ptz_launcher.py --config ./ptz_config.yaml 
+cwd:
+/home/uniubi/xuanyuan/camera03

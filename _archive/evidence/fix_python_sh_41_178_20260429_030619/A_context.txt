@@ -1,0 +1,8 @@
+=== LOCAL (46.144) ===
+pwd: /home/uniubi/xuanyuan/camera05
+Wed Apr 29 03:06:25 AM UTC 2026
+
+=== REMOTE (41.178) ===
+uniubi
+192.168.41.178 28.0.0.1 
+/home/uniubi

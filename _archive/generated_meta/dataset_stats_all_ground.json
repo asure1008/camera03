@@ -1,0 +1,30 @@
+{
+  "total_samples": 3,
+  "scene_pattern_counts": {
+    "single_airborne": 0,
+    "double_airborne": 0,
+    "all_ground": 3
+  },
+  "target_scene_pattern_counts": {
+    "random": 0,
+    "single_airborne": 0,
+    "double_airborne": 0,
+    "all_ground": 3
+  },
+  "height_relation_counts": {
+    "different_level": 0,
+    "same_level": 0,
+    "not_applicable": 3
+  },
+  "basket_state_counts": {
+    "ground_empty": 6,
+    "air_with_person": 0,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "generated_files": [
+    "/home/uniubi/xuanyuan/camera05/camera03/batch_summary_all_ground.json",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_manifest_all_ground.jsonl",
+    "/home/uniubi/xuanyuan/camera05/camera03/dataset_stats_all_ground.json"
+  ]
+}

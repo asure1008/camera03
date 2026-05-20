@@ -1,0 +1,7 @@
+LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=2310848,fd=6))     
+LISTEN 0      96                         0.0.0.0:8081       0.0.0.0:*    users:(("python3",pid=2303533,fd=270))   
+LISTEN 0      4096                             *:8554             *:*    users:(("mediamtx",pid=1576480,fd=7))    
+uniubi   1576480       1  0 Apr23 ?        00:12:10 /home/uniubi/xuanyuan/camera05/camera03/./mediamtx /home/uniubi/xuanyuan/camera05/camera03/mediamtx.yml
+uniubi   2303533       1 61 Apr27 ?        1-01:32:41 /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3 -u /home/uniubi/xuanyuan/camera05/camera03/ptz_stream.py --config /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml --ctrl-port 8081 --scene /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+uniubi   2303914 2303533  0 Apr27 ?        00:08:37 ffmpeg -loglevel warning -f rawvideo -pix_fmt rgba -s 960x540 -r 10 -i pipe:0 -an -vf format=yuv420p -c:v h264_nvenc -preset p1 -tune ll -rc cbr -bf 0 -g 20 -delay 0 -b:v 1M -f rtsp rtsp://localhost:8554/ptz_cam
+uniubi   2310848 2310846  0 Apr27 ?        00:00:42 python3 ptz_launcher.py

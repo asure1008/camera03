@@ -1,0 +1,10 @@
+ss raw:
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+PID8080=560720
+=== /proc/560720/cwd ===
+/home/uniubi/xuanyuan/camera03
+=== cmdline ===
+python3 ptz_launcher.py --config ./ptz_config.yaml 
+=== environ extract ===
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin

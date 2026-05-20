@@ -1,0 +1,36 @@
+bitrate: 1M
+camera_prim: /World/CameraRig/CamTilt/Camera
+camera_rig_translate_xyz:
+- 84.2
+- 10.87
+- 6.53
+ctrl_port: 8081
+diaolan_camera_sampling_enabled: true
+focal_length_1x: 6
+force_active_diaolan_path: /World/DiaoLan_Ver1_0_2026_07
+fps: 10
+hydra_c_branch_geometry_only: false
+hydra_target_material_mode: none
+initial_pan: 0.0
+initial_tilt: -15.0
+initial_zoom: 1.5
+launcher_port: 8080
+mediamtx:
+  auto_download: true
+  path: ./mediamtx
+  port: 8554
+  version: v1.17.0
+mjpeg_quality: 80
+onvif_rtsp_host: ''
+osd_time:
+  enabled: false
+preview_enabled: false
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+renderer: RaytracedLighting
+resolution:
+- 960
+- 540
+rtsp_enabled: true
+rtsp_url: rtsp://localhost:8554/ptz_cam
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda
+sim_hz: 60

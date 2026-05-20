@@ -1,0 +1,7 @@
+总样本数: 10
+各 scene_pattern 数量: {'single_airborne': 4, 'double_airborne': 3, 'all_ground': 3}
+各 basket_state 数量: {'ground_empty': 10, 'air_with_person': 10, 'ground_with_person': 0, 'unknown': 0}
+异常/失败样本数: 0
+manifest: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10/manifests/dataset_manifest_full.jsonl
+stats: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10/stats/dataset_stats_full.json
+check_report: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10/logs/dataset_check_report.json

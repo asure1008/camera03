@@ -1,0 +1,63 @@
+launcher_port: 8080
+ctrl_port: 8081
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda
+camera_prim: /World/CameraRig/CamTilt/Camera
+rtsp_url: rtsp://localhost:8554/ptz_cam
+resolution:
+- 960
+- 540
+fps: 10
+bitrate: 1M
+sim_hz: 60
+rtsp_enabled: true
+preview_enabled: false
+mjpeg_quality: 80
+renderer: RaytracedLighting
+osd_time:
+  enabled: true
+  fmt: '%Y-%m-%d %H:%M:%S'
+  x: 10
+  y: 10
+  size: 28
+  font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+# 广角基焦距（mm），与 USDA Camera.focalLength 一致；zoom=1× 时沿用此值
+focal_length_1x: 6
+# 默认 home：与 scene_single_with_ptz.usda 中 CameraRig.rotateZ=-100、CamTilt.rotateY=48 一致
+# （推流里写入 rotateZ=-pan、rotateY=-tilt → pan=100°、tilt=-48°）。勿用 0/0，否则会覆盖 USD 构图成俯视感。
+initial_pan: 100.0
+initial_tilt: -48.0
+initial_zoom: 1.0
+mediamtx:
+  path: ./mediamtx
+  port: 8554
+  auto_download: true
+  version: v1.17.0
+# 可选：强制 ONVIF GetStreamUri 返回的 RTSP 主机名（留空则自动：从 Host 解析 IPv4；环回时用通往 ODM 的网卡 IP）
+onvif_rtsp_host: ""
+presets:
+  '1':
+    name: 默认 Home（立面+吊篮区）
+    pan: 100.0
+    tilt: -48.0
+    zoom: 1.0
+  '2':
+    name: 建筑正视
+    pan: 92.0
+    tilt: -40.0
+    zoom: 1.0
+  '3':
+    name: 吊篮中景
+    pan: 100.0
+    tilt: -48.0
+    zoom: 2.5
+  '4':
+    name: 吊篮近景
+    pan: 100.0
+    tilt: -52.0
+    zoom: 5.0
+  '5':
+    name: 立面稍广
+    pan: 105.0
+    tilt: -42.0
+    zoom: 1.0

@@ -1,0 +1,88 @@
+pwd: /home/uniubi/xuanyuan/camera05/camera03
+
+=== git status --short ===
+ D Camera04_1/Camera04_1/README.md
+ D Camera04_1/Camera04_1/camera04/__init__.py
+ D Camera04_1/Camera04_1/camera04/common.py
+ D Camera04_1/Camera04_1/camera04/launcher_app.py
+ D Camera04_1/Camera04_1/camera04/launcher_onvif.py
+ D Camera04_1/Camera04_1/camera04/stream_bootstrap.py
+ D Camera04_1/Camera04_1/camera04/stream_media.py
+ D Camera04_1/Camera04_1/camera04/stream_runtime.py
+ D Camera04_1/Camera04_1/mediamtx.yml
+ D Camera04_1/Camera04_1/ptz_launcher.py
+ D Camera04_1/Camera04_1/ptz_rtsp_config.yaml
+ D Camera04_1/Camera04_1/ptz_rtsp_stream.py
+ D Camera04_1/Camera04_1/ptz_web_control.html
+ D Camera04_no_Scene/Camera04_no_Scene/PACKING_NOTE.txt
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/__init__.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/common.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/launcher_app.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/launcher_onvif.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/stream_bootstrap.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/stream_media.py
+ D Camera04_no_Scene/Camera04_no_Scene/camera04/stream_runtime.py
+ D Camera04_no_Scene/Camera04_no_Scene/mediamtx.yml
+ D Camera04_no_Scene/Camera04_no_Scene/ptz_launcher.py
+ D Camera04_no_Scene/Camera04_no_Scene/ptz_rtsp_config.yaml
+ D Camera04_no_Scene/Camera04_no_Scene/ptz_rtsp_stream.py
+ D Camera04_no_Scene/Camera04_no_Scene/ptz_web_control.html
+ D _ptz_config_4diaolan_test_20260402.yaml
+ D _ptz_config_ab_active_A_20260403_023534.yaml
+ D _ptz_config_ab_active_A_20260403_024452.yaml
+ D _ptz_config_diaolan03_local_content_20260402_045051.yaml
+ D _ptz_config_diaolan03_runtime_20260402_045742.yaml
+ D _ptz_config_minloc_scene4_20260403_021735.yaml
+ D _ptz_config_minloc_scene4_20260403_022003.yaml
+ D _ptz_config_minloc_scene4_20260403_022204.yaml
+ D _stability_summary_20260410.json
+ D _verify_shader_mdl_A.yaml
+ M ptz_web_control.html
+?? .gondola_height_verify_20260414_0746.json
+?? DiaoLan_ChangJing_2026.03.18_unpacked/
+?? _archive/
+?? dataset_run_10/
+?? dataset_run_100/
+?? dataset_run_100_camcheck_conservative/
+?? dataset_run_100_camcheck_tuned/
+?? dataset_run_10_camcheck/
+?? dataset_run_10_camcheck_tuned/
+?? diaolan_scene_variables.txt
+?? ptz_config.yaml.formal_verify_backup_20260403_053042
+?? ptz_config.yaml.single_var_backup_20260403
+?? ptz_config.yaml.verify_backup_20260403_052642
+?? ptz_stream.py.internal_probe_backup_20260403
+?? ptz_web_control.html.step5_bak_20260407_093339
+?? ptz_web_control.html.step7_bak_20260407_093647
+?? ptz_web_control.html.step8_bak_20260407_093748
+?? tools/saas_preflight_check.py
+
+=== counts after (maxdepth 1) ===
+root *.bak* files: 0
+root *.pre_* files: 0
+root _* (files+dirs): 5
+
+=== .backup_* dirs remaining ===
+(count: 0)
+
+=== evidence_* dirs remaining ===
+(count: 0)
+
+=== _codex_validation_* dirs remaining ===
+(count: 0)
+
+=== verify_snapshot_viewport_align_evidence_* remaining ===
+(count: 0)
+
+=== bucket entry counts (non-recursive ls -A) ===
+backups/step4_20260429_012346: 142
+tmp/step4_20260429_012346: 31
+evidence/step4_20260429_012346: 7
+old_projects/step4_20260429_012346: 2
+
+=== batch move counts (from list files) ===
+batch1 bak/pre listed: 138
+batch2 dirs listed: 4
+batch3 tmp listed: 31
+batch4 evidence listed: 7
+batch5 old_projects listed: 2

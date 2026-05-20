@@ -1,0 +1,10 @@
+命令（只读 GET）：
+curl -sS -m 3 -w '%{http_code}\n' http://192.168.41.178:8080/health
+curl -sS -m 3 -w '%{http_code}\n' http://192.168.41.178:8081/health
+
+输出（本环境）：
+curl: (7) Failed to connect to 127.0.0.1 port 17890 after 0 ms: Connection refused
+000
+（两次类似，8080/8081 均未得到有效 HTTP 状态码）
+
+说明：可能存在 HTTP(S)_PROXY/ALL_PROXY 等将请求转到本地 17890；本轮无法从本机 GET 拿到 41.178 的健康状态。

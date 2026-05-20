@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="/home/uniubi/xuanyuan/camera05/camera03"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="${ROOT_DIR}/isaac_stream.log"
 
 echo "=== 端口状态 ==="

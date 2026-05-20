@@ -1,0 +1,114 @@
+吊篮场景变量详细内容
+
+【吊篮 00】
+1、  吊篮主体：   文件名 Diaolan                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 01】
+1、  吊篮主体：   文件名 Diaolan_01                 路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_01/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 02】
+1、  吊篮主体：   文件名 Diaolan_02                 路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_02/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 03】
+1、  吊篮主体：   文件名 Diaolan_03                 路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_03/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 04】
+1、  吊篮主体：   文件名 Diaolan_04                 路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_04/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 05】
+1、  吊篮主体：   文件名 Diaolan_05                 路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_05/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 06】
+1、  吊篮主体：   文件名 Diaolan_06                 路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_06/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 07】
+1、  吊篮主体：   文件名 Diaolan_07                 路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_07/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+【吊篮 08】
+1、  吊篮主体：   文件名 Diaolan_08                 路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Diaolan
+2、  安全绳 01：  文件名 SafetyRope_Fixed_01        路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_01
+3、  安全绳 02：  文件名 SafetyRope_Fixed_02        路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Xuandiaojigou/SafetyRope_Fixed_02
+4、  挡脚板 01：  文件名 Front_01                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_01
+5、  挡脚板 02：  文件名 Front_02                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Diaolan/Fanghulangan/Front_02
+6、  工人 01：    文件名 People_01                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_01
+7、  工人 02：    文件名 People_02                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_02
+8、  工人 03：    文件名 People_03                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Zuoyuerenyuan/People_03
+9、  限位装置 01： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Steel_Rope_01/Limitstop
+10、 限位装置 02： 文件名 Limitstop                   路径 /World/Diaolan/Diaolan_08/Model/Gaochuzuoye_Diaolan/Steel_Rope_02/Limitstop
+
+------------------------------------------------------------
+安全锁 / 防坠安全锁：当前未确认具体可控 prim，暂不纳入有效变量。
+（后端 rule_id=13 代码保留，待建模确认 prim 后可恢复。）
+------------------------------------------------------------

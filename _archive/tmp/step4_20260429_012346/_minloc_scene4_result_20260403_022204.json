@@ -1,0 +1,393 @@
+{
+  "tag": "20260403_022204",
+  "backup_cfg": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml.bak_minloc_20260403_022204",
+  "temp_cfg": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_022204.yaml",
+  "launcher_log": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_launcher_20260403_022204.log",
+  "snapshot_path": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_snapshot_20260403_022204.jpg",
+  "result_path": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_result_20260403_022204.json",
+  "core_variable": {
+    "scene_path_before": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "scene_path_after": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+  },
+  "launcher_ready": {
+    "isaac_state": "stopped",
+    "isaac_port": 18081,
+    "uptime_s": 0,
+    "ptz": null,
+    "config_path": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_022204.yaml",
+    "stream_config": {
+      "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+      "scene_basename": "scene_4diaolan_ptz.usda",
+      "camera_prim": "/World/CameraRig/CamTilt/Camera",
+      "rtsp_url": "rtsp://localhost:18554/ptz_cam",
+      "preview_enabled": false,
+      "read_error": null
+    },
+    "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+  },
+  "start_resp": {
+    "ok": true,
+    "ctrl_port": 18081,
+    "port_busy": false,
+    "existing_pid": -1,
+    "pid": 24074,
+    "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+    "action_taken": "spawned"
+  },
+  "ctrl_status": {
+    "pan": 0.0,
+    "tilt": -15.0,
+    "zoom": 1.5,
+    "stream": {
+      "role": "isaac_ptz_stream",
+      "config_file": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_022204.yaml",
+      "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+      "scene_basename": "scene_4diaolan_ptz.usda",
+      "camera_prim": "/World/CameraRig/CamTilt/Camera",
+      "stage_open_ok": true,
+      "open_stage_detail": "streaming_ready",
+      "camera_bound_ok": true,
+      "render_product": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x7875cd679690>",
+      "rtsp_enabled": true,
+      "rtsp_url": "rtsp://localhost:18554/ptz_cam",
+      "preview_enabled": false,
+      "resolution_wh": [
+        960,
+        540
+      ],
+      "control_base": "http://127.0.0.1:18081",
+      "mjpeg_url": "http://127.0.0.1:18081/stream.mjpeg",
+      "snapshot_url": "http://127.0.0.1:18081/snapshot.jpg",
+      "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+      "ffmpeg_alive": true,
+      "mediamtx_started": true,
+      "gondola_resolved_prim": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01",
+      "node1_resolved_prim": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/People_01",
+      "node2_resolved_prim": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/People_02",
+      "camera_rig_resolved_prim": "/World/CameraRig",
+      "gondola_init_height": 28.751162162125055,
+      "gondola_init_workers_visible": 3,
+      "gondola_init_relation": "diaolan_randomizer_managed",
+      "gondola_group1_source": "diaolan_randomizer",
+      "target_projection_metrics": {
+        "distance_to_camera": 70.58,
+        "frustum内可见": true,
+        "屏幕包围框px": [
+          392.68,
+          189.94,
+          468.4,
+          239.2
+        ],
+        "中心点px": [
+          430.54,
+          214.57
+        ],
+        "宽度占比%": 7.89,
+        "高度占比%": 9.12,
+        "越界面积占比": 0.0,
+        "中心在画面内": true,
+        "目标像素占比": 0.0072
+      }
+    },
+    "scene": {
+      "gondola_y": 28.751162162125055,
+      "workers": 2
+    }
+  },
+  "scene_describe": {
+    "active_path": "/World/Diaolan_Ver1_0_2026_07",
+    "model_path": "/World/Diaolan_Ver1_0_2026_07/Model",
+    "target_branch_path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01",
+    "camera_rig_path": "/World/CameraRig",
+    "camera_rig_translate_xyz": [
+      133.46,
+      -34.31,
+      6.86
+    ],
+    "worker_paths": [
+      "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/People_01",
+      "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/People_02"
+    ],
+    "model_children": [
+      "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01"
+    ],
+    "auxiliary_model_children": [],
+    "suspicious_named_paths": [],
+    "flat_candidate_paths": [
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/Group13/Group15/Group30",
+        "size_xyz": [
+          0.48,
+          0.0055,
+          0.4
+        ],
+        "thin_ratio": 0.01375,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/Group13/Group15/Group30/Mesh28",
+        "size_xyz": [
+          0.48,
+          0.0055,
+          0.4
+        ],
+        "thin_ratio": 0.01375,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/Group13/Group15/Group30/Mesh28/Mesh28",
+        "size_xyz": [
+          0.48,
+          0.0055,
+          0.4
+        ],
+        "thin_ratio": 0.01375,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_1",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_1/Group81",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_1/Group81/Mesh94",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_1/Group81/Mesh94/Mesh94",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_1",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_1/Group103",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_1/Group103/Mesh138",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_1/Group103/Mesh138/Mesh138",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_2",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_2/Group106",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_2/Group106/Mesh147",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_2/Group106/Mesh147/Mesh147",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_2",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_2/Group109",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_2/Group109/Mesh156",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_2/Group109/Mesh156/Mesh156",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_3",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_3/Group131",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_3/Group131/Mesh200",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Xform"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___86_3/Group131/Mesh200/Mesh200",
+        "size_xyz": [
+          1.498,
+          0.04,
+          0.909
+        ],
+        "thin_ratio": 0.044,
+        "type": "Mesh"
+      },
+      {
+        "path": "/World/Diaolan_Ver1_0_2026_07/Model/Diaolan_01/Diaolan/node___88_3",
+        "size_xyz": [
+          1.498,
+          0.04,
+          1.109
+        ],
+        "thin_ratio": 0.03607,
+        "type": "Xform"
+      }
+    ],
+    "scene_experiment": {
+      "active_hidden_paths": []
+    }
+  },
+  "evidence_lines": [],
+  "snapshot_attempts": [
+    {
+      "attempt": 1,
+      "url": "http://127.0.0.1:18081/snapshot.jpg",
+      "ok": false,
+      "error": "<HTTPError 503: 'Service Unavailable'>"
+    },
+    {
+      "attempt": 1,
+      "url": "http://127.0.0.1:18080/onvif-snap.jpg",
+      "ok": true,
+      "bytes": 4953
+    }
+  ],
+  "snapshot_ok": true,
+  "image_metrics": {
+    "file_kb": 4.8,
+    "mean_luma": 22.31,
+    "black_ratio": 0.0035,
+    "center_black": 0.0098,
+    "center_std": 7.97,
+    "center_edge_grad": 0.85
+  },
+  "stop_info": {
+    "stop_resp": {
+      "ok": true,
+      "stopping_pid": 24074
+    },
+    "returncode": -15
+  }
+}

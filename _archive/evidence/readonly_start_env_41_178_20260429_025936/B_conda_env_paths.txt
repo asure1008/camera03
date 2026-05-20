@@ -1,0 +1,9 @@
+=== B.1 ls envs ===
+total 8.0K
+drwxrwxr-x  2 uniubi uniubi 4.0K Mar 30 17:20 .
+drwxrwxr-x 21 uniubi uniubi 4.0K Mar 30 18:44 ..
+=== B.2 ls python3 path ===
+ls: cannot access '/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3': No such file or directory
+=== B.3 find python3 ===
+=== B.4 find dirs depth2 ===
+/home/uniubi/miniconda3/envs

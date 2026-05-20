@@ -1,0 +1,17 @@
+总样本数: 10
+各 scene_pattern 数量: {'single_airborne': 6, 'double_airborne': 4, 'all_ground': 0}
+各 basket_state 数量: {'ground_empty': 4, 'air_with_person': 14, 'ground_with_person': 2, 'unknown': 0}
+可视性状态计数: {'ok': 0, 'fail': 0, 'skip': 10}
+可视性 ok/fail 比例: 0/0
+可视性 failed_rule 计数: {}
+可视性 failed_rule 样本列表: {}
+可视性 fail 样本数: 0
+异常统计: {'schema_version': 'abnormal_v1', 'implemented_labels': ['person_count_abnormal', 'height_abnormal', 'dual_basket_risk'], 'requested': {'normal': 0, 'person_count_abnormal': 2, 'height_abnormal': 6, 'dual_basket_risk': 2, 'safety_violation_reserved': 0}, 'plan_size': 10, 'actual_distribution': {'normal': 0, 'person_count_abnormal': 2, 'height_abnormal': 6, 'dual_basket_risk': 2, 'safety_violation_reserved': 0}, 'actual_abnormal_count': 10, 'actual_abnormal_ratio': 1.0, 'legacy_missing_abnormal_label_count': 0}
+异常x可视性交叉统计: {'normal': {'ok': 0, 'fail': 0, 'skip': 0}, 'person_count_abnormal': {'ok': 0, 'fail': 0, 'skip': 2}, 'height_abnormal': {'ok': 0, 'fail': 0, 'skip': 6}, 'dual_basket_risk': {'ok': 0, 'fail': 0, 'skip': 2}, 'safety_violation_reserved': {'ok': 0, 'fail': 0, 'skip': 0}}
+异常/失败样本数: 0
+manifest: /home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/manifests/dataset_manifest_full.jsonl
+stats: /home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/stats/dataset_stats_full.json
+check_report: /home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/logs/dataset_check_report.json
+spotcheck_count: 10
+spotcheck_mode: fail-first
+spotcheck_path: /home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_hotfix_height_world_10/logs/spotcheck_samples.jsonl

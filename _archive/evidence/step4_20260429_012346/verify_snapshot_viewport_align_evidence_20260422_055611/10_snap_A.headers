@@ -1,0 +1,18 @@
+HTTP/1.0 200 OK
+Server: BaseHTTP/0.6 Python/3.11.14
+Date: Wed, 22 Apr 2026 05:57:24 GMT
+Content-Type: image/jpeg
+Content-Length: 80062
+Cache-Control: no-cache, no-store
+X-PTZ-Snapshot-Ready: 1
+X-PTZ-Snapshot-Frame-Id: 1
+X-PTZ-Snapshot-Pixel-Source: viewport_delegate
+X-PTZ-Snapshot-Viewport-Camera-Before: /OmniverseKit_Persp
+X-PTZ-Snapshot-Viewport-Camera-Target: /World/CameraRig/CamTilt/Camera
+X-PTZ-Snapshot-Viewport-Align-Applied: 1
+X-PTZ-Snapshot-Viewport-Restore-Ok: 1
+X-PTZ-Snapshot-Viewport-Restore-Skipped: 0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET,POST,OPTIONS
+Access-Control-Allow-Headers: Content-Type
+

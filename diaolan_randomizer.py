@@ -3,6 +3,7 @@ import random
 import math
 import re
 import yaml
+import copy
 from pxr import Usd, UsdGeom, UsdShade, Gf, Sdf
 
 _STARTUP_VIEW_INTERSECTION_RATIO_THRESHOLD = 0.15
@@ -245,18 +246,15 @@ def _find_target_prim_under_model(stage, gondola_root_path: str) -> str | None:
 
 
 def infer_world_diaolan_instance_root(prim_path: str) -> str | None:
-    """从任意位于 /World/Diaolan/<实例>/... 下的路径推断吊篮实例根路径。"""
+    """从任意位于 /World/<吊篮集群>/<实例>/... 下的路径推断吊篮实例根路径。"""
     s = str(prim_path or "").strip()
-    prefix = "/World/Diaolan/"
-    if not s.startswith(prefix):
+    parts = [x for x in s.strip("/").split("/") if x]
+    if len(parts) < 3 or parts[0] != "World":
         return None
-    rest = s[len(prefix):].lstrip("/")
-    if not rest:
+    cluster, inst = parts[1].strip(), parts[2].strip()
+    if not _is_diaolan_name(cluster) or not inst:
         return None
-    inst = rest.split("/", 1)[0].strip()
-    if not inst:
-        return None
-    return f"{prefix}{inst}".rstrip("/")
+    return f"/World/{cluster}/{inst}".rstrip("/")
 
 
 def _segment_is_logical_worker_anchor(seg: str) -> bool:
@@ -1092,22 +1090,26 @@ def summarize_diaolan_safety_components(stage, instance_root: str, workers_count
         "guardrail": {
             "has_hazard": g.get("has_hazard"),
             "reason": g.get("reason"),
+            "evidence": ge,
             "slots": ge.get("slots"),
         },
         "safety_rope": {
             "has_hazard": s.get("has_hazard"),
             "reason": s.get("reason"),
+            "evidence": se,
             "safety_rope_count": se.get("safety_rope_count"),
             "safety_rope_anchors": se.get("safety_rope_anchors"),
         },
         "limitstop": {
             "has_hazard": l.get("has_hazard"),
             "reason": l.get("reason"),
+            "evidence": le,
             "per_steel_rope_or_fallback": le.get("per_steel_rope_or_fallback"),
         },
         "fallarrestor": {
             "has_hazard": f.get("has_hazard"),
             "reason": f.get("reason"),
+            "evidence": fe,
             "fallarrestor_hit_count": fe.get("fallarrestor_hit_count"),
         },
     }
@@ -1185,25 +1187,34 @@ def randomize_active_diaolan_safety_components(
 
 def _standard_diaolan_cluster_instance_roots(stage) -> list[str]:
     """
-    新母场景：/World/Diaolan 下 9 台实例 Diaolan + Diaolan_01..08。
+    新母场景：/World/Diaolan、/World/Diaolan_01 等集群下各 9 台实例 Diaolan + Diaolan_01..08。
     若该结构不存在则返回空列表，回退到旧版 /World 直接子扫描。
     """
-    cluster = stage.GetPrimAtPath("/World/Diaolan")
-    if not cluster.IsValid():
+    world = stage.GetPrimAtPath("/World")
+    if not world.IsValid():
         return []
     ordered = ["Diaolan"] + [f"Diaolan_{i:02d}" for i in range(1, 9)]
     out: list[str] = []
-    for rel in ordered:
-        pth = f"/World/Diaolan/{rel}"
-        p = stage.GetPrimAtPath(pth)
-        if not p.IsValid():
+    for cluster in world.GetChildren():
+        if not _is_diaolan_name(cluster.GetName()):
             continue
-        model = stage.GetPrimAtPath(f"{pth}/Model")
-        if not model.IsValid():
+        cluster_path = cluster.GetPath().pathString.rstrip("/")
+        # 仅把“吊篮实例容器”当集群：子级应包含 Diaolan/Diaolan_XX 且实例下有 Model。
+        found_in_cluster = []
+        for rel in ordered:
+            pth = f"{cluster_path}/{rel}"
+            p = stage.GetPrimAtPath(pth)
+            if not p.IsValid():
+                continue
+            model = stage.GetPrimAtPath(f"{pth}/Model")
+            if not model.IsValid():
+                continue
+            if not any(True for d in Usd.PrimRange(model) if d.IsA(UsdGeom.Mesh)):
+                continue
+            found_in_cluster.append(pth)
+        if not found_in_cluster:
             continue
-        if not any(True for d in Usd.PrimRange(model) if d.IsA(UsdGeom.Mesh)):
-            continue
-        out.append(pth)
+        out.extend(found_in_cluster)
     return out
 
 
@@ -1240,7 +1251,7 @@ def scan_diaolan_prims(stage):
     cluster_roots = _standard_diaolan_cluster_instance_roots(stage)
     if cluster_roots:
         candidates = cluster_roots
-        print(f"[scan_diaolan_prims] cluster /World/Diaolan instances: {candidates}")
+        print(f"[scan_diaolan_prims] cluster /World/*Diaolan* instances: {candidates}")
     elif world is not None:
         children = list(world.GetChildren())
         for prim in children:
@@ -1818,6 +1829,8 @@ _WALL_HEIGHT_EPS = 1e-5
 _WALL_HEIGHT_PRIM_DEFAULT = "/World/JiKeng_ChangJing01/JiKeng_BeiJing/JiKeng_BeiJing/group1/Mesh267/Mesh267"
 _WALL_CONSTRAINT_XY_MARGIN_DEFAULT = 0.005
 _WALL_CONSTRAINT_Z_MARGIN_DEFAULT = 0.05
+_WALL_MOUNT_INSET_M_DEFAULT = 0.0
+_WALL_MOUNT_INSET_MODE_INWARD = "inward_from_wall_surface"
 _WALL_INSTALL_BAND_MAX_PARENT_STEPS = 6
 _WALL_INSTALL_BAND_MIN_HEIGHT = 2.0
 _WALL_INSTALL_BAND_MIN_LENGTH = 6.0
@@ -1827,6 +1840,9 @@ _WALL_MOUNT_TOP_PROXIMITY_MAX = 0.35
 _WALL_MOUNT_MIN_BOTTOM_CLEARANCE = 0.35
 _WALL_MOUNT_MIN_TOP_CLEARANCE = 0.6
 _WALL_MOUNT_NEIGHBOR_RADIUS = 30.0
+_WALL_MOUNT_TARGET_RADIUS = 95.0
+_WALL_MOUNT_FIRST_LAYER_TOLERANCE = 4.0
+_WALL_MOUNT_FIRST_LAYER_COMPONENT_GAP = 2.5
 _WALL_MOUNT_COMMON_HEIGHT_MARGIN = 0.12
 _WALL_MOUNT_FACE_KEYWORDS = (
     "wall",
@@ -1839,12 +1855,108 @@ _WALL_MOUNT_FACE_KEYWORDS = (
 _WALL_MOUNT_AGGREGATE_NAMES = ("world", "model")
 _WALL_MOUNT_AGGREGATE_PREFIXES = ("group",)
 
-# global_wall_candidates：以已知围墙 Mesh 为语义种子，仅在 JiKeng_BeiJing 围墙子树内枚举；
-# 不再使用 wall_collection_root_path=/World/JiKeng_ChangJing01 对整场景做 wall-like 放宽。
+# global_wall_candidates：只在 JiKeng_BeiJing 围墙子树内枚举，再围绕配置 seed 墙做近邻裁剪；
+# 不扩大到整场景，避免把楼体本身、机械设备、大门等 wall-like 几何加入相机候选池。
 _GLOBAL_WALL_SEMANTIC_SEED_MESH267_PATH = (
     "/World/JiKeng_ChangJing01/JiKeng_BeiJing/JiKeng_BeiJing/group1/Mesh267/Mesh267"
 )
 _GLOBAL_WALL_COLLECTION_ROOT_PATH = "/World/JiKeng_ChangJing01/JiKeng_BeiJing"
+_GLOBAL_WALL_COLLECTION_EXCLUDED_PREFIXES = ()
+
+
+def _coerce_wall_candidate_region(raw_region):
+    if not isinstance(raw_region, dict):
+        return None
+    if raw_region.get("enabled") is False:
+        return None
+
+    try:
+        if "min" in raw_region and "max" in raw_region:
+            mn = tuple(float(v) for v in raw_region.get("min"))
+            mx = tuple(float(v) for v in raw_region.get("max"))
+        else:
+            mn = (
+                float(raw_region.get("x_min")),
+                float(raw_region.get("y_min")),
+                float(raw_region.get("z_min")),
+            )
+            mx = (
+                float(raw_region.get("x_max")),
+                float(raw_region.get("y_max")),
+                float(raw_region.get("z_max")),
+            )
+    except Exception:
+        return None
+
+    if len(mn) != 3 or len(mx) != 3:
+        return None
+    region_min = tuple(min(float(mn[i]), float(mx[i])) for i in range(3))
+    region_max = tuple(max(float(mn[i]), float(mx[i])) for i in range(3))
+    if not all(math.isfinite(v) for v in (*region_min, *region_max)):
+        return None
+    if any(region_max[i] - region_min[i] < 0.0 for i in range(3)):
+        return None
+    return {
+        "enabled": True,
+        "min": region_min,
+        "max": region_max,
+        "source": str(raw_region.get("source") or "config_wall_candidate_region"),
+    }
+
+
+def _candidate_intersects_wall_candidate_region(candidate, region):
+    if region is None:
+        return True
+    cmin = candidate["min"]
+    cmax = candidate["max"]
+    rmin = region["min"]
+    rmax = region["max"]
+    return all(
+        float(cmax[i]) + _WALL_HEIGHT_EPS >= float(rmin[i])
+        and float(cmin[i]) - _WALL_HEIGHT_EPS <= float(rmax[i])
+        for i in range(3)
+    )
+
+
+def _filter_wall_candidate_region(candidates, raw_region):
+    region = _coerce_wall_candidate_region(raw_region)
+    diag = {
+        "applied": bool(region is not None),
+        "mode": "bbox_intersects_config_region",
+        "before_count": int(len(candidates or [])),
+        "after_count": int(len(candidates or [])),
+        "removed_count": 0,
+        "fallback_used": False,
+        "fallback_reason": None,
+        "region_min": None,
+        "region_max": None,
+        "source": None,
+    }
+    if region is None:
+        diag["fallback_reason"] = "missing_or_invalid_wall_candidate_region"
+        return candidates, diag
+
+    filtered = [
+        candidate for candidate in (candidates or [])
+        if _candidate_intersects_wall_candidate_region(candidate, region)
+    ]
+    diag.update({
+        "after_count": int(len(filtered)),
+        "removed_count": int(len(candidates or []) - len(filtered)),
+        "region_min": [round(float(v), 4) for v in region["min"]],
+        "region_max": [round(float(v), 4) for v in region["max"]],
+        "source": region["source"],
+    })
+    if not filtered:
+        diag["fallback_used"] = False
+        diag["fallback_reason"] = "wall_candidate_region_empty"
+    return filtered, diag
+
+
+def _prim_path_matches_prefix(path, prefix):
+    text = str(path or "")
+    pref = str(prefix or "").rstrip("/")
+    return bool(pref) and (text == pref or text.startswith(pref + "/"))
 
 
 def _resolve_global_wall_collection_root_from_mesh267(stage):
@@ -2064,6 +2176,7 @@ def _build_wall_mount_candidate(stage, prim, depth):
         'aggregate_name': aggregate_name,
         'forbidden_aggregate': forbidden_aggregate,
         'is_wall_like': is_wall_like,
+        'base_score': float(score),
         'score': float(score),
         'path_depth': _path_depth(info['prim_path']),
     }
@@ -2089,6 +2202,222 @@ def _round_bbox_signature(candidate):
 
 def _candidate_center(candidate):
     return tuple((float(candidate['min'][i]) + float(candidate['max'][i])) * 0.5 for i in range(3))
+
+
+def _coerce_world_bbox(raw_bbox):
+    if not isinstance(raw_bbox, dict):
+        return None
+    try:
+        mn = tuple(float(v) for v in raw_bbox.get("min"))
+        mx = tuple(float(v) for v in raw_bbox.get("max"))
+    except Exception:
+        return None
+    if len(mn) != 3 or len(mx) != 3:
+        return None
+    if not all(math.isfinite(v) for v in (*mn, *mx)):
+        return None
+    if any(mx[i] - mn[i] <= _WALL_HEIGHT_EPS for i in range(3)):
+        return None
+    return {
+        "min": mn,
+        "max": mx,
+        "prim_path": str(raw_bbox.get("prim_path") or raw_bbox.get("path") or "").strip() or None,
+    }
+
+
+def _interval_overlap_len(a_min, a_max, b_min, b_max):
+    return max(0.0, min(float(a_max), float(b_max)) - max(float(a_min), float(b_min)))
+
+
+def _interval_gap_len(a_min, a_max, b_min, b_max):
+    if float(a_max) < float(b_min):
+        return float(b_min) - float(a_max)
+    if float(b_max) < float(a_min):
+        return float(a_min) - float(b_max)
+    return 0.0
+
+
+def _candidate_xy_gap_to_bbox(candidate, bbox):
+    cmin = candidate["min"]
+    cmax = candidate["max"]
+    bmin = bbox["min"]
+    bmax = bbox["max"]
+    dx = _interval_gap_len(cmin[0], cmax[0], bmin[0], bmax[0])
+    dy = _interval_gap_len(cmin[1], cmax[1], bmin[1], bmax[1])
+    return float(math.hypot(dx, dy))
+
+
+def _candidate_xy_overlap_ratio_to_bbox(candidate, bbox):
+    cmin = candidate["min"]
+    cmax = candidate["max"]
+    bmin = bbox["min"]
+    bmax = bbox["max"]
+    length_axis = int(candidate.get("length_axis", 0))
+    other_axis = 1 - length_axis
+    length_span = max(_WALL_HEIGHT_EPS, float(cmax[length_axis] - cmin[length_axis]))
+    overlap_len = _interval_overlap_len(
+        cmin[length_axis],
+        cmax[length_axis],
+        bmin[length_axis],
+        bmax[length_axis],
+    )
+    thickness_gap = _interval_gap_len(
+        cmin[other_axis],
+        cmax[other_axis],
+        bmin[other_axis],
+        bmax[other_axis],
+    )
+    return float(overlap_len / length_span), float(thickness_gap), int(length_axis)
+
+
+def _candidate_xy_gap_between(a, b):
+    amin = a["min"]
+    amax = a["max"]
+    bmin = b["min"]
+    bmax = b["max"]
+    dx = _interval_gap_len(amin[0], amax[0], bmin[0], bmax[0])
+    dy = _interval_gap_len(amin[1], amax[1], bmin[1], bmax[1])
+    return float(math.hypot(dx, dy))
+
+
+def _candidate_z_overlap_sufficient(a, b):
+    amin = a["min"]
+    amax = a["max"]
+    bmin = b["min"]
+    bmax = b["max"]
+    overlap = _interval_overlap_len(amin[2], amax[2], bmin[2], bmax[2])
+    min_h = max(_WALL_HEIGHT_EPS, min(float(amax[2] - amin[2]), float(bmax[2] - bmin[2])))
+    required = min(0.35, max(0.12, min_h * 0.2))
+    return overlap >= required
+
+
+def _connected_wall_components(candidates, *, adjacency_gap=_WALL_MOUNT_FIRST_LAYER_COMPONENT_GAP):
+    total = len(candidates or [])
+    parent = list(range(total))
+
+    def find(idx):
+        while parent[idx] != idx:
+            parent[idx] = parent[parent[idx]]
+            idx = parent[idx]
+        return idx
+
+    def union(a, b):
+        ra = find(a)
+        rb = find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for i in range(total):
+        for j in range(i + 1, total):
+            if _candidate_xy_gap_between(candidates[i], candidates[j]) <= float(adjacency_gap):
+                if _candidate_z_overlap_sufficient(candidates[i], candidates[j]):
+                    union(i, j)
+
+    grouped = {}
+    for idx in range(total):
+        grouped.setdefault(find(idx), []).append(idx)
+    return list(grouped.values())
+
+
+def _filter_first_layer_wall_candidates(candidates, target_context_bbox, components=None):
+    bbox = _coerce_world_bbox(target_context_bbox)
+    diag = {
+        "applied": False,
+        "mode": "exclude_connected_first_rectangle",
+        "source_prim_path": None,
+        "before_count": int(len(candidates or [])),
+        "after_count": int(len(candidates or [])),
+        "fallback_used": False,
+        "fallback_reason": None,
+        "component_count": 0,
+        "kept_component_count": 0,
+        "nearest_distance": None,
+        "tolerance": None,
+        "component_adjacency_gap": float(_WALL_MOUNT_FIRST_LAYER_COMPONENT_GAP),
+    }
+    if not candidates or bbox is None:
+        diag["fallback_reason"] = "missing_target_context_bbox" if bbox is None else "empty_candidates"
+        return candidates, diag
+
+    bmin = bbox["min"]
+    bmax = bbox["max"]
+    bspan = tuple(float(bmax[i] - bmin[i]) for i in range(3))
+    anchor_horizontal_span = max(float(bspan[0]), float(bspan[1]), _WALL_HEIGHT_EPS)
+    tolerance = max(6.0, min(14.0, anchor_horizontal_span * 0.15))
+    components = components if components is not None else _connected_wall_components(candidates)
+    if not components:
+        diag["fallback_used"] = True
+        diag["fallback_reason"] = "no_connected_components"
+        return candidates, diag
+
+    component_rows = []
+    for comp_idx, indices in enumerate(components):
+        distances = [_candidate_xy_gap_to_bbox(candidates[idx], bbox) for idx in indices]
+        nearest = min(distances) if distances else float("inf")
+        component_rows.append((float(nearest), comp_idx, indices))
+
+    nearest_distance = min(row[0] for row in component_rows)
+    keep_distance_max = nearest_distance + tolerance
+    keep_component_ids = {comp_idx for dist, comp_idx, _indices in component_rows if dist <= keep_distance_max}
+    first_component_idx = {idx for _dist, comp_idx, indices in component_rows if comp_idx in keep_component_ids for idx in indices}
+    first_component_count = len(first_component_idx)
+    rectangle_margin = max(1.0, min(4.0, anchor_horizontal_span * 0.08))
+    overlap_min_ratio = 0.35
+    remove_idx = set()
+    kept_in_problem_component = 0
+    for idx in first_component_idx:
+        candidate = candidates[idx]
+        overlap_ratio, thickness_gap, length_axis = _candidate_xy_overlap_ratio_to_bbox(candidate, bbox)
+        center = _candidate_center(candidate)
+        inside_length_band = (
+            float(bmin[length_axis]) - rectangle_margin
+            <= float(center[length_axis])
+            <= float(bmax[length_axis]) + rectangle_margin
+        )
+        if overlap_ratio >= overlap_min_ratio or inside_length_band:
+            remove_idx.add(idx)
+            candidate["first_layer_rectangle_overlap_ratio"] = float(overlap_ratio)
+            candidate["first_layer_rectangle_thickness_gap"] = float(thickness_gap)
+            candidate["first_layer_rectangle_length_axis"] = int(length_axis)
+        else:
+            kept_in_problem_component += 1
+    filtered_with_idx = [(idx, c) for idx, c in enumerate(candidates) if idx not in remove_idx]
+    filtered = [c for _idx, c in filtered_with_idx]
+    if not filtered:
+        diag["fallback_used"] = True
+        diag["fallback_reason"] = "exclude_connected_first_rectangle_empty"
+        return candidates, diag
+
+    distance_by_idx = {}
+    comp_by_idx = {}
+    for dist, comp_idx, indices in component_rows:
+        for idx in indices:
+            distance_by_idx[idx] = float(dist)
+            comp_by_idx[idx] = int(comp_idx)
+
+    for original_idx, candidate in filtered_with_idx:
+        candidate["first_layer_wall_component"] = int(comp_by_idx.get(original_idx, -1))
+        candidate["first_layer_wall_gap"] = float(distance_by_idx.get(original_idx, 0.0))
+
+    diag.update({
+        "applied": True,
+        "source_prim_path": bbox.get("prim_path"),
+        "anchor_horizontal_span": round(float(anchor_horizontal_span), 4),
+        "after_count": int(len(filtered)),
+        "component_count": int(len(components)),
+        "kept_component_count": int(len(keep_component_ids)),
+        "first_component_candidate_count": int(first_component_count),
+        "removed_count": int(len(remove_idx)),
+        "kept_in_problem_component_count": int(kept_in_problem_component),
+        "rectangle_margin": round(float(rectangle_margin), 4),
+        "rectangle_overlap_min_ratio": round(float(overlap_min_ratio), 4),
+        "rectangle_bbox_min": [round(float(v), 4) for v in bmin],
+        "rectangle_bbox_max": [round(float(v), 4) for v in bmax],
+        "nearest_distance": round(float(nearest_distance), 4),
+        "tolerance": round(float(tolerance), 4),
+        "component_distance_cutoff": round(float(keep_distance_max), 4),
+    })
+    return filtered, diag
 
 
 def _candidate_has_mesh_descendants(stage, prim_path):
@@ -2125,8 +2454,190 @@ def _group_hint_from_path(path):
     return "/".join([g for g in m.groups() if g])
 
 
-def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, wall_collection_root_path=None):
+_WALL_CANDIDATE_POOL_CACHE = {}
+
+
+def clear_wall_mount_candidate_cache():
+    _WALL_CANDIDATE_POOL_CACHE.clear()
+
+
+def _stage_cache_key(stage):
+    root = stage.GetRootLayer() if stage else None
+    return str(getattr(root, "identifier", "") or id(stage))
+
+
+def _wall_pool_cache_key(stage, wall_path, mode, wall_collection_root_path, target_world_xyz=None, target_context_bbox=None, wall_candidate_region=None):
+    # The candidate base pool is independent from the current gondola/building
+    # anchor. Target scoring and first-rectangle filtering are applied after
+    # cache retrieval.
+    region = _coerce_wall_candidate_region(wall_candidate_region)
+    region_key = None if region is None else (
+        tuple(round(float(v), 6) for v in region["min"]),
+        tuple(round(float(v), 6) for v in region["max"]),
+    )
+    return (
+        _stage_cache_key(stage),
+        str(wall_path or ""),
+        str(mode or ""),
+        str(wall_collection_root_path or ""),
+        region_key,
+    )
+
+
+def _candidate_pool_signature(pool):
+    return {
+        "root": pool.get("collection_root"),
+        "resolved_global_wall_root": pool.get("resolved_global_wall_root"),
+        "candidate_count": int(len(pool.get("candidates") or [])),
+        "scanned_mesh_count": int(pool.get("scanned_mesh_count") or 0),
+    }
+
+
+def _collection_root_signature(stage, pool):
+    path = str(pool.get("collection_root") or pool.get("resolved_global_wall_root") or "")
+    prim = stage.GetPrimAtPath(path) if path else None
+    if not prim or not prim.IsValid():
+        return None
+    mesh_count = 0
+    for p in Usd.PrimRange(prim):
+        if p.IsA(UsdGeom.Mesh):
+            mesh_count += 1
+    return (path, mesh_count)
+
+
+def _wall_pool_cache_valid(stage, pool):
+    return bool(pool.get("_stage_cache_key") == _stage_cache_key(stage))
+
+
+def _apply_first_layer_filter_to_pool(pool, target_context_bbox, target_world_xyz=None):
+    out = copy.deepcopy(pool)
+    base_candidates = copy.deepcopy(out.get("_base_candidates") or out.get("candidates") or [])
+    _update_wall_candidate_target_metrics(
+        base_candidates,
+        out.get("_sample_center"),
+        out.get("_seed_filter_applied_for_base"),
+        target_world_xyz,
+    )
+    if str(out.get("wall_collection_mode") or "").strip().lower() == "global_wall_candidates":
+        filtered_raw, first_layer_filter = _filter_first_layer_wall_candidates(
+            base_candidates,
+            target_context_bbox,
+            components=out.get("_base_components"),
+        )
+        filtered, dedup_count = _dedup_and_sort_wall_candidates(filtered_raw)
+        first_layer_filter["after_dedup_count"] = int(dedup_count)
+    else:
+        filtered = base_candidates
+        first_layer_filter = {
+            "applied": False,
+            "before_count": int(len(base_candidates)),
+            "after_count": int(len(base_candidates)),
+        }
+    out["candidates"] = filtered
+    out["first_layer_filter"] = first_layer_filter
+    out["final_candidate_count"] = int(len(filtered))
+    out["common_height_min"], out["common_height_max"] = _wall_candidate_common_height_range(filtered)
+    return out
+
+
+def _update_wall_candidate_target_metrics(candidates, sample_center, seed_filter_applied, target_world_xyz):
+    target_xy = None
+    try:
+        if target_world_xyz is not None:
+            target_xy = (float(target_world_xyz[0]), float(target_world_xyz[1]))
+    except Exception:
+        target_xy = None
+    for candidate in candidates or []:
+        center = _candidate_center(candidate)
+        horizontal_dist = 0.0
+        try:
+            if sample_center is not None:
+                horizontal_dist = math.hypot(
+                    center[0] - float(sample_center[0]),
+                    center[1] - float(sample_center[1]),
+                )
+        except Exception:
+            horizontal_dist = 0.0
+        target_horizontal_dist = None
+        if target_xy is not None:
+            target_horizontal_dist = math.hypot(center[0] - target_xy[0], center[1] - target_xy[1])
+        candidate['horizontal_distance_to_sample'] = float(horizontal_dist if seed_filter_applied else 0.0)
+        candidate['horizontal_distance_to_target'] = None if target_horizontal_dist is None else float(target_horizontal_dist)
+        base_score = float(candidate.get('base_score', candidate.get('score', 0.0)))
+        if seed_filter_applied:
+            candidate['score'] = float(base_score - horizontal_dist * 0.06)
+        elif target_horizontal_dist is not None:
+            candidate['score'] = float(base_score - target_horizontal_dist * 0.015)
+        else:
+            candidate['score'] = base_score
+
+
+def _dedup_and_sort_wall_candidates(candidates):
+    dedup = {}
+    for candidate in candidates or []:
+        signature = _round_bbox_signature(candidate)
+        existing = dedup.get(signature)
+        if existing is None or (
+            candidate['path_depth'] > existing['path_depth']
+            or (candidate['path_depth'] == existing['path_depth'] and candidate['score'] > existing['score'])
+        ):
+            dedup[signature] = candidate
+    sorted_candidates = sorted(
+        dedup.values(),
+        key=lambda c: (
+            -c['score'],
+            c.get('horizontal_distance_to_target')
+                if c.get('horizontal_distance_to_target') is not None
+                else c.get('horizontal_distance_to_sample', 0.0),
+            -c['path_depth'],
+            c['prim_path'],
+        ),
+    )
+    return sorted_candidates, len(dedup)
+
+
+def _wall_candidate_common_height_range(candidates):
+    lows = []
+    highs = []
+    for candidate in candidates or []:
+        spans = candidate['spans']
+        bottom_clearance = max(_WALL_CONSTRAINT_Z_MARGIN_DEFAULT, min(_WALL_MOUNT_MIN_BOTTOM_CLEARANCE, spans[2] * 0.15))
+        top_clearance = max(_WALL_MOUNT_MIN_TOP_CLEARANCE, min(1.4, spans[2] * 0.28))
+        low = float(candidate['min'][2] + bottom_clearance)
+        high = float(candidate['max'][2] - top_clearance)
+        if high - low > _WALL_HEIGHT_EPS:
+            lows.append(low)
+            highs.append(high)
+    if not lows or not highs:
+        return None, None
+    common_min = max(lows) - _WALL_MOUNT_COMMON_HEIGHT_MARGIN
+    common_max = min(highs) + _WALL_MOUNT_COMMON_HEIGHT_MARGIN
+    if common_max - common_min <= _WALL_HEIGHT_EPS:
+        common_min = min(lows)
+        common_max = max(highs)
+    return float(common_min), float(common_max)
+
+
+def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, wall_collection_root_path=None, wall_pool_cache=None, target_world_xyz=None, target_context_bbox=None, wall_candidate_region=None):
     mode = str(wall_collection_mode or "semantic_parent").strip().lower() or "semantic_parent"
+    request_cache = isinstance(wall_pool_cache, dict)
+    cache = wall_pool_cache if request_cache else _WALL_CANDIDATE_POOL_CACHE
+    cache_key = _wall_pool_cache_key(
+        stage,
+        wall_path,
+        mode,
+        wall_collection_root_path,
+        target_world_xyz,
+        target_context_bbox,
+        wall_candidate_region,
+    )
+    cached = cache.get(cache_key)
+    if isinstance(cached, dict) and (request_cache or _wall_pool_cache_valid(stage, cached)):
+        pool = _apply_first_layer_filter_to_pool(cached, target_context_bbox, target_world_xyz=target_world_xyz)
+        pool["cache_hit"] = True
+        pool["cache_signature"] = _candidate_pool_signature(pool)
+        return pool
+
     sample_candidate = _build_wall_mount_candidate(stage, stage.GetPrimAtPath(wall_path), 0)
     semantic_seed = _resolve_wall_semantic_seed(stage, wall_path)
     semantic_seed_prim = stage.GetPrimAtPath(semantic_seed['prim_path'])
@@ -2153,14 +2664,20 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
                 'wall_candidates_total_scanned': 0,
                 'wall_candidates_after_valid_filter': 0,
                 'wall_candidates_after_mode_filter': 0,
+                'wall_candidates_excluded_by_prefix': 0,
                 'scanned_mesh_count': 0,
                 'wall_semantic_candidate_count': 0,
                 'valid_wall_candidate_count': 0,
                 'final_candidate_count': 0,
                 'collection_root': _GLOBAL_WALL_COLLECTION_ROOT_PATH,
+                'excluded_wall_candidate_prefixes': list(_GLOBAL_WALL_COLLECTION_EXCLUDED_PREFIXES),
                 'candidates': [],
                 'common_height_min': None,
                 'common_height_max': None,
+                'wall_candidate_region_filter': {
+                    "applied": False,
+                    "fallback_reason": "global_wall_root_unresolved",
+                },
             }
         fallback_reason = None
     elif mode == "explicit_root_local":
@@ -2183,15 +2700,30 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
     sample_height = max(sample_candidate['height_span'], _WALL_HEIGHT_EPS)
     sample_length = max(sample_candidate['length_span'], _WALL_HEIGHT_EPS)
     sample_thickness = max(sample_candidate['thickness_span'], _WALL_HEIGHT_EPS)
-    seed_filter_applied = mode != "global_wall_candidates"
-    dedup = {}
+    target_xy = None
+    try:
+        if target_world_xyz is not None:
+            target_xy = (float(target_world_xyz[0]), float(target_world_xyz[1]))
+    except Exception:
+        target_xy = None
+    has_first_layer_context = mode == "global_wall_candidates" and _coerce_world_bbox(target_context_bbox) is not None
+    seed_filter_applied = not (mode == "global_wall_candidates" and (target_xy is not None or has_first_layer_context))
+    candidates_raw = []
     total_scanned = 0
     scanned_mesh_count = 0
     valid_filter_count = 0
     mode_filter_count = 0
+    excluded_by_prefix_count = 0
 
     for prim in Usd.PrimRange(collection_root):
         if prim == collection_root:
+            continue
+        prim_path = prim.GetPath().pathString
+        if mode == "global_wall_candidates" and any(
+            _prim_path_matches_prefix(prim_path, prefix)
+            for prefix in _GLOBAL_WALL_COLLECTION_EXCLUDED_PREFIXES
+        ):
+            excluded_by_prefix_count += 1
             continue
         total_scanned += 1
         if prim.IsA(UsdGeom.Mesh):
@@ -2206,6 +2738,8 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
             if "empty world bbox" in str(exc):
                 continue
             raise
+        if any(float(span) <= _WALL_HEIGHT_EPS for span in candidate['spans']):
+            continue
         if candidate['aggregate_name'] or candidate['forbidden_aggregate']:
             continue
         if not _candidate_has_mesh_descendants(stage, candidate['prim_path']) and not candidate['is_mesh']:
@@ -2231,6 +2765,9 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
         valid_filter_count += 1
         center = _candidate_center(candidate)
         horizontal_dist = math.hypot(center[0] - sample_center[0], center[1] - sample_center[1])
+        target_horizontal_dist = None
+        if target_xy is not None:
+            target_horizontal_dist = math.hypot(center[0] - target_xy[0], center[1] - target_xy[1])
         if seed_filter_applied:
             if horizontal_dist > _WALL_MOUNT_NEIGHBOR_RADIUS:
                 continue
@@ -2242,34 +2779,52 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
                 continue
             if candidate['thickness_span'] > max(sample_thickness * 24.0, 0.4):
                 continue
+        elif target_horizontal_dist is not None and not has_first_layer_context:
+            if target_horizontal_dist > _WALL_MOUNT_TARGET_RADIUS:
+                continue
         mode_filter_count += 1
         candidate['horizontal_distance_to_sample'] = float(horizontal_dist if seed_filter_applied else 0.0)
+        candidate['horizontal_distance_to_target'] = None if target_horizontal_dist is None else float(target_horizontal_dist)
         candidate['collection_root'] = collection_root.GetPath().pathString
         candidate['semantic_seed_path'] = semantic_seed['prim_path']
         candidate['sample_wall_path'] = wall_path
         if seed_filter_applied:
             candidate['score'] = float(candidate['score'] - horizontal_dist * 0.06)
-        signature = _round_bbox_signature(candidate)
-        existing = dedup.get(signature)
-        if existing is None or (
-            candidate['path_depth'] > existing['path_depth']
-            or (candidate['path_depth'] == existing['path_depth'] and candidate['score'] > existing['score'])
-        ):
-            dedup[signature] = candidate
+        elif target_horizontal_dist is not None:
+            candidate['score'] = float(candidate['score'] - target_horizontal_dist * 0.015)
+        candidates_raw.append(candidate)
 
-    candidates = sorted(
-        dedup.values(),
-        key=lambda c: (-c['score'], c['horizontal_distance_to_sample'], -c['path_depth'], c['prim_path']),
+    candidates_raw, wall_candidate_region_filter = _filter_wall_candidate_region(
+        candidates_raw,
+        wall_candidate_region,
     )
-    valid_wall_candidate_count = len(dedup)
+    candidates, valid_wall_candidate_count = _dedup_and_sort_wall_candidates(candidates_raw)
+    first_layer_filter = {
+        "applied": False,
+        "before_count": int(len(candidates_raw)),
+        "after_count": int(len(candidates_raw)),
+    }
+    base_candidates = copy.deepcopy(candidates_raw if mode == "global_wall_candidates" else candidates)
+    base_components = _connected_wall_components(base_candidates) if mode == "global_wall_candidates" else None
+    if mode == "global_wall_candidates":
+        candidates_raw, first_layer_filter = _filter_first_layer_wall_candidates(
+            copy.deepcopy(base_candidates),
+            target_context_bbox,
+            components=base_components,
+        )
+        candidates, valid_wall_candidate_count = _dedup_and_sort_wall_candidates(candidates_raw)
+        first_layer_filter["after_dedup_count"] = int(valid_wall_candidate_count)
+
     fallback_used = False
     if not candidates:
         if mode == "global_wall_candidates":
             empty_detail = (
                 f"global_wall_candidates_empty:resolved_root={collection_root.GetPath().pathString};"
                 f"prim_scanned={total_scanned};mesh_scanned={scanned_mesh_count};"
-                f"wall_semantic={valid_filter_count};after_neighbor_filter={mode_filter_count};"
-                f"dedup_unique={valid_wall_candidate_count};no_mesh267_fallback"
+                f"excluded_prefixes={list(_GLOBAL_WALL_COLLECTION_EXCLUDED_PREFIXES)};"
+                f"excluded_by_prefix={excluded_by_prefix_count};"
+                f"wall_semantic={valid_filter_count};after_mode_filter={mode_filter_count};"
+                f"dedup_unique={valid_wall_candidate_count};no_jikeng_beijing_fallback"
             )
             print(f"[wall-constraint] ERROR: {empty_detail}")
             fallback_reason = empty_detail
@@ -2284,36 +2839,21 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
             fallback_reason = prefix + "empty_pool_fallback_semantic_seed"
             fallback_used = True
 
-    candidate_height_lows = []
-    candidate_height_highs = []
-    for candidate in candidates:
-        spans = candidate['spans']
-        bottom_clearance = max(_WALL_CONSTRAINT_Z_MARGIN_DEFAULT, min(_WALL_MOUNT_MIN_BOTTOM_CLEARANCE, spans[2] * 0.15))
-        top_clearance = max(_WALL_MOUNT_MIN_TOP_CLEARANCE, min(1.4, spans[2] * 0.28))
-        low = float(candidate['min'][2] + bottom_clearance)
-        high = float(candidate['max'][2] - top_clearance)
-        if high - low > _WALL_HEIGHT_EPS:
-            candidate_height_lows.append(low)
-            candidate_height_highs.append(high)
-
-    common_height_min = None
-    common_height_max = None
-    if candidate_height_lows and candidate_height_highs:
-        common_height_min = max(candidate_height_lows) - _WALL_MOUNT_COMMON_HEIGHT_MARGIN
-        common_height_max = min(candidate_height_highs) + _WALL_MOUNT_COMMON_HEIGHT_MARGIN
-        if common_height_max - common_height_min <= _WALL_HEIGHT_EPS:
-            common_height_min = min(candidate_height_lows)
-            common_height_max = max(candidate_height_highs)
+    common_height_min, common_height_max = _wall_candidate_common_height_range(candidates)
 
     resolved_global_wall_root = None
     if mode == "global_wall_candidates" and collection_root and collection_root.IsValid():
         resolved_global_wall_root = collection_root.GetPath().pathString
 
-    return {
+    pool = {
         'wall_collection_mode': mode,
         'sample_candidate': sample_candidate,
         'semantic_seed': semantic_seed,
         'seed_filter_applied': bool(seed_filter_applied),
+        'target_filter_applied': bool((not seed_filter_applied) and target_xy is not None),
+        'target_filter_radius': float(_WALL_MOUNT_TARGET_RADIUS),
+        'wall_candidate_region_filter': wall_candidate_region_filter,
+        'first_layer_filter': first_layer_filter,
         'fallback_reason': fallback_reason,
         'fallback_used': bool(fallback_used),
         'global_root_resolve_tag': global_root_resolve_tag,
@@ -2321,15 +2861,29 @@ def _collect_wall_mount_candidates(stage, wall_path, wall_collection_mode=None, 
         'wall_candidates_total_scanned': int(total_scanned),
         'wall_candidates_after_valid_filter': int(valid_filter_count),
         'wall_candidates_after_mode_filter': int(mode_filter_count),
+        'wall_candidates_excluded_by_prefix': int(excluded_by_prefix_count),
         'scanned_mesh_count': int(scanned_mesh_count),
         'wall_semantic_candidate_count': int(valid_filter_count),
         'valid_wall_candidate_count': int(valid_wall_candidate_count),
         'final_candidate_count': int(len(candidates)),
         'collection_root': collection_root.GetPath().pathString,
+        'excluded_wall_candidate_prefixes': list(_GLOBAL_WALL_COLLECTION_EXCLUDED_PREFIXES)
+            if mode == "global_wall_candidates" else [],
         'candidates': candidates,
+        '_base_candidates': base_candidates,
         'common_height_min': None if common_height_min is None else float(common_height_min),
         'common_height_max': None if common_height_max is None else float(common_height_max),
+        'cache_hit': False,
+        '_stage_cache_key': _stage_cache_key(stage),
+        '_sample_center': sample_center,
+        '_seed_filter_applied_for_base': bool(seed_filter_applied),
+        '_base_components': base_components,
     }
+    pool['_collection_root_signature'] = None
+    pool['cache_signature'] = _candidate_pool_signature(pool)
+    if request_cache or pool.get('_stage_cache_key'):
+        cache[cache_key] = copy.deepcopy(pool)
+    return pool
 
 
 def _compute_wall_mount_validation(camera_world_xyz, install_surface):
@@ -2384,12 +2938,45 @@ def _compute_wall_mount_validation(camera_world_xyz, install_surface):
     }
 
 
-def _select_wall_mount_reference(stage, wall_path, rng, wall_collection_mode=None, wall_collection_root_path=None):
+def _compute_inset_wall_mount_validation(camera_world_xyz, install_surface, inset_meta):
+    if not bool(inset_meta.get("enabled")):
+        return False, {
+            "inset_actual_distance_to_wall_surface": None,
+            "inset_distance_error": None,
+            "on_inset_side": False,
+        }
+    thickness_axis = int(install_surface["thickness_axis"])
+    surface_side_sign = int(install_surface.get("surface_side_sign", 1) or 1)
+    surface_plane_coord = float(install_surface["surface_plane_coord"])
+    actual_coord = float(camera_world_xyz[thickness_axis])
+    actual_distance = abs(actual_coord - surface_plane_coord)
+    expected_distance = float(inset_meta.get("wall_mount_inset_m") or 0.0)
+    tolerance = max(0.02, expected_distance * 0.08)
+    on_inset_side = (
+        actual_coord >= surface_plane_coord + _WALL_HEIGHT_EPS
+        if surface_side_sign > 0
+        else actual_coord <= surface_plane_coord - _WALL_HEIGHT_EPS
+    )
+    distance_ok = abs(actual_distance - expected_distance) <= tolerance
+    valid = bool(on_inset_side and distance_ok)
+    return valid, {
+        "inset_actual_distance_to_wall_surface": float(actual_distance),
+        "inset_distance_error": float(actual_distance - expected_distance),
+        "inset_distance_tolerance": float(tolerance),
+        "on_inset_side": bool(on_inset_side),
+    }
+
+
+def _select_wall_mount_reference(stage, wall_path, rng, wall_collection_mode=None, wall_collection_root_path=None, wall_pool_cache=None, target_world_xyz=None, target_context_bbox=None, wall_candidate_region=None):
     wall_pool = _collect_wall_mount_candidates(
         stage,
         wall_path,
         wall_collection_mode=wall_collection_mode,
         wall_collection_root_path=wall_collection_root_path,
+        wall_pool_cache=wall_pool_cache,
+        target_world_xyz=target_world_xyz,
+        target_context_bbox=target_context_bbox,
+        wall_candidate_region=wall_candidate_region,
     )
     candidates = wall_pool['candidates']
     print(
@@ -2411,6 +2998,10 @@ def _select_wall_mount_reference(stage, wall_path, rng, wall_collection_mode=Non
         f"semantic_seed={wall_pool['semantic_seed']['prim_path']} "
         f"collection_root={wall_pool['collection_root']} "
         f"seed_filter_applied={wall_pool.get('seed_filter_applied')} "
+        f"target_filter_applied={wall_pool.get('target_filter_applied')} "
+        f"target_filter_radius={wall_pool.get('target_filter_radius')} "
+        f"wall_candidate_region_filter={wall_pool.get('wall_candidate_region_filter')} "
+        f"first_layer_filter={wall_pool.get('first_layer_filter')} "
         f"wall_candidates_total_scanned={wall_pool.get('wall_candidates_total_scanned')} "
         f"scanned_mesh_count={wall_pool.get('scanned_mesh_count')} "
         f"wall_semantic_candidate_count={wall_pool.get('wall_semantic_candidate_count')} "
@@ -2418,7 +3009,10 @@ def _select_wall_mount_reference(stage, wall_path, rng, wall_collection_mode=Non
         f"final_candidate_count={wall_pool.get('final_candidate_count')} "
         f"wall_candidates_after_valid_filter={wall_pool.get('wall_candidates_after_valid_filter')} "
         f"wall_candidates_after_mode_filter={wall_pool.get('wall_candidates_after_mode_filter')} "
+        f"wall_candidates_excluded_by_prefix={wall_pool.get('wall_candidates_excluded_by_prefix')} "
+        f"excluded_wall_candidate_prefixes={wall_pool.get('excluded_wall_candidate_prefixes')} "
         f"candidate_count={len(candidates)} "
+        f"cache_hit={wall_pool.get('cache_hit')} "
         f"fallback_used={wall_pool.get('fallback_used')} "
         f"fallback_reason={wall_pool.get('fallback_reason')} "
         f"common_height_range={ch_range}"
@@ -2433,6 +3027,8 @@ def _select_wall_mount_reference(stage, wall_path, rng, wall_collection_mode=Non
             f"wall_semantic_candidate_count={wall_pool.get('wall_semantic_candidate_count')} "
             f"valid_wall_candidate_count={wall_pool.get('valid_wall_candidate_count')} "
             f"final_candidate_count={wall_pool.get('final_candidate_count')} "
+            f"wall_candidates_excluded_by_prefix={wall_pool.get('wall_candidates_excluded_by_prefix')} "
+            f"excluded_wall_candidate_prefixes={wall_pool.get('excluded_wall_candidate_prefixes')} "
             f"fallback_used={wall_pool.get('fallback_used')} "
             f"fallback_reason={wall_pool.get('fallback_reason')}"
         )
@@ -2603,8 +3199,92 @@ def _sample_point_in_wall_install_band(rng, install_band, target_world_xyz=None)
                 continue
         coords[axis] = rng.uniform(box_min[axis], box_max[axis])
 
-    coords[thickness_axis] = rng.uniform(box_min[thickness_axis], box_max[thickness_axis])
+    surface_offset = abs(float(install_band.get('surface_offset', 0.0) or 0.0))
+    if surface_offset > _WALL_HEIGHT_EPS:
+        min_surface_clearance = min(surface_offset, max(0.03, surface_offset * 0.45))
+        if int(install_band.get('surface_side_sign', 1)) > 0:
+            lo = min(
+                box_max[thickness_axis],
+                float(install_band['surface_plane_coord']) + min_surface_clearance,
+            )
+            hi = box_max[thickness_axis]
+        else:
+            lo = box_min[thickness_axis]
+            hi = max(
+                box_min[thickness_axis],
+                float(install_band['surface_plane_coord']) - min_surface_clearance,
+            )
+        if hi - lo > _WALL_HEIGHT_EPS:
+            coords[thickness_axis] = rng.uniform(lo, hi)
+            notes.append(
+                f"surface_clearance_axis={thickness_axis} min={min_surface_clearance:.4f} range=[{lo:.4f},{hi:.4f}]"
+            )
+        else:
+            coords[thickness_axis] = rng.uniform(box_min[thickness_axis], box_max[thickness_axis])
+    else:
+        coords[thickness_axis] = rng.uniform(box_min[thickness_axis], box_max[thickness_axis])
     return tuple(float(v) for v in coords), notes
+
+
+def _normalize_wall_mount_inset_mode(raw_mode):
+    mode = str(raw_mode or "").strip().lower()
+    if mode in ("", "disabled", "off", "strict_wall_surface_attach"):
+        return ""
+    if mode == _WALL_MOUNT_INSET_MODE_INWARD:
+        return mode
+    print(
+        f"[wall-constraint] WARN: invalid wall_mount_inset_mode={raw_mode!r}; "
+        "fallback=strict_wall_surface_attach"
+    )
+    return ""
+
+
+def _apply_inward_wall_mount_inset(sampled_world_xyz, install_band, wall_mount_inset_m, wall_mount_inset_mode):
+    inset_m = _normalize_margin_value(
+        wall_mount_inset_m, _WALL_MOUNT_INSET_M_DEFAULT, "wall_mount_inset_m"
+    )
+    mode = _normalize_wall_mount_inset_mode(wall_mount_inset_mode)
+    meta = {
+        "enabled": bool(mode == _WALL_MOUNT_INSET_MODE_INWARD and inset_m > _WALL_HEIGHT_EPS),
+        "mode": mode,
+        "wall_mount_inset_m": float(inset_m),
+        "inset_direction_axis": None,
+        "inset_direction_sign": None,
+        "inset_wall_mount_valid": False,
+        "fallback_used": False,
+        "fallback_reason": None,
+    }
+    if not meta["enabled"]:
+        meta["fallback_reason"] = "wall_mount_inset_disabled"
+        return sampled_world_xyz, meta
+
+    coords = [float(v) for v in sampled_world_xyz]
+    thickness_axis = int(install_band["thickness_axis"])
+    raw_min = install_band["raw_min"]
+    raw_max = install_band["raw_max"]
+    surface_side_sign = int(install_band.get("surface_side_sign", 1) or 1)
+    inward_sign = 1 if surface_side_sign > 0 else -1
+    surface_plane_coord = float(install_band["surface_plane_coord"])
+    inset_coord = surface_plane_coord + inward_sign * inset_m
+
+    inside_wall_thickness = (
+        float(raw_min[thickness_axis]) + _WALL_HEIGHT_EPS
+        < inset_coord
+        < float(raw_max[thickness_axis]) - _WALL_HEIGHT_EPS
+    )
+    if inside_wall_thickness:
+        meta["enabled"] = False
+        meta["fallback_used"] = True
+        meta["fallback_reason"] = "inset_coord_inside_wall_bbox"
+        return sampled_world_xyz, meta
+
+    coords[thickness_axis] = float(inset_coord)
+    meta.update({
+        "inset_direction_axis": int(thickness_axis),
+        "inset_direction_sign": int(inward_sign),
+        "inset_wall_mount_valid": True,
+    })
+    return tuple(float(v) for v in coords), meta
 
 
 def sample_camera_in_changjing(
@@ -2620,9 +3300,14 @@ def sample_camera_in_changjing(
     wall_prim_path=_WALL_HEIGHT_PRIM_DEFAULT,
     wall_constraint_xy_margin=_WALL_CONSTRAINT_XY_MARGIN_DEFAULT,
     wall_constraint_z_margin=_WALL_CONSTRAINT_Z_MARGIN_DEFAULT,
+    wall_mount_inset_m=_WALL_MOUNT_INSET_M_DEFAULT,
+    wall_mount_inset_mode="",
     target_world_xyz=None,
     wall_collection_mode=None,
     wall_collection_root_path=None,
+    wall_pool_cache=None,
+    target_context_bbox=None,
+    wall_candidate_region=None,
 ):
     """
     ???????????????????????????
@@ -2640,6 +3325,10 @@ def sample_camera_in_changjing(
         rng,
         wall_collection_mode=wall_collection_mode,
         wall_collection_root_path=wall_collection_root_path,
+        wall_pool_cache=wall_pool_cache,
+        target_world_xyz=target_world_xyz,
+        target_context_bbox=target_context_bbox,
+        wall_candidate_region=wall_candidate_region,
     )
     sampled_wall_path = selected_wall['prim_path']
     _swp = stage.GetPrimAtPath(sampled_wall_path)
@@ -2656,6 +3345,11 @@ def sample_camera_in_changjing(
         f"wall_semantic_candidate_count={wall_pool.get('wall_semantic_candidate_count')} "
         f"valid_wall_candidate_count={wall_pool.get('valid_wall_candidate_count')} "
         f"final_candidate_count={wall_pool.get('final_candidate_count')} "
+        f"wall_candidates_excluded_by_prefix={wall_pool.get('wall_candidates_excluded_by_prefix')} "
+        f"excluded_wall_candidate_prefixes={wall_pool.get('excluded_wall_candidate_prefixes')} "
+        f"wall_candidate_region_filter={wall_pool.get('wall_candidate_region_filter')} "
+        f"first_layer_filter={wall_pool.get('first_layer_filter')} "
+        f"cache_hit={wall_pool.get('cache_hit')} "
         f"fallback_used={wall_pool.get('fallback_used')} "
         f"fallback_reason={wall_pool.get('fallback_reason')} "
         f"sampled_wall_path={sampled_wall_path} sampled_parent_path={sampled_parent_path}"
@@ -2689,10 +3383,35 @@ def sample_camera_in_changjing(
         install_band,
         target_world_xyz=target_world_xyz,
     )
+    sampled_world_xyz, inset_meta = _apply_inward_wall_mount_inset(
+        sampled_world_xyz,
+        install_band,
+        wall_mount_inset_m,
+        wall_mount_inset_mode,
+    )
+    inset_enabled = bool(inset_meta.get("enabled"))
+    constraint_source = "wall_surface_inward_inset" if inset_enabled else "wall_surface_attach"
+    constraint_mode = "inward_wall_inset_mount" if inset_enabled else "strict_wall_surface_attach"
+    if inset_enabled:
+        bias_notes.append(
+            "inward_wall_inset_axis="
+            f"{inset_meta.get('inset_direction_axis')} sign={inset_meta.get('inset_direction_sign')} "
+            f"distance={float(inset_meta.get('wall_mount_inset_m') or 0.0):.4f}"
+        )
+    elif inset_meta.get("fallback_reason") not in (None, "wall_mount_inset_disabled"):
+        bias_notes.append(
+            f"inward_wall_inset_fallback={inset_meta.get('fallback_reason')}"
+        )
+    reported_box_min = list(box_min)
+    reported_box_max = list(box_max)
+    if inset_enabled and inset_meta.get("inset_direction_axis") is not None:
+        inset_axis = int(inset_meta["inset_direction_axis"])
+        reported_box_min[inset_axis] = float(sampled_world_xyz[inset_axis])
+        reported_box_max[inset_axis] = float(sampled_world_xyz[inset_axis])
 
     box_meta = {
-        "mode": "strict_wall_surface_attach",
-        "constraint_source": "wall_surface_attach",
+        "mode": constraint_mode,
+        "constraint_source": constraint_source,
         "fallback_invalid": False,
         "sample_wall_path": wall_path,
         "sampled_wall_path": sampled_wall_path,
@@ -2704,14 +3423,22 @@ def sample_camera_in_changjing(
         "resolved_global_wall_root": wall_pool.get('resolved_global_wall_root'),
         "global_root_resolve_tag": wall_pool.get('global_root_resolve_tag'),
         "seed_filter_applied": wall_pool.get('seed_filter_applied'),
+        "target_filter_applied": wall_pool.get('target_filter_applied'),
+        "target_filter_radius": wall_pool.get('target_filter_radius'),
+        "wall_candidate_region_filter": wall_pool.get('wall_candidate_region_filter'),
+        "first_layer_filter": wall_pool.get('first_layer_filter'),
         "wall_candidates_total_scanned": wall_pool.get('wall_candidates_total_scanned'),
         "scanned_mesh_count": wall_pool.get('scanned_mesh_count'),
         "wall_semantic_candidate_count": wall_pool.get('wall_semantic_candidate_count'),
         "valid_wall_candidate_count": wall_pool.get('valid_wall_candidate_count'),
         "final_candidate_count": wall_pool.get('final_candidate_count'),
         "fallback_used": wall_pool.get('fallback_used'),
+        "cache_hit": wall_pool.get('cache_hit'),
+        "cache_signature": wall_pool.get('cache_signature'),
         "wall_candidates_after_valid_filter": wall_pool.get('wall_candidates_after_valid_filter'),
         "wall_candidates_after_mode_filter": wall_pool.get('wall_candidates_after_mode_filter'),
+        "wall_candidates_excluded_by_prefix": wall_pool.get('wall_candidates_excluded_by_prefix'),
+        "excluded_wall_candidate_prefixes": wall_pool.get('excluded_wall_candidate_prefixes'),
         "fallback_reason": wall_pool.get('fallback_reason'),
         "collection_root": wall_pool['collection_root'],
         "wall_candidate_pool": [c['prim_path'] for c in wall_pool['candidates']],
@@ -2721,12 +3448,12 @@ def sample_camera_in_changjing(
             wall_pool['common_height_max'],
         ],
         "effective_box": {
-            "x_min": box_min[0],
-            "x_max": box_max[0],
-            "y_min": box_min[1],
-            "y_max": box_max[1],
-            "z_min": box_min[2],
-            "z_max": box_max[2],
+            "x_min": reported_box_min[0],
+            "x_max": reported_box_max[0],
+            "y_min": reported_box_min[1],
+            "y_max": reported_box_max[1],
+            "z_min": reported_box_min[2],
+            "z_max": reported_box_max[2],
         },
         "config_box": dict(sample_box) if sample_box else None,
         "changjing_aabb": {
@@ -2759,14 +3486,29 @@ def sample_camera_in_changjing(
     camera_world = xform_cache.GetLocalToWorldTransform(cam_prim).ExtractTranslation()
     camera_world_xyz = _vec3_to_tuple(camera_world)
     validation = _compute_wall_mount_validation(camera_world_xyz, install_band)
-    within_constraint_box = bool(validation["mounted_on_wall"])
+    inset_valid, inset_validation = _compute_inset_wall_mount_validation(
+        camera_world_xyz,
+        install_band,
+        inset_meta,
+    )
+    inset_meta["inset_wall_mount_valid"] = bool(inset_valid)
+    if inset_enabled:
+        within_constraint_box = bool(
+            inset_valid
+            and validation["within_length_band"]
+            and validation["within_height_band"]
+            and not validation["near_top_plane"]
+            and not validation["selected_mount_is_aggregate"]
+        )
+    else:
+        within_constraint_box = bool(validation["mounted_on_wall"])
     status = "PASS" if within_constraint_box else "FAIL"
 
     constraint_meta = {
         "camera_xyz": [round(float(v), 4) for v in camera_world_xyz],
         "camera_local_xyz": [round(float(v), 4) for v in local_xyz],
-        "constraint_source": "wall_surface_attach",
-        "constraint_mode": "strict_wall_surface_attach",
+        "constraint_source": constraint_source,
+        "constraint_mode": constraint_mode,
         "wall_path": wall_path,
         "sample_wall_path": wall_path,
         "sampled_wall_path": sampled_wall_path,
@@ -2779,6 +3521,10 @@ def sample_camera_in_changjing(
         "resolved_global_wall_root": wall_pool.get('resolved_global_wall_root'),
         "global_root_resolve_tag": wall_pool.get('global_root_resolve_tag'),
         "seed_filter_applied": wall_pool.get('seed_filter_applied'),
+        "target_filter_applied": wall_pool.get('target_filter_applied'),
+        "target_filter_radius": wall_pool.get('target_filter_radius'),
+        "wall_candidate_region_filter": wall_pool.get('wall_candidate_region_filter'),
+        "first_layer_filter": wall_pool.get('first_layer_filter'),
         "wall_candidates_total_scanned": wall_pool.get('wall_candidates_total_scanned'),
         "scanned_mesh_count": wall_pool.get('scanned_mesh_count'),
         "wall_semantic_candidate_count": wall_pool.get('wall_semantic_candidate_count'),
@@ -2786,14 +3532,18 @@ def sample_camera_in_changjing(
         "final_candidate_count": wall_pool.get('final_candidate_count'),
         "wall_candidates_after_valid_filter": wall_pool.get('wall_candidates_after_valid_filter'),
         "wall_candidates_after_mode_filter": wall_pool.get('wall_candidates_after_mode_filter'),
+        "wall_candidates_excluded_by_prefix": wall_pool.get('wall_candidates_excluded_by_prefix'),
+        "excluded_wall_candidate_prefixes": wall_pool.get('excluded_wall_candidate_prefixes'),
         "fallback_used": wall_pool.get('fallback_used'),
+        "cache_hit": wall_pool.get('cache_hit'),
+        "cache_signature": wall_pool.get('cache_signature'),
         "fallback_reason": wall_pool.get('fallback_reason'),
         "selected_mount_in_candidate_pool": bool(selected_wall['prim_path'] in {c['prim_path'] for c in wall_pool['candidates']}),
         "wall_candidate_pool_size": len(wall_pool['candidates']),
         "wall_bbox_min": [round(float(v), 4) for v in install_band['raw_min']],
         "wall_bbox_max": [round(float(v), 4) for v in install_band['raw_max']],
-        "effective_bbox_min": [round(float(v), 4) for v in box_min],
-        "effective_bbox_max": [round(float(v), 4) for v in box_max],
+        "effective_bbox_min": [round(float(v), 4) for v in reported_box_min],
+        "effective_bbox_max": [round(float(v), 4) for v in reported_box_max],
         "surface_axis": int(install_band['surface_axis']),
         "surface_side_sign": int(install_band['surface_side_sign']),
         "surface_plane_coord": round(float(install_band['surface_plane_coord']), 4),
@@ -2805,6 +3555,17 @@ def sample_camera_in_changjing(
         ],
         "wall_constraint_xy_margin": round(float(wall_constraint_xy_margin), 4),
         "wall_constraint_z_margin": round(float(wall_constraint_z_margin), 4),
+        "wall_mount_inset_m": round(float(inset_meta.get("wall_mount_inset_m") or 0.0), 4),
+        "wall_mount_inset_mode": _normalize_wall_mount_inset_mode(wall_mount_inset_mode) or None,
+        "inset_direction_axis": inset_meta.get("inset_direction_axis"),
+        "inset_direction_sign": inset_meta.get("inset_direction_sign"),
+        "inset_wall_mount_valid": bool(inset_meta.get("inset_wall_mount_valid")),
+        "inset_actual_distance_to_wall_surface": None if inset_validation.get("inset_actual_distance_to_wall_surface") is None else round(float(inset_validation["inset_actual_distance_to_wall_surface"]), 4),
+        "inset_distance_error": None if inset_validation.get("inset_distance_error") is None else round(float(inset_validation["inset_distance_error"]), 4),
+        "inset_distance_tolerance": None if inset_validation.get("inset_distance_tolerance") is None else round(float(inset_validation["inset_distance_tolerance"]), 4),
+        "on_inset_side": bool(inset_validation.get("on_inset_side")),
+        "inset_fallback_used": bool(inset_meta.get("fallback_used")),
+        "inset_fallback_reason": inset_meta.get("fallback_reason"),
         "z_sampling_mode": "wall_side_height_band",
         "within_wall_constraint_box": within_constraint_box,
         "distance_to_wall_surface": round(float(validation["distance_to_wall_surface"]), 4),
@@ -2829,8 +3590,8 @@ def sample_camera_in_changjing(
 
     if not within_constraint_box:
         raise RuntimeError(
-            "camera world xyz failed strict wall surface attach validation: "
-            f"camera={camera_world_xyz} validation={validation}"
+            f"camera world xyz failed {constraint_mode} validation: "
+            f"camera={camera_world_xyz} validation={validation} inset_meta={inset_meta}"
         )
 
     return (camera_world_xyz[0], camera_world_xyz[1], camera_world_xyz[2], seed, box_meta)
@@ -3227,7 +3988,7 @@ def resolve_dynamic_startup_view_metrics(
     best_metrics = startup_metrics if _metric_score(startup_metrics) >= _metric_score(fallback_metrics) else fallback_metrics
     best_source = "dynamic_startup_orientation"
     search_pan_offsets = [0.0, -15.0, 15.0, -30.0, 30.0, -45.0, 45.0, -60.0, 60.0, -90.0, 90.0, -120.0, 120.0, -150.0, 150.0]
-    search_tilt_values = [base_tilt, startup_tilt, -15.0, -30.0, -45.0, -60.0, 0.0, 15.0, 30.0]
+    search_tilt_values = [startup_tilt, -8.0, -4.0, 0.0, 4.0, base_tilt, 8.0, 16.0, 24.0, -12.0, -20.0, 30.0, -35.0, -60.0]
     tried = {
         (round(float(startup_pan), 4), round(float(startup_tilt), 4)),
         (round(float(base_pan), 4), round(float(base_tilt), 4)),

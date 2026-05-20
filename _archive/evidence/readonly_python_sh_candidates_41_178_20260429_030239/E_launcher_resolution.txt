@@ -1,0 +1,43 @@
+=== ptz_launcher.py：grep 命中行号（远程 /home/uniubi/xuanyuan/camera03/ptz_launcher.py）===
+69:PYTHON_SH     = cfg.get("python_sh",
+150:def _env_for_ptz_stream_subprocess() -> dict:
+164:    py_exe = os.path.abspath(PYTHON_SH)
+388:_isaac_proc: subprocess.Popen | None = None
+555:def _isaac_child_operational_truth(proc: subprocess.Popen) -> tuple[bool, str]:
+831:def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
+857:    proc: subprocess.Popen | None, preview_enabled: bool
+882:def _watch_isaac(proc: subprocess.Popen) -> None:
+883:    """启动就绪已在 start_isaac 内同步探测；此处仅监控子进程是否存活。"""
+902:def start_isaac(force_restart: bool = False) -> dict:
+904:    spawned_proc: subprocess.Popen | None = None
+1070:                PYTHON_SH, "-u", STREAM_SCRIPT,
+1091:            spawned_proc = subprocess.Popen(
+1097:                env=_env_for_ptz_stream_subprocess(),
+
+=== 源码摘录：PYTHON_SH 默认值与配置键（sed -n '33,40p'）===
+（说明：若 ptz_config.yaml 含 python_sh，则 cfg.get 使用该值；否则回落到第二参数默认路径。）
+
+LAUNCHER_PORT = cfg.get("launcher_port", 8080)
+ISAAC_PORT    = cfg.get("ctrl_port",     8081)
+PYTHON_SH     = cfg.get("python_sh",
+                         "/home/uniubi/projects/issac/.isaac_sim_unzip/python.sh")
+STREAM_SCRIPT = os.path.join(script_dir, "ptz_stream.py")
+
+=== 源码摘录：_env_for_ptz_stream_subprocess 中与 PYTHON_SH 相关（sed -n '150,170p'）===
+
+def _env_for_ptz_stream_subprocess() -> dict:
+    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+    ...
+    """
+    env = os.environ.copy()
+    ...
+    py_exe = os.path.abspath(PYTHON_SH)
+    lib_dir = os.path.normpath(os.path.join(os.path.dirname(py_exe), "..", "lib"))
+    if os.path.isdir(lib_dir):
+        prev = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = lib_dir + (os.pathsep + prev if prev else "")
+    return env
+
+=== 结论（只读推断，未改远程）===
+- 当前 ptz_config.yaml 显式配置了 python_sh，launcher 使用 cfg["python_sh"]，不会使用代码内默认的 /home/uniubi/projects/issac/.isaac_sim_unzip/python.sh，除非删除配置键。
+- start_isaac 通过 subprocess.Popen 以列表 argv 调用：PYTHON_SH, "-u", STREAM_SCRIPT，环境来自 _env_for_ptz_stream_subprocess()。

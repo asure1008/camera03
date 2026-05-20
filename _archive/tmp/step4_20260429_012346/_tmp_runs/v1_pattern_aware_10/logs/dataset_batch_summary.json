@@ -1,0 +1,631 @@
+{
+  "input_usd": "/home/uniubi/xuanyuan/camera05/camera03/V4.0.usd",
+  "camera_prim": "/World/CameraRig/CamTilt/Camera",
+  "basket_prims": [
+    "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+    "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2"
+  ],
+  "sampling_mode": "dataset_by_scene_quotas",
+  "dataset_scene_quotas": {
+    "single_airborne": 4,
+    "double_airborne": 3,
+    "all_ground": 3
+  },
+  "abnormal_summary_requested": {
+    "schema_version": "abnormal_v1",
+    "implemented_labels": [
+      "person_count_abnormal",
+      "height_abnormal",
+      "dual_basket_risk"
+    ],
+    "requested": {
+      "normal": 4,
+      "person_count_abnormal": 2,
+      "height_abnormal": 2,
+      "dual_basket_risk": 2,
+      "safety_violation_reserved": 0
+    },
+    "plan_size": 10
+  },
+  "seed_base": 123,
+  "dataset_run_root": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10",
+  "results": [
+    {
+      "sample_id": "single_airborne_0001",
+      "sample_index": 1,
+      "seed": 123,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_single_airborne_0001.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 4,
+          "final_y": 3.25,
+          "center_xyz": [
+            0.0,
+            3.25,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "height_abnormal",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "height_abnormal",
+        "details": {
+          "left_basket_z": 3.25,
+          "right_basket_z": 0.0,
+          "height_diff": 3.25,
+          "threshold": 3.0
+        }
+      }
+    },
+    {
+      "sample_id": "single_airborne_0002",
+      "sample_index": 2,
+      "seed": 124,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_single_airborne_0002.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 2,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 1,
+          "final_y": 21.952799614736314,
+          "center_xyz": [
+            0.0,
+            21.952799614736314,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "person_count_abnormal",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "person_count_abnormal",
+        "details": {
+          "normal_person_count_per_basket": 2,
+          "left_basket_person_count": 2,
+          "right_basket_person_count": 1
+        }
+      }
+    },
+    {
+      "sample_id": "single_airborne_0003",
+      "sample_index": 3,
+      "seed": 125,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_single_airborne_0003.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 5,
+          "final_y": 8.940164824171253,
+          "center_xyz": [
+            0.0,
+            8.940164824171253,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "normal",
+      "is_abnormal": false,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": false,
+        "trigger_type": "normal",
+        "details": {}
+      }
+    },
+    {
+      "sample_id": "single_airborne_0004",
+      "sample_index": 4,
+      "seed": 126,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_single_airborne_0004.usd",
+      "target_scene_pattern": "single_airborne",
+      "scene_pattern": "single_airborne",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 4,
+          "final_y": 23.143652596244713,
+          "center_xyz": [
+            0.0,
+            23.143652596244713,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "normal",
+      "is_abnormal": false,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": false,
+        "trigger_type": "normal",
+        "details": {}
+      }
+    },
+    {
+      "sample_id": "double_airborne_0001",
+      "sample_index": 5,
+      "seed": 127,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_double_airborne_0001.usd",
+      "target_scene_pattern": "double_airborne",
+      "scene_pattern": "double_airborne",
+      "height_relation": "different_level",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 5,
+          "final_y": 1.8308030053897038,
+          "center_xyz": [
+            0.0,
+            1.8308030053897038,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 1,
+          "final_y": 23.240847147135767,
+          "center_xyz": [
+            1.0,
+            23.240847147135767,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "dual_basket_risk",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "dual_basket_risk",
+        "details": {
+          "left_basket_center": [
+            0.0,
+            1.8308030053897038,
+            0.0
+          ],
+          "right_basket_center": [
+            1.0,
+            23.240847147135767,
+            0.0
+          ],
+          "horizontal_center_gap": 1.0,
+          "threshold": 2.0,
+          "horizontal_plane": "XZ",
+          "up_axis": "Y"
+        }
+      }
+    },
+    {
+      "sample_id": "double_airborne_0002",
+      "sample_index": 6,
+      "seed": 128,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_double_airborne_0002.usd",
+      "target_scene_pattern": "double_airborne",
+      "scene_pattern": "double_airborne",
+      "height_relation": "different_level",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 2,
+          "final_y": 37.604361909516285,
+          "center_xyz": [
+            0.0,
+            37.604361909516285,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 3,
+          "final_y": 16.25622920568941,
+          "center_xyz": [
+            0.0,
+            16.25622920568941,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "normal",
+      "is_abnormal": false,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": false,
+        "trigger_type": "normal",
+        "details": {}
+      }
+    },
+    {
+      "sample_id": "double_airborne_0003",
+      "sample_index": 7,
+      "seed": 129,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_double_airborne_0003.usd",
+      "target_scene_pattern": "double_airborne",
+      "scene_pattern": "double_airborne",
+      "height_relation": "different_level",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 5,
+          "final_y": 23.464605849815506,
+          "center_xyz": [
+            0.0,
+            23.464605849815506,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 4,
+          "final_y": 10.908301528875747,
+          "center_xyz": [
+            1.0,
+            10.908301528875747,
+            0.0
+          ],
+          "basket_state": "air_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "dual_basket_risk",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "dual_basket_risk",
+        "details": {
+          "left_basket_center": [
+            0.0,
+            23.464605849815506,
+            0.0
+          ],
+          "right_basket_center": [
+            1.0,
+            10.908301528875747,
+            0.0
+          ],
+          "horizontal_center_gap": 1.0,
+          "threshold": 2.0,
+          "horizontal_plane": "XZ",
+          "up_axis": "Y"
+        }
+      }
+    },
+    {
+      "sample_id": "all_ground_0001",
+      "sample_index": 8,
+      "seed": 130,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_all_ground_0001.usd",
+      "target_scene_pattern": "all_ground",
+      "scene_pattern": "all_ground",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 2,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 1,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "person_count_abnormal",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "person_count_abnormal",
+        "details": {
+          "normal_person_count_per_basket": 2,
+          "left_basket_person_count": 2,
+          "right_basket_person_count": 1
+        }
+      }
+    },
+    {
+      "sample_id": "all_ground_0002",
+      "sample_index": 9,
+      "seed": 131,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_all_ground_0002.usd",
+      "target_scene_pattern": "all_ground",
+      "scene_pattern": "all_ground",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 0,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_empty"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 0,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_empty"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "normal",
+      "is_abnormal": false,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": false,
+        "trigger_type": "normal",
+        "details": {}
+      }
+    },
+    {
+      "sample_id": "all_ground_0003",
+      "sample_index": 10,
+      "seed": 132,
+      "output_usd": "/home/uniubi/xuanyuan/camera05/camera03/_tmp_runs/v1_pattern_aware_10/usd/scene_generated_dataset_all_ground_0003.usd",
+      "target_scene_pattern": "all_ground",
+      "scene_pattern": "all_ground",
+      "height_relation": "not_applicable",
+      "baskets": [
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_1",
+          "person_count": 1,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_with_person"
+        },
+        {
+          "prim": "/World/DiaoLanChangJing_2026/Model/Group8761/node___42_2",
+          "person_count": 2,
+          "final_y": 0.0,
+          "center_xyz": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "basket_state": "ground_with_person"
+        }
+      ],
+      "camera_eye": null,
+      "camera_target": null,
+      "visibility_check": {
+        "status": "skip",
+        "visible_ok": false,
+        "risk_level": "high",
+        "risk_reasons": [
+          "camera_or_basket_data_missing"
+        ],
+        "failed_rules": [
+          "camera_data_missing"
+        ],
+        "sample_id": "unknown"
+      },
+      "abnormal_label": "person_count_abnormal",
+      "is_abnormal": true,
+      "abnormal_meta": {
+        "schema_version": "abnormal_v1",
+        "implemented": true,
+        "trigger_type": "person_count_abnormal",
+        "details": {
+          "normal_person_count_per_basket": 2,
+          "left_basket_person_count": 1,
+          "right_basket_person_count": 2
+        }
+      }
+    }
+  ]
+}

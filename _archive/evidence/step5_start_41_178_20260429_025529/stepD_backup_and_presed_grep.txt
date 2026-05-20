@@ -1,0 +1,2 @@
+BAKDIR=/home/uniubi/xuanyuan/camera03/backup_cursor/fix_scene_path_41_178_20260429_105556
+40:scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda

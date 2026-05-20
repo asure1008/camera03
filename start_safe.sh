@@ -1,22 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="/home/uniubi/xuanyuan/camera05/camera03"
-PY_BIN="/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CFG_FILE="${ROOT_DIR}/ptz_config.yaml"
 LAUNCH_LOG="/tmp/camera05_ptz_launcher.log"
 STREAM_LOG="${ROOT_DIR}/isaac_stream.log"
+PY_BIN="${PY_BIN:-$(awk -F': *' '$1=="python_sh"{gsub(/^["'\'' ]+|["'\'' ]+$/, "", $2); print $2; exit}' "${CFG_FILE}")}"
+PY_BIN="${PY_BIN:-python3}"
+if [[ ! -x "${PY_BIN}" ]]; then
+  echo "[start_safe] WARN: configured python_sh is not executable: ${PY_BIN}; fallback to python3 for launcher"
+  PY_BIN="python3"
+fi
 
 startup_wait_sec="${1:-6}"
 stream_wait_timeout_sec="${2:-150}"
+start_request_timeout_sec="${START_REQUEST_TIMEOUT_SEC:-180}"
 
 cd "${ROOT_DIR}"
 
-orientation_mode="$("${PY_BIN}" - <<'PY'
+orientation_mode="$(CFG_FILE="${CFG_FILE}" "${PY_BIN}" - <<'PY'
 import yaml
 from pathlib import Path
+import os
 
-cfg = yaml.safe_load(Path("/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml").read_text(encoding="utf-8")) or {}
+cfg = yaml.safe_load(Path(os.environ["CFG_FILE"]).read_text(encoding="utf-8")) or {}
 print(str(cfg.get("camera_orientation_mode", "legacy")).strip().lower() or "legacy")
 PY
 )"
@@ -25,12 +32,13 @@ echo "[start_safe] stop existing processes"
 "${ROOT_DIR}/stop_all.sh"
 
 echo "[start_safe] launch launcher"
-nohup "${PY_BIN}" ptz_launcher.py --config "${CFG_FILE}" > "${LAUNCH_LOG}" 2>&1 &
+setsid "${PY_BIN}" -u ptz_launcher.py --config "${CFG_FILE}" > "${LAUNCH_LOG}" 2>&1 < /dev/null &
 sleep "${startup_wait_sec}"
 
 echo "[start_safe] POST /start"
 if ! env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u ALL_PROXY \
-  curl --noproxy "*" -fsS -X POST http://127.0.0.1:8080/start >/tmp/camera05_start_resp.json 2>/tmp/camera05_start_err.log; then
+  curl --noproxy "*" --connect-timeout 5 --max-time "${start_request_timeout_sec}" \
+    -fsS -X POST http://127.0.0.1:8080/start >/tmp/camera05_start_resp.json 2>/tmp/camera05_start_err.log; then
   echo "[start_safe] /start failed; stop all"
   "${ROOT_DIR}/stop_all.sh"
   echo "--- curl stderr ---"

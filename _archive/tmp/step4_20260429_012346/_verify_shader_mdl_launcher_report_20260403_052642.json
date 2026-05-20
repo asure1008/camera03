@@ -1,0 +1,702 @@
+{
+  "backup_cfg": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml.verify_backup_20260403_052642",
+  "commands": [
+    "cp /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml /home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml.verify_backup_20260403_052642",
+    "curl -s -X POST http://127.0.0.1:8080/stop -H 'Content-Type: application/json' -d '{}' ",
+    "curl -s -X POST http://127.0.0.1:8080/start -H 'Content-Type: application/json' -d '{}' ",
+    "ffmpeg -y -rtsp_transport tcp -i rtsp://127.0.0.1:8554/ptz_cam -frames:v 1 -q:v 2 /home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_baseline_20260403_052722.jpg",
+    "curl -s -X POST http://127.0.0.1:8080/stop -H 'Content-Type: application/json' -d '{}' ",
+    "curl -s -X POST http://127.0.0.1:8080/start -H 'Content-Type: application/json' -d '{}' ",
+    "ffmpeg -y -rtsp_transport tcp -i rtsp://127.0.0.1:8554/ptz_cam -frames:v 1 -q:v 2 /home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_debug_20260403_052842.jpg",
+    "curl -s -X POST http://127.0.0.1:8080/stop -H 'Content-Type: application/json' -d '{}' ",
+    "curl -s -X POST http://127.0.0.1:8080/start -H 'Content-Type: application/json' -d '{}' ",
+    "ffmpeg -y -rtsp_transport tcp -i rtsp://127.0.0.1:8554/ptz_cam -frames:v 1 -q:v 2 /home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_rollback_20260403_052931.jpg"
+  ],
+  "process_restarts": [
+    {
+      "process": "launcher main",
+      "action": "stop",
+      "status": {
+        "isaac_state": "stopped",
+        "isaac_port": 8081,
+        "uptime_s": 0,
+        "ptz": null,
+        "config_path": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "stream_config": {
+          "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+          "scene_basename": "scene_4diaolan_ptz.usda",
+          "camera_prim": "/World/CameraRig/CamTilt/Camera",
+          "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+          "preview_enabled": false,
+          "read_error": null
+        },
+        "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+      }
+    },
+    {
+      "process": "launcher main",
+      "action": "start_request",
+      "status": {
+        "ok": true,
+        "ctrl_port": 8081,
+        "port_busy": false,
+        "existing_pid": -1,
+        "pid": 80066,
+        "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+        "action_taken": "spawned"
+      }
+    },
+    {
+      "process": "launcher main",
+      "action": "stop",
+      "status": {
+        "isaac_state": "stopped",
+        "isaac_port": 8081,
+        "uptime_s": 0,
+        "ptz": null,
+        "config_path": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "stream_config": {
+          "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+          "scene_basename": "scene_4diaolan_ptz.usda",
+          "camera_prim": "/World/CameraRig/CamTilt/Camera",
+          "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+          "preview_enabled": false,
+          "read_error": null
+        },
+        "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+      }
+    },
+    {
+      "process": "launcher main",
+      "action": "start_request",
+      "status": {
+        "ok": true,
+        "ctrl_port": 8081,
+        "port_busy": false,
+        "existing_pid": -1,
+        "pid": 80758,
+        "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+        "action_taken": "spawned"
+      }
+    },
+    {
+      "process": "launcher main",
+      "action": "stop",
+      "status": {
+        "isaac_state": "stopped",
+        "isaac_port": 8081,
+        "uptime_s": 0,
+        "ptz": null,
+        "config_path": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "stream_config": {
+          "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+          "scene_basename": "scene_4diaolan_ptz.usda",
+          "camera_prim": "/World/CameraRig/CamTilt/Camera",
+          "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+          "preview_enabled": false,
+          "read_error": null
+        },
+        "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+      }
+    },
+    {
+      "process": "launcher main",
+      "action": "start_request",
+      "status": {
+        "ok": true,
+        "ctrl_port": 8081,
+        "port_busy": false,
+        "existing_pid": -1,
+        "pid": 81612,
+        "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+        "action_taken": "spawned"
+      }
+    }
+  ],
+  "changes": [
+    {
+      "file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+      "mode": "A_baseline",
+      "before": {
+        "renderer": "RaytracedLighting",
+        "hydra_target_material_mode": "none",
+        "force_active_diaolan_path": null,
+        "force_gondola_height": null,
+        "force_workers_count": null,
+        "camera_rig_translate_xyz": [
+          84.2,
+          10.87,
+          6.53
+        ]
+      },
+      "after": {
+        "renderer": "HydraStorm",
+        "hydra_target_material_mode": "none",
+        "force_active_diaolan_path": "/World/Diaolan_Ver1_0_2026_05",
+        "force_gondola_height": 8.574312134624009,
+        "force_workers_count": 1,
+        "camera_rig_translate_xyz": [
+          114.16,
+          -47.75,
+          20.11
+        ]
+      }
+    },
+    {
+      "file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+      "mode": "B_debug",
+      "before": {
+        "renderer": "HydraStorm",
+        "hydra_target_material_mode": "none",
+        "force_active_diaolan_path": "/World/Diaolan_Ver1_0_2026_05",
+        "force_gondola_height": 8.574312134624009,
+        "force_workers_count": 1,
+        "camera_rig_translate_xyz": [
+          114.16,
+          -47.75,
+          20.11
+        ]
+      },
+      "after": {
+        "renderer": "HydraStorm",
+        "hydra_target_material_mode": "debug",
+        "force_active_diaolan_path": "/World/Diaolan_Ver1_0_2026_05",
+        "force_gondola_height": 8.574312134624009,
+        "force_workers_count": 1,
+        "camera_rig_translate_xyz": [
+          114.16,
+          -47.75,
+          20.11
+        ]
+      }
+    },
+    {
+      "file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+      "mode": "rollback_restore",
+      "before": {
+        "renderer": "RaytracedLighting",
+        "hydra_target_material_mode": "none",
+        "force_active_diaolan_path": null,
+        "force_gondola_height": null,
+        "force_workers_count": null,
+        "camera_rig_translate_xyz": [
+          84.2,
+          10.87,
+          6.53
+        ]
+      },
+      "after": {
+        "renderer": "RaytracedLighting",
+        "hydra_target_material_mode": "none",
+        "force_active_diaolan_path": null,
+        "force_gondola_height": null,
+        "force_workers_count": null,
+        "camera_rig_translate_xyz": [
+          84.2,
+          10.87,
+          6.53
+        ]
+      }
+    }
+  ],
+  "baseline": {
+    "frame": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_baseline_20260403_052722.jpg",
+    "stats": {
+      "bbox_px": [
+        477,
+        272,
+        563,
+        333
+      ],
+      "mean_luma": 0.0,
+      "min_luma": 0.0,
+      "max_luma": 0.0,
+      "black_ratio_lt20": 1.0,
+      "stddev": 0.0,
+      "mean_rgb": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "status": {
+      "pan": 0.0,
+      "tilt": -15.0,
+      "zoom": 1.5,
+      "stream": {
+        "role": "isaac_ptz_stream",
+        "config_file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+        "scene_basename": "scene_4diaolan_ptz.usda",
+        "camera_prim": "/World/CameraRig/CamTilt/Camera",
+        "stage_open_ok": true,
+        "open_stage_detail": "streaming_ready",
+        "camera_bound_ok": true,
+        "render_product": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x7bad623af150>",
+        "rtsp_enabled": true,
+        "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+        "preview_enabled": false,
+        "resolution_wh": [
+          960,
+          540
+        ],
+        "control_base": "http://127.0.0.1:8081",
+        "mjpeg_url": "http://127.0.0.1:8081/stream.mjpeg",
+        "snapshot_url": "http://127.0.0.1:8081/snapshot.jpg",
+        "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+        "ffmpeg_alive": true,
+        "mediamtx_started": true,
+        "gondola_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01",
+        "node1_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/People_01",
+        "node2_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/People_02",
+        "camera_rig_resolved_prim": "/World/CameraRig",
+        "gondola_init_height": 8.574312134624009,
+        "gondola_init_workers_visible": 1,
+        "gondola_init_relation": "diaolan_randomizer_managed",
+        "gondola_group1_source": "diaolan_randomizer",
+        "target_projection_metrics": {
+          "distance_to_camera": 70.64,
+          "frustum内可见": true,
+          "屏幕包围框px": [
+            476.87,
+            272.11,
+            562.72,
+            333.15
+          ],
+          "中心点px": [
+            519.8,
+            302.63
+          ],
+          "宽度占比%": 8.94,
+          "高度占比%": 11.3,
+          "越界面积占比": 0.0,
+          "中心在画面内": true,
+          "目标像素占比": 0.0101
+        }
+      },
+      "scene": {
+        "gondola_y": 8.574312134624009,
+        "workers": 1
+      }
+    },
+    "log": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_launcher_A.log",
+    "log_hits": [
+      "[diaolan-active] active=/World/Diaolan_Ver1_0_2026_05 hidden=['/World/Diaolan_Ver1_0_2026_06', '/World/Diaolan_Ver1_0_2026_07', '/World/Diaolan_Ver1_0_2026_01']",
+      "[target-branch] renderer=HydraStorm chosen=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01 world_z=18.00 bbox_min=(54.408081302524685, -7.474267515295697, 0.11930516242958925) bbox_max=(62.36903421390165, -1.2094432965456947, 35.88099121093728)",
+      "[target-branch] root_visibility=inherited root_purpose=default mesh_count=6063 mesh_invisible=0 mesh_nondefault_purpose=0 mesh_missing_material=94 mesh_preview_surface=0 mesh_mdl_only=5969",
+      "[target-branch] hydra_mdl_only=True"
+    ]
+  },
+  "verify": {
+    "frame": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_debug_20260403_052842.jpg",
+    "stats": {
+      "bbox_px": [
+        477,
+        272,
+        563,
+        333
+      ],
+      "mean_luma": 0.0,
+      "min_luma": 0.0,
+      "max_luma": 0.0,
+      "black_ratio_lt20": 1.0,
+      "stddev": 0.0,
+      "mean_rgb": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "status": {
+      "pan": 0.0,
+      "tilt": -15.0,
+      "zoom": 1.5,
+      "stream": {
+        "role": "isaac_ptz_stream",
+        "config_file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+        "scene_basename": "scene_4diaolan_ptz.usda",
+        "camera_prim": "/World/CameraRig/CamTilt/Camera",
+        "stage_open_ok": true,
+        "open_stage_detail": "streaming_ready",
+        "camera_bound_ok": true,
+        "render_product": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x7a4f8c5ccd90>",
+        "rtsp_enabled": true,
+        "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+        "preview_enabled": false,
+        "resolution_wh": [
+          960,
+          540
+        ],
+        "control_base": "http://127.0.0.1:8081",
+        "mjpeg_url": "http://127.0.0.1:8081/stream.mjpeg",
+        "snapshot_url": "http://127.0.0.1:8081/snapshot.jpg",
+        "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+        "ffmpeg_alive": true,
+        "mediamtx_started": true,
+        "gondola_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01",
+        "node1_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/People_01",
+        "node2_resolved_prim": "/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/People_02",
+        "camera_rig_resolved_prim": "/World/CameraRig",
+        "gondola_init_height": 8.574312134624009,
+        "gondola_init_workers_visible": 1,
+        "gondola_init_relation": "diaolan_randomizer_managed",
+        "gondola_group1_source": "diaolan_randomizer",
+        "target_projection_metrics": {
+          "distance_to_camera": 70.64,
+          "frustum内可见": true,
+          "屏幕包围框px": [
+            476.87,
+            272.11,
+            562.72,
+            333.15
+          ],
+          "中心点px": [
+            519.8,
+            302.63
+          ],
+          "宽度占比%": 8.94,
+          "高度占比%": 11.3,
+          "越界面积占比": 0.0,
+          "中心在画面内": true,
+          "目标像素占比": 0.0101
+        }
+      },
+      "scene": {
+        "gondola_y": 8.574312134624009,
+        "workers": 1
+      }
+    },
+    "log": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_launcher_B.log",
+    "log_hits": [
+      "[diaolan-active] active=/World/Diaolan_Ver1_0_2026_05 hidden=['/World/Diaolan_Ver1_0_2026_06', '/World/Diaolan_Ver1_0_2026_07', '/World/Diaolan_Ver1_0_2026_01']",
+      "[target-branch] renderer=HydraStorm chosen=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01 world_z=18.00 bbox_min=(54.408081302524685, -7.474267515295697, 0.11930516242958925) bbox_max=(62.36903421390165, -1.2094432965456947, 35.88099121093728)",
+      "[target-branch] root_visibility=inherited root_purpose=default mesh_count=6063 mesh_invisible=0 mesh_nondefault_purpose=0 mesh_missing_material=94 mesh_preview_surface=0 mesh_mdl_only=5969",
+      "[target-branch] hydra_mdl_only=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group1/Group2/Mesh1/Mesh1 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group1/Group3/Mesh2/Mesh2 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group1/Group4/Mesh3/Mesh3 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group1/node___19_1/Mesh4/Mesh4 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group1/node___20_1/Mesh5/Mesh5 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group5/Group6/Mesh6/Mesh6 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group5/Group7/Mesh7/Mesh7 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group5/Group8/Mesh8/Mesh8 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group5/node___19_2/Mesh9/Mesh9 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group5/node___20_2/Mesh10/Mesh10 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group9/Group10/Mesh11/Mesh11 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group9/Group11/Mesh12/Mesh12 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group9/Group12/Mesh13/Mesh13 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group9/node___19_3/Mesh14/Mesh14 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group9/node___20_3/Mesh15/Mesh15 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group14/Mesh16/Mesh16 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group16/Mesh17/Mesh17 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group17/Mesh18/Mesh18 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group18/Group19/Mesh19/Mesh19 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group18/Group20/Mesh20/Mesh20 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group21/Group22/Mesh21/Mesh21 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group21/Group23/Mesh22/Mesh22 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group21/Group24/Mesh23/Mesh23 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group21/Group25/Mesh24/Mesh24 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group26/Mesh25/Mesh25 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group27/Group28/Mesh26/Mesh26 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group27/Group29/Mesh27/Mesh27 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/Group15/Group30/Mesh28/Mesh28 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___75_1/Mesh29/Mesh29 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___75_2/Mesh30/Mesh30 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group31/Group32/Mesh31/Mesh31 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group31/Group33/Mesh32/Mesh32 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group31/Group34/Mesh33/Mesh33 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group31/node___19_4/Mesh34/Mesh34 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group31/node___20_4/Mesh35/Mesh35 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_1/Group35/Mesh36/Mesh36 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group36/Group37/Mesh37/Mesh37 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group36/Group38/Mesh38/Mesh38 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group36/Group39/Mesh39/Mesh39 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group36/node___19_5/Mesh40/Mesh40 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group36/node___20_5/Mesh41/Mesh41 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___31_2/Group40/Mesh42/Mesh42 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_1/Group41/Mesh43/Mesh43 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_1/Group42/Mesh44/Mesh44 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_1/Group43/Mesh45/Mesh45 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_1/node___53_1/Mesh46/Mesh46 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_1/node___53_2/Mesh47/Mesh47 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_2/Group44/Mesh48/Mesh48 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_2/Group45/Mesh49/Mesh49 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_2/Group46/Mesh50/Mesh50 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_2/node___53_3/Mesh51/Mesh51 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___74_2/node___53_4/Mesh52/Mesh52 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_1/Group47/Mesh53/Mesh53 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_1/Group48/Mesh54/Mesh54 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_2/Group49/Mesh55/Mesh55 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_2/Group50/Mesh56/Mesh56 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_3/Group51/Mesh57/Mesh57 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group13/node___18_3/Group52/Mesh58/Mesh58 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group53/Group54/Mesh59/Mesh59 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group53/Group55/Mesh60/Mesh60 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group53/Group56/Mesh61/Mesh61 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group53/node___19_6/Mesh62/Mesh62 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group53/node___20_6/Mesh63/Mesh63 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group57/Group58/Mesh64/Mesh64 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group57/Group59/Mesh65/Mesh65 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group57/Group60/Mesh66/Mesh66 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group57/node___19_7/Mesh67/Mesh67 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group57/node___20_7/Mesh68/Mesh68 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group61/Group62/Mesh69/Mesh69 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group61/Group63/Mesh70/Mesh70 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group61/Group64/Mesh71/Mesh71 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group61/node___19_8/Mesh72/Mesh72 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group61/node___20_8/Mesh73/Mesh73 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group65/Group66/Mesh74/Mesh74 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group65/Group67/Mesh75/Mesh75 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group65/Group68/Mesh76/Mesh76 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group65/node___19_9/Mesh77/Mesh77 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group65/node___20_9/Mesh78/Mesh78 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group69/Group70/Mesh79/Mesh79 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group69/Group71/Mesh80/Mesh80 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group69/Group72/Mesh81/Mesh81 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group69/node___19_10/Mesh82/Mesh82 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group69/node___20_10/Mesh83/Mesh83 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group73/Group74/Mesh84/Mesh84 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group73/Group75/Mesh85/Mesh85 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group73/Group76/Mesh86/Mesh86 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group73/node___19_11/Mesh87/Mesh87 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group73/node___20_11/Mesh88/Mesh88 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group77/Group78/Mesh89/Mesh89 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group77/Group79/Mesh90/Mesh90 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group77/Group80/Mesh91/Mesh91 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group77/node___19_12/Mesh92/Mesh92 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/Group77/node___20_12/Mesh93/Mesh93 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/Group81/Mesh94/Mesh94 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/Group82/Mesh95/Mesh95 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/Group83/Mesh96/Mesh96 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___66_1/Mesh97/Mesh97 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___66_2/Mesh98/Mesh98 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___69_1/Mesh99/Mesh99 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___69_2/Mesh100/Mesh100 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___69_3/Mesh101/Mesh101 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_1/node___69_4/Mesh102/Mesh102 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group84/Mesh103/Mesh103 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group85/Group86/Mesh104/Mesh104 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group85/Group87/Mesh105/Mesh105 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group85/Group88/Mesh106/Mesh106 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group85/node___19_13/Mesh107/Mesh107 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group85/node___20_13/Mesh108/Mesh108 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group89/Group90/Mesh109/Mesh109 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group89/Group91/Mesh110/Mesh110 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group89/Group92/Mesh111/Mesh111 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group89/node___19_14/Mesh112/Mesh112 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group89/node___20_14/Mesh113/Mesh113 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group93/Group94/Mesh114/Mesh114 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group93/Group95/Mesh115/Mesh115 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group93/Group96/Mesh116/Mesh116 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group93/node___19_15/Mesh117/Mesh117 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group93/node___20_15/Mesh118/Mesh118 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group97/Group98/Mesh119/Mesh119 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group97/Group99/Mesh120/Mesh120 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group97/Group100/Mesh121/Mesh121 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group97/node___19_16/Mesh122/Mesh122 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/Group97/node___20_16/Mesh123/Mesh123 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___72_1/Mesh124/Mesh124 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___72_2/Mesh125/Mesh125 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___72_3/Mesh126/Mesh126 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___72_4/Mesh127/Mesh127 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_1/Group101/Mesh128/Mesh128 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_1/node___54_1/Mesh129/Mesh129 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_1/node___54_2/Mesh130/Mesh130 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_1/node___54_3/Mesh131/Mesh131 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_1/node___54_4/Mesh132/Mesh132 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_2/Group102/Mesh133/Mesh133 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_2/node___54_5/Mesh134/Mesh134 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_2/node___54_6/Mesh135/Mesh135 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_2/node___54_7/Mesh136/Mesh136 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_1/node___68_2/node___54_8/Mesh137/Mesh137 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/Group103/Mesh138/Mesh138 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/Group104/Mesh139/Mesh139 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/Group105/Mesh140/Mesh140 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___66_3/Mesh141/Mesh141 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___66_4/Mesh142/Mesh142 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___71_1/Mesh143/Mesh143 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___71_2/Mesh144/Mesh144 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___71_3/Mesh145/Mesh145 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_1/node___71_4/Mesh146/Mesh146 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/Group106/Mesh147/Mesh147 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/Group107/Mesh148/Mesh148 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/Group108/Mesh149/Mesh149 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___66_5/Mesh150/Mesh150 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___66_6/Mesh151/Mesh151 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___69_5/Mesh152/Mesh152 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___69_6/Mesh153/Mesh153 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___69_7/Mesh154/Mesh154 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_2/node___69_8/Mesh155/Mesh155 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/Group109/Mesh156/Mesh156 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/Group110/Mesh157/Mesh157 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/Group111/Mesh158/Mesh158 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___66_7/Mesh159/Mesh159 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___66_8/Mesh160/Mesh160 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___71_5/Mesh161/Mesh161 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___71_6/Mesh162/Mesh162 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___71_7/Mesh163/Mesh163 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_2/node___71_8/Mesh164/Mesh164 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group112/Mesh165/Mesh165 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group113/Group114/Mesh166/Mesh166 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group113/Group115/Mesh167/Mesh167 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group113/Group116/Mesh168/Mesh168 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group113/node___19_17/Mesh169/Mesh169 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group113/node___20_17/Mesh170/Mesh170 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group117/Group118/Mesh171/Mesh171 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group117/Group119/Mesh172/Mesh172 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group117/Group120/Mesh173/Mesh173 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group117/node___19_18/Mesh174/Mesh174 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group117/node___20_18/Mesh175/Mesh175 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group121/Group122/Mesh176/Mesh176 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group121/Group123/Mesh177/Mesh177 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group121/Group124/Mesh178/Mesh178 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group121/node___19_19/Mesh179/Mesh179 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group121/node___20_19/Mesh180/Mesh180 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group125/Group126/Mesh181/Mesh181 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group125/Group127/Mesh182/Mesh182 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group125/Group128/Mesh183/Mesh183 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group125/node___19_20/Mesh184/Mesh184 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/Group125/node___20_20/Mesh185/Mesh185 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___72_5/Mesh186/Mesh186 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___72_6/Mesh187/Mesh187 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___72_7/Mesh188/Mesh188 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___72_8/Mesh189/Mesh189 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_3/Group129/Mesh190/Mesh190 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_3/node___54_9/Mesh191/Mesh191 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_3/node___54_10/Mesh192/Mesh192 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_3/node___54_11/Mesh193/Mesh193 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_3/node___54_12/Mesh194/Mesh194 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_4/Group130/Mesh195/Mesh195 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_4/node___54_13/Mesh196/Mesh196 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_4/node___54_14/Mesh197/Mesh197 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_4/node___54_15/Mesh198/Mesh198 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_2/node___68_4/node___54_16/Mesh199/Mesh199 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/Group131/Mesh200/Mesh200 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/Group132/Mesh201/Mesh201 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/Group133/Mesh202/Mesh202 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___66_9/Mesh203/Mesh203 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___66_10/Mesh204/Mesh204 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___71_9/Mesh205/Mesh205 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___71_10/Mesh206/Mesh206 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___71_11/Mesh207/Mesh207 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___86_3/node___71_12/Mesh208/Mesh208 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/Group134/Mesh209/Mesh209 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/Group135/Mesh210/Mesh210 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/Group136/Mesh211/Mesh211 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___66_11/Mesh212/Mesh212 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___66_12/Mesh213/Mesh213 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___69_9/Mesh214/Mesh214 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___69_10/Mesh215/Mesh215 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___69_11/Mesh216/Mesh216 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___88_3/node___69_12/Mesh217/Mesh217 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group137/Mesh218/Mesh218 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group138/Group139/Mesh219/Mesh219 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group138/Group140/Mesh220/Mesh220 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group138/Group141/Mesh221/Mesh221 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group138/node___19_21/Mesh222/Mesh222 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group138/node___20_21/Mesh223/Mesh223 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group142/Group143/Mesh224/Mesh224 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group142/Group144/Mesh225/Mesh225 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group142/Group145/Mesh226/Mesh226 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group142/node___19_22/Mesh227/Mesh227 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group142/node___20_22/Mesh228/Mesh228 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group146/Group147/Mesh229/Mesh229 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group146/Group148/Mesh230/Mesh230 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group146/Group149/Mesh231/Mesh231 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group146/node___19_23/Mesh232/Mesh232 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group146/node___20_23/Mesh233/Mesh233 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group150/Group151/Mesh234/Mesh234 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group150/Group152/Mesh235/Mesh235 bound=/World/Looks/HydraStormDebugEmissive is_debug=True",
+      "[force-debug-after] mesh=/World/Diaolan_Ver1_0_2026_05/Model/Diaolan_01/Diaolan/node___35_3/Group150/Group153/Mesh236/Mesh236 bound=/World/Looks/HydraStormDebugEmissive is_debug=True"
+    ]
+  },
+  "rollback": {
+    "frame": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_rollback_20260403_052931.jpg",
+    "stats": {
+      "bbox_px": [
+        477,
+        272,
+        563,
+        333
+      ],
+      "mean_luma": 0.0,
+      "min_luma": 0.0,
+      "max_luma": 0.0,
+      "black_ratio_lt20": 1.0,
+      "stddev": 0.0,
+      "mean_rgb": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "status": {
+      "pan": 0.0,
+      "tilt": -15.0,
+      "zoom": 1.5,
+      "stream": {
+        "role": "isaac_ptz_stream",
+        "config_file": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml",
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+        "scene_basename": "scene_4diaolan_ptz.usda",
+        "camera_prim": "/World/CameraRig/CamTilt/Camera",
+        "stage_open_ok": true,
+        "open_stage_detail": "streaming_ready",
+        "camera_bound_ok": true,
+        "render_product": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x7e11c2952610>",
+        "rtsp_enabled": true,
+        "rtsp_url": "rtsp://localhost:8554/ptz_cam",
+        "preview_enabled": false,
+        "resolution_wh": [
+          960,
+          540
+        ],
+        "control_base": "http://127.0.0.1:8081",
+        "mjpeg_url": "http://127.0.0.1:8081/stream.mjpeg",
+        "snapshot_url": "http://127.0.0.1:8081/snapshot.jpg",
+        "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+        "ffmpeg_alive": true,
+        "mediamtx_started": true,
+        "gondola_resolved_prim": "/World/Diaolan_Ver1_0_2026_06/Model/Diaolan_01",
+        "node1_resolved_prim": "/World/Diaolan_Ver1_0_2026_06/Model/Diaolan_01/People_01",
+        "node2_resolved_prim": "/World/Diaolan_Ver1_0_2026_06/Model/Diaolan_01/People_02",
+        "camera_rig_resolved_prim": "/World/CameraRig",
+        "gondola_init_height": 18.767886135230892,
+        "gondola_init_workers_visible": 1,
+        "gondola_init_relation": "diaolan_randomizer_managed",
+        "gondola_group1_source": "diaolan_randomizer",
+        "target_projection_metrics": {
+          "distance_to_camera": 52.18,
+          "frustum内可见": true,
+          "屏幕包围框px": [
+            86.96,
+            143.0,
+            238.98,
+            224.36
+          ],
+          "中心点px": [
+            162.97,
+            183.68
+          ],
+          "宽度占比%": 15.84,
+          "高度占比%": 15.06,
+          "越界面积占比": 0.0,
+          "中心在画面内": true,
+          "目标像素占比": 0.0239
+        }
+      },
+      "scene": {
+        "gondola_y": 18.767886135230892,
+        "workers": 1
+      }
+    },
+    "log": "/home/uniubi/xuanyuan/camera05/camera03/_verify_shader_mdl_launcher_R.log",
+    "log_hits": [
+      "[diaolan-active] active=/World/Diaolan_Ver1_0_2026_06 hidden=['/World/Diaolan_Ver1_0_2026_05', '/World/Diaolan_Ver1_0_2026_07', '/World/Diaolan_Ver1_0_2026_01']",
+      "[target-branch] renderer=RaytracedLighting chosen=/World/Diaolan_Ver1_0_2026_06/Model/Diaolan_01 world_z=18.00 bbox_min=(54.40808130252484, -26.68588017531267, 0.1193051624297643) bbox_max=(62.369034213901806, -20.421055956562665, 35.88099121093746)",
+      "[target-branch] root_visibility=inherited root_purpose=default mesh_count=6063 mesh_invisible=0 mesh_nondefault_purpose=0 mesh_missing_material=94 mesh_preview_surface=0 mesh_mdl_only=5969",
+      "[target-branch] hydra_mdl_only=False"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "meta_line": "[wall-constraint] wall_candidate_pool_meta=sample_wall_path=/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228 wall_collection_mode=semantic_parent semantic_seed=/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26 collection_root=/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7 seed_filter_applied=True wall_candidates_total_scanned=37392 wall_candidates_after_valid_filter=1358 wall_candidates_after_mode_filter=133 candidate_count=38 fallback_reason=None common_height_range=[1.8362, 2.8546]",
+  "wall_collection_mode": "semantic_parent",
+  "seed_filter_applied": true,
+  "collection_root": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7",
+  "selected_mount_prim": "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_1_20/Component430_20/Mesh200/Mesh200",
+  "selected_mount_group_hint": "Group5/Group7"
+}

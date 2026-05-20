@@ -1,0 +1,16 @@
+=== hostname ===
+uniubi
+=== pwd ===
+/home/uniubi/xuanyuan/camera03
+=== date ===
+Wed Apr 29 11:25:38 CST 2026
+=== ss ports ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=560720,fd=4))      
+LISTEN 0      4096               *:8554             *:*    users:(("mediamtx",pid=564456,fd=8))     
+=== ps ===
+uniubi    560720       1  0 11:07 ?        00:00:06 python3 ptz_launcher.py --config ./ptz_config.yaml
+uniubi    564456       1  0 11:16 ?        00:00:00 /home/uniubi/xuanyuan/camera03/./mediamtx /home/uniubi/xuanyuan/camera03/mediamtx.yml
+=== ffmpeg -version ===
+ffmpeg version 8.0 Copyright (c) 2000-2025 the FFmpeg developers
+built with gcc 14.3.0 (conda-forge gcc 14.3.0-5)
+configuration: --prefix=/home/uniubi/miniconda3 --cc=/home/conda/feedstock_root/build_artifacts/ffmpeg_1757193886947/_build_env/bin/x86_64-conda-linux-gnu-cc --cxx=/home/conda/feedstock_root/build_artifacts/ffmpeg_1757193886947/_build_env/bin/x86_64-conda-linux-gnu-c++ --nm=/home/conda/feedstock_root/build_artifacts/ffmpeg_1757193886947/_build_env/bin/x86_64-conda-linux-gnu-nm --ar=/home/conda/feedstock_root/build_artifacts/ffmpeg_1757193886947/_build_env/bin/x86_64-conda-linux-gnu-ar --disable-doc --enable-openssl --enable-demuxer=dash --enable-hardcoded-tables --enable-libfreetype --enable-libharfbuzz --enable-libfontconfig --enable-libopenh264 --enable-libdav1d --disable-gnutls --enable-libvpx --enable-libass --enable-pthreads --enable-alsa --enable-libpulse --enable-libvpl --enable-vaapi --enable-libopenvino --enable-gpl --enable-libx264 --enable-libx265 --enable-libmp3lame --enable-libaom --enable-libsvtav1 --enable-libxml2 --enable-pic --enable-shared --disable-static --enable-version3 --enable-zlib --enable-libvorbis --enable-libopus --enable-librsvg --enable-ffplay --enable-vulkan --enable-libshaderc --pkg-config=/home/conda/feedstock_root/build_artifacts/ffmpeg_1757193886947/_build_env/bin/pkg-config

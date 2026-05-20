@@ -1,0 +1,14 @@
+=== grep scene_path ===
+40:scene_path: /home/uniubi/xuanyuan/camera03/scene_4diaolan_ptz.usda
+=== diff -u ===
+--- /home/uniubi/xuanyuan/camera03/backup_cursor/fix_scene_path_41_178_20260429_105556/ptz_config.yaml.bak	2026-04-27 11:08:36.798787815 +0800
++++ /home/uniubi/xuanyuan/camera03/ptz_config.yaml	2026-04-29 10:56:01.950352525 +0800
+@@ -37,7 +37,7 @@
+ - 540
+ rtsp_enabled: true
+ rtsp_url: rtsp://localhost:8554/ptz_cam
+-scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
++scene_path: /home/uniubi/xuanyuan/camera03/scene_4diaolan_ptz.usda
+ environment_mode: hdri
+ dynamic_sky_enabled: false
+ dynamic_sky_preset_path: /home/uniubi/xuanyuan/camera05/camera03/dynamic_sky_pkg/Assets/Skies/2022_1/Skies/Dynamic/ClearSky.usd

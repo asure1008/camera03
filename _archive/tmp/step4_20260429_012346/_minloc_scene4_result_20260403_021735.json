@@ -1,0 +1,93 @@
+{
+  "tag": "20260403_021735",
+  "backup_cfg": "/home/uniubi/xuanyuan/camera05/camera03/ptz_config.yaml.bak_minloc_20260403_021735",
+  "temp_cfg": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_021735.yaml",
+  "launcher_log": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_launcher_20260403_021735.log",
+  "frame_path": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_frame_20260403_021735.jpg",
+  "result_path": "/home/uniubi/xuanyuan/camera05/camera03/_minloc_scene4_result_20260403_021735.json",
+  "core_variable": {
+    "scene_path_before": "/home/uniubi/xuanyuan/camera05/camera03/scene_single_with_ptz.usda",
+    "scene_path_after": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda"
+  },
+  "launcher_pid": 21936,
+  "launcher_ready": {
+    "isaac_state": "stopped",
+    "isaac_port": 18081,
+    "uptime_s": 0,
+    "ptz": null,
+    "config_path": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_021735.yaml",
+    "stream_config": {
+      "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+      "scene_basename": "scene_4diaolan_ptz.usda",
+      "camera_prim": "/World/CameraRig/CamTilt/Camera",
+      "rtsp_url": "rtsp://localhost:18554/ptz_cam",
+      "preview_enabled": false,
+      "read_error": null
+    },
+    "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+  },
+  "start_resp": {
+    "ok": true,
+    "ctrl_port": 18081,
+    "port_busy": false,
+    "existing_pid": -1,
+    "pid": 21940,
+    "log_path": "/home/uniubi/xuanyuan/camera05/camera03/isaac_stream.log",
+    "action_taken": "spawned"
+  },
+  "running_status": {
+    "isaac_state": "running",
+    "isaac_port": 18081,
+    "uptime_s": 12,
+    "ptz": {
+      "pan": 0.0,
+      "tilt": -15.0,
+      "zoom": 1.5,
+      "stream": {
+        "role": "isaac_ptz_stream",
+        "config_file": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_021735.yaml",
+        "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+        "scene_basename": "scene_4diaolan_ptz.usda",
+        "camera_prim": "/World/CameraRig/CamTilt/Camera",
+        "stage_open_ok": false,
+        "open_stage_detail": "not_loaded_yet",
+        "camera_bound_ok": false,
+        "render_product": "",
+        "rtsp_enabled": true,
+        "rtsp_url": "rtsp://localhost:18554/ptz_cam",
+        "preview_enabled": false,
+        "resolution_wh": [
+          960,
+          540
+        ],
+        "control_base": "http://127.0.0.1:18081",
+        "mjpeg_url": "http://127.0.0.1:18081/stream.mjpeg",
+        "snapshot_url": "http://127.0.0.1:18081/snapshot.jpg",
+        "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+        "ffmpeg_alive": false,
+        "mediamtx_started": false
+      },
+      "scene": {
+        "gondola_y": 0.0,
+        "workers": 2
+      }
+    },
+    "config_path": "/home/uniubi/xuanyuan/camera05/camera03/_ptz_config_minloc_scene4_20260403_021735.yaml",
+    "stream_config": {
+      "scene_path": "/home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda",
+      "scene_basename": "scene_4diaolan_ptz.usda",
+      "camera_prim": "/World/CameraRig/CamTilt/Camera",
+      "rtsp_url": "rtsp://localhost:18554/ptz_cam",
+      "preview_enabled": false,
+      "read_error": null
+    },
+    "note": "stream_config=磁盘当前值；切换 scene_path 后须 stop 再 start 方生效。ptz.stream=Isaac 进程内实际加载（仅 running 时有意义）。"
+  },
+  "stop_info": {
+    "stop_resp": {
+      "ok": true,
+      "stopping_pid": 21940
+    },
+    "returncode": -15
+  }
+}

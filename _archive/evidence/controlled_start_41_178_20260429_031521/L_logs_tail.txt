@@ -1,0 +1,366 @@
+-rw-rw-r-- 1 uniubi uniubi 584064 Apr 29 11:19 launcher_fix_python_sh_20260429_110716.log
+-rw-rw-r-- 1 uniubi uniubi  49243 Apr 29 11:16 isaac_stream.log
+-rw-rw-r-- 1 uniubi uniubi 532664 Apr 29 11:07 ptz_launcher.log
+===== launcher_fix_python_sh_20260429_110716.log =====
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → device.GetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2379: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  now = datetime.datetime.utcnow()
+[ONVIF] → 响应 device.GetSystemDateAndTime  945B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.SetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.SetSystemDateAndTime  413B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetCapabilities  2168B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetServices  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetServices  1436B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoAnalyticsConfigurations  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoAnalyticsConfigurations  424B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetNetworkInterfaces  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetNetworkInterfaces  955B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetDeviceInformation  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetDeviceInformation  676B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.GetConfigurationOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.GetConfigurationOptions  417B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → imaging.GetOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 imaging.GetOptions  975B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → imaging.GetMoveOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 imaging.GetMoveOptions  460B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetOSDOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetOSDOptions  406B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfigurationOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfigurationOptions  1461B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetSystemDateAndTime  945B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.SetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.SetSystemDateAndTime  413B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → ptz.GotoPreset  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[PTZ-Launcher][preset-semantic] token=1 name=Preset639111737191581468 fallback=absolute reason=missing_base_orientation
+[PTZ-Launcher] Isaac /control 下发失败: URLError(ConnectionRefusedError(111, 'Connection refused')) payload={"pan": 0.0, "tilt": -15.0, "zoom": 1.5}
+[ONVIF] → 响应 ptz.GotoPreset  635B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → media.GetSnapshotUri  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetSnapshotUri  685B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → ptz.GotoPreset  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[PTZ-Launcher][preset-semantic] token=1 name=Preset639111737191581468 fallback=absolute reason=missing_base_orientation
+[PTZ-Launcher] Isaac /control 下发失败: URLError(ConnectionRefusedError(111, 'Connection refused')) payload={"pan": 0.0, "tilt": -15.0, "zoom": 1.5}
+[ONVIF] → 响应 ptz.GotoPreset  635B  CT=application/soap+xml; charset=utf-8
+===== isaac_stream.log =====
+[3.754s] [ext: omni.kit.property.audio-1.0.16] startup
+[3.756s] [ext: omni.kit.property.camera-1.0.10] startup
+[3.757s] [ext: omni.kit.property.geometry-2.0.4] startup
+[3.759s] [ext: omni.hydra.scene_api-0.1.2] startup
+[3.763s] [ext: omni.kit.property.light-1.0.12] startup
+[3.771s] [ext: omni.kit.manipulator.prim.fabric-107.0.4] startup
+[3.773s] [ext: omni.kit.manipulator.prim.usd-107.0.3] startup
+[3.774s] [ext: omni.kit.property.material-1.11.9] startup
+[3.778s] [ext: omni.kit.property.render-1.2.1] startup
+[3.780s] [ext: omni.kit.property.transform-1.5.13] startup
+[3.783s] [ext: isaacsim.gui.property-1.1.3] startup
+[3.784s] [ext: omni.kit.manipulator.camera-106.0.4] startup
+[3.787s] [ext: omni.kit.manipulator.prim-107.0.0] startup
+[3.787s] [ext: omni.isaac.surface_gripper-2.0.6] startup
+2026-04-29T03:16:00Z [3,779ms] [Warning] [omni.isaac.surface_gripper] omni.isaac.surface_gripper has been deprecated in favor of isaacsim.robot.surface_gripper. Please update your code accordingly.
+[3.788s] [ext: omni.kit.manipulator.selection-106.0.1] startup
+[3.790s] [ext: omni.kit.property.bundle-1.4.1] startup
+[3.791s] [ext: omni.kit.property.isaac-1.0.6] startup
+2026-04-29T03:16:00Z [3,785ms] [Warning] [omni.kit.property.isaac] omni.kit.property.isaac has been deprecated in favor of isaacsim.gui.property. Please update your code accordingly.
+2026-04-29T03:16:00Z [3,785ms] [Warning] [omni.kit.property.isaac.widgets] omni.kit.property.isaac.widgets has been deprecated in favor of isaacsim.gui.property.widgets. Please update your code accordingly.
+[3.794s] [ext: omni.isaac.universal_robots-1.0.6] startup
+2026-04-29T03:16:00Z [3,786ms] [Warning] [omni.isaac.universal_robots] omni.isaac.universal_robots has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-04-29T03:16:00Z [3,786ms] [Warning] [omni.isaac.universal_robots.kinematics_solver] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+2026-04-29T03:16:00Z [3,786ms] [Warning] [omni.isaac.universal_robots.ur10] omni.isaac.franka has been deprecated in favor of isaacsim.robot.manipulators.examples.universal_robots. Please update your code accordingly.
+[3.795s] [ext: omni.isaac.core_nodes-2.0.6] startup
+2026-04-29T03:16:00Z [3,788ms] [Warning] [omni.isaac.core_nodes] omni.isaac.core_nodes has been deprecated in favor of isaacsim.core.nodes. Please update your code accordingly.
+[3.797s] [ext: omni.kit.viewport.menubar.camera-107.0.6] startup
+[3.803s] [ext: omni.kit.viewport.menubar.lighting-107.3.1] startup
+[3.807s] [ext: isaacsim.replicator.writers-1.0.17] startup
+[3.817s] [ext: omni.kit.viewport.menubar.render-107.0.10] startup
+[3.822s] [ext: omni.kit.viewport.menubar.settings-107.0.3] startup
+[3.828s] [ext: omni.kit.window.console-1.1.4] startup
+[3.831s] [ext: isaacsim.replicator.domain_randomization-1.0.16] startup
+[3.832s] [ext: isaacsim.replicator.examples-1.3.6] startup
+[3.835s] [ext: omni.ocio-0.1.1] startup
+[3.837s] [ext: omni.rtx.window.settings-0.6.19] startup
+[3.844s] [ext: omni.kit.window.status_bar-0.1.9] startup
+[3.848s] [ext: omni.kit.window.toolbar-2.0.0] startup
+[3.856s] [ext: omni.replicator.isaac-2.0.8] startup
+2026-04-29T03:16:00Z [3,849ms] [Warning] [omni.replicator.isaac] omni.replicator.isaac has been deprecated in favor of isaacsim.replicator.domain_randomization, isaacsim.replicator.examples, isaacsim.replicator.writers. Please update your code accordingly.
+[3.858s] [ext: omni.replicator.replicator_yaml-2.0.11] startup
+[3.864s] [ext: omni.rtx.settings.core-0.6.5] startup
+[3.869s] [ext: omni.usd.metrics.assembler.ui-107.3.1] startup
+[3.876s] [ext: omni.isaac.utils-2.0.6] startup
+[3.877s] [ext: semantics.schema.editor-2.0.2] startup
+[3.881s] [ext: omni.kit.ui.actions-1.0.5] startup
+[3.882s] [ext: semantics.schema.property-2.0.1] startup
+[3.883s] [ext: omni.isaac.version-2.0.7] startup
+2026-04-29T03:16:00Z [3,875ms] [Warning] [omni.isaac.version] omni.isaac.version has been deprecated in favor of isaacsim.core.version. Please update your code accordingly.
+[3.884s] [ext: omni.isaac.cortex-1.0.5] startup
+[3.885s] [ext: omni.anim.curve.core-1.3.1] startup
+[3.892s] [ext: isaacsim.core.throttling-2.2.2] startup
+[3.894s] [ext: omni.kit.menu.common-2.0.1] startup
+[3.896s] [ext: isaacsim.exp.base-5.1.0] startup
+[3.896s] [ext: isaacsim.exp.base.python-5.1.0] startup
+[3.897s] Simulation App Starting
+2026-04-29T03:16:00Z [3,959ms] [Warning] [omni.fabric.plugin] Warning: attribute viewportHandle not found for bucket id 9
+
+[4.002s] app ready
+[5.729s] Simulation App Startup Complete
+[PTZ-RTSP] 初始云台 pan=0.0° tilt=-15.0° zoom=1.5×
+[PTZ-RTSP] MJPEG 编码器：Pillow ✓
+[PTZ-RTSP] preview_enabled=false，关闭 MJPEG 预览，但保留 snapshot 快照缓存 (interval=0.50s)
+[PTZ-RTSP] 控制面板已启动 → http://localhost:8081/
+[PTZ-RTSP]   用浏览器打开上面的地址即可实时控制云台和变焦
+[PTZ-RTSP]   控制面并发上限=32
+[PTZ-RTSP] 使用已有 mediamtx：/home/uniubi/xuanyuan/camera03/./mediamtx
+[PTZ-RTSP] 使用配置文件：/home/uniubi/xuanyuan/camera03/mediamtx.yml
+[ctrl-http] enter path=/api/health tid=134408375887552 dt_ms=0.0
+[ctrl-http] exit path=/api/health tid=134408375887552 dt_ms=0.8 bytes=376
+[scan_diaolan_prims] WARNING: /World not found; falling back to full stage traverse
+[scan_diaolan_prims] discovered candidates: []
+[ctrl-http] enter path=/api/health tid=134408375887552 dt_ms=0.0
+[ctrl-http] exit path=/api/health tid=134408375887552 dt_ms=0.8 bytes=376
+[ctrl-http] enter path=/snapshot.jpg tid=134408375887552 dt_ms=0.0
+[ctrl-http] enter path=/api/health tid=134408367494848 dt_ms=0.0
+[ctrl-http] exit path=/api/health tid=134408367494848 dt_ms=0.7 bytes=376
+[scan_diaolan_prims] WARNING: /World not found; falling back to full stage traverse
+[scan_diaolan_prims] discovered candidates: []
+[ctrl-http] enter path=/api/health tid=134408367494848 dt_ms=0.0
+[ctrl-http] exit path=/api/health tid=134408367494848 dt_ms=0.6 bytes=376
+[PTZ-RTSP] mediamtx 已启动，RTSP 端口 :8554（pid=564456）
+[PTZ-RTSP] ffmpeg 版本未知
+[PTZ-RTSP] 尝试 h264_nvenc 编码器...
+2026-04-29T03:16:04Z [7,756ms] [Error] [omni.kit.app._impl] [py stderr]: Traceback (most recent call last):
+2026-04-29T03:16:04Z [7,756ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/camera03/ptz_stream.py", line 13413, in <module>
+2026-04-29T03:16:04Z [7,763ms] [Error] [omni.kit.app._impl] [py stderr]:     main()
+2026-04-29T03:16:04Z [7,763ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/camera03/ptz_stream.py", line 12482, in main
+2026-04-29T03:16:04Z [7,767ms] [Error] [omni.kit.app._impl] [py stderr]:     _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+2026-04-29T03:16:04Z [7,768ms] [Error] [omni.kit.app._impl] [py stderr]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-04-29T03:16:04Z [7,768ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/camera03/ptz_stream.py", line 12139, in _start_ffmpeg
+2026-04-29T03:16:04Z [7,773ms] [Error] [omni.kit.app._impl] [py stderr]:     proc = _launch(nvenc_cmd, "nvenc")
+2026-04-29T03:16:04Z [7,773ms] [Error] [omni.kit.app._impl] [py stderr]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-04-29T03:16:04Z [7,773ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/camera03/ptz_stream.py", line 12125, in _launch
+2026-04-29T03:16:04Z [7,777ms] [Error] [omni.kit.app._impl] [py stderr]:     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+2026-04-29T03:16:04Z [7,777ms] [Error] [omni.kit.app._impl] [py stderr]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-04-29T03:16:04Z [7,777ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/kit/python/lib/python3.11/subprocess.py", line 1026, in __init__
+2026-04-29T03:16:04Z [7,778ms] [Error] [omni.kit.app._impl] [py stderr]:     self._execute_child(args, executable, preexec_fn, close_fds,
+2026-04-29T03:16:04Z [7,778ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/uniubi/xuanyuan/kit/python/lib/python3.11/subprocess.py", line 1955, in _execute_child
+2026-04-29T03:16:04Z [7,779ms] [Error] [omni.kit.app._impl] [py stderr]:     raise child_exception_type(errno_num, err_msg, err_filename)
+2026-04-29T03:16:04Z [7,779ms] [Error] [omni.kit.app._impl] [py stderr]: FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Annotators' for removal
+2026-04-29T03:16:04Z [8,669ms] [Warning] [omni.graph.core.plugin] Could not find category 'Replicator:Core' for removal
+2026-04-29T03:16:04Z [8,671ms] [Warning] [omni.graph.core.plugin] Could not find category 'animation' for removal
+2026-04-29T03:16:04Z [8,672ms] [Warning] [omni.physx.plugin] USD stage detach not called, holding a loose ptr to a stage!
+2026-04-29T03:16:04Z [8,678ms] [Warning] [omni.fabric.plugin] gFabricState->gUsdStageToSimStageWithHistoryMap had 1 outstanding SimStageWithHistory(s) at shutdown
+2026-04-29T03:16:04Z [8,680ms] [Warning] [carb.audio.context] 1 contexts were leaked
+2026-04-29T03:16:04Z [8,744ms] [Warning] [carb] Recursive unloadAllPlugins() detected!
+===== ptz_launcher.log =====
+[PTZ-Launcher] Isaac /control 下发失败: URLError(ConnectionRefusedError(111, 'Connection refused')) payload={"pan": 0.0, "tilt": -15.0, "zoom": 1.5}
+[ONVIF] → 响应 ptz.GotoPreset  635B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → device.GetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2379: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  now = datetime.datetime.utcnow()
+[ONVIF] → 响应 device.GetSystemDateAndTime  943B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.SetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.SetSystemDateAndTime  413B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetCapabilities  2168B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetServices  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetServices  1436B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoAnalyticsConfigurations  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoAnalyticsConfigurations  424B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetNetworkInterfaces  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetNetworkInterfaces  955B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetDeviceInformation  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetDeviceInformation  676B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.GetConfigurationOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.GetConfigurationOptions  417B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → ptz.CreatePresetTour  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 ptz.CreatePresetTour  410B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → imaging.GetOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 imaging.GetOptions  975B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → imaging.GetMoveOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 imaging.GetMoveOptions  460B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetOSDOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetOSDOptions  406B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfigurationOptions  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfigurationOptions  1461B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetVideoEncoderConfiguration  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 media.GetVideoEncoderConfiguration  1369B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.GetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.GetSystemDateAndTime  943B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → device.SetSystemDateAndTime  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] → 响应 device.SetSystemDateAndTime  413B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.47.89 → media.GetStreamUri  [SOAP1.2]  CT=application/soap+xml; charset="utf-8"
+[ONVIF] GetStreamUri Host='192.168.41.178' client='192.168.47.89' → rtsp://192.168.41.178:8554/ptz_cam
+[ONVIF] → 响应 media.GetStreamUri  673B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → media.GetSnapshotUri  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetSnapshotUri  685B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → ptz.GotoPreset  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[PTZ-Launcher][preset-semantic] token=1 name=Preset639111737191581468 fallback=absolute reason=missing_base_orientation
+[PTZ-Launcher] Isaac /control 下发失败: URLError(ConnectionRefusedError(111, 'Connection refused')) payload={"pan": 0.0, "tilt": -15.0, "zoom": 1.5}
+[ONVIF] → 响应 ptz.GotoPreset  635B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → device.GetCapabilities  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 device.GetCapabilities  2188B  CT=application/soap+xml; charset=utf-8
+/home/uniubi/xuanyuan/camera03/ptz_launcher.py:2188: DeprecationWarning: Testing an element's truth value will raise an exception in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  root.find("{http://www.w3.org/2003/05/soap-envelope}Body") or
+[ONVIF] 192.168.41.207 → media.GetProfiles  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetProfiles  3054B  CT=application/soap+xml; charset=utf-8
+[ONVIF] 192.168.41.207 → media.GetSnapshotUri  [SOAP1.2]  CT=application/soap+xml; charset=utf-8; act
+[ONVIF] → 响应 media.GetSnapshotUri  685B  CT=application/soap+xml; charset=utf-8

@@ -1,0 +1,171 @@
+{
+  "ok": true,
+  "same_tick_pipeline": {
+    "ok": true,
+    "capture_seq": 128,
+    "probe": false,
+    "timestamps": {
+      "wall_time_iso": "2026-04-22T05:10:24",
+      "monotonic_t_start": 1105097.973841277,
+      "monotonic_t_end": 1105097.99516166
+    },
+    "raw_rgba_stats": {
+      "shape": [
+        540,
+        960,
+        4
+      ],
+      "dtype": "uint8",
+      "channels": {
+        "channel_count": 4,
+        "rgb_min": 0.0,
+        "rgb_max": 208.0,
+        "rgb_mean": 0.8690380658436214,
+        "rgb_nonzero_ratio": 0.009358281893004115,
+        "alpha_min": 162.0,
+        "alpha_max": 255.0,
+        "alpha_mean": 254.88114197530865,
+        "alpha_nonzero_ratio": 1.0
+      }
+    },
+    "normalized_rgb_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 208,
+      "mean": 0.8690380658436214,
+      "nonzero_ratio": 0.009358281893004115
+    },
+    "jpeg_input_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 208,
+      "mean": 0.8690380658436214,
+      "nonzero_ratio": 0.009358281893004115
+    },
+    "snapshot_cache_stats": {
+      "snapshot_cache_updated_this_seq": true,
+      "capture_seq_expected": 128,
+      "snapshot_cache_capture_seq_after_write": 128,
+      "service_snapshot_frame_id": 16,
+      "jpeg_byte_len": 11050,
+      "jpeg_input_rgb_stats_at_write": {
+        "shape": [
+          540,
+          960,
+          3
+        ],
+        "dtype": "uint8",
+        "min": 0,
+        "max": 208,
+        "mean": 0.8690380658436214,
+        "nonzero_ratio": 0.009358281893004115
+      },
+      "aligned_with_same_seq": true
+    },
+    "binding_and_runtime": {
+      "camera_prim": "/World/CameraRig/CamTilt/Camera",
+      "render_product": {
+        "repr": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x730d90b0bcd0>",
+        "pyid": 126502099270864,
+        "path": "/Render/OmniverseKit/HydraTextures/Replicator"
+      },
+      "annotator_repr": "<omni.replicator.core.scripts.annotators.Annotator object at 0x72fd6411b550>",
+      "annotator_pyid": 126432631174480,
+      "whether_rebind_recently": false,
+      "bind_seq": 1,
+      "bind_meta": {
+        "bind_seq": 1,
+        "rp_pyid": 126502099270864,
+        "annotator_pyid": 126432631174480,
+        "rp_repr": "<omni.replicator.core.scripts.utils.viewport_manager.HydraTexture object at 0x730d90b0bcd0>",
+        "annotator_repr": "<omni.replicator.core.scripts.annotators.Annotator object at 0x72fd6411b550>",
+        "camera_prim_path": "/World/CameraRig/CamTilt/Camera",
+        "resolution_wh": [
+          960,
+          540
+        ],
+        "created_wall_time_iso": "2026-04-22 05:10:14",
+        "created_monotonic": 1105087.608914096
+      },
+      "renderer_mode": "RTXRealTime",
+      "renderer_config_vs_observed": {
+        "config_source": {
+          "simulation_app_launch_renderer_kwarg": "RTXRealTime",
+          "launch_resolution_wh_from_simulation_app_kwarg": [
+            960,
+            540
+          ],
+          "hydra_c_branch_geometry_only_cfg": false
+        },
+        "carb_settings_observed_at_poll": {
+          "/app/renderer/plugin": null,
+          "/rtx/rendermode": "RaytracedLighting",
+          "/rtx/hydra/materialSyncMode": null,
+          "/rtx/hydra/geometrySyncMode": null,
+          "/omni/replicator/RTSubframes": null,
+          "/persistent/app/viewport/displayOptions": 3094,
+          "/renderer/multiGpu/currentGpu": null,
+          "/rtx/post/autoExposure/enabled": null,
+          "/rtx/autoExposure/enabled": null,
+          "/rtx/post/tonemap/op": 6
+        },
+        "viewport_delegate_observed": {
+          "active_viewport_type": "ProxyType",
+          "hydra_engine": "rtx",
+          "render_product_path": "/Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0"
+        }
+      },
+      "camera_world": {
+        "ok": false,
+        "error": "NameError:name 'Usd' is not defined"
+      },
+      "pan_tilt_zoom": {
+        "pan": -129.44538548846378,
+        "tilt": -30.486621064424455,
+        "zoom": 1.5
+      },
+      "orientation_state": {
+        "mode": "dynamic_lookat",
+        "camera_xyz": [
+          -20.428623967075044,
+          57.20164019682689,
+          2.517590839668786
+        ],
+        "target_xyz": [
+          -2.157680300806472,
+          42.169464139463756,
+          16.446931593538007
+        ],
+        "base_pan": -129.44538548846378,
+        "base_tilt": -30.486621064424455,
+        "applied_pan": -129.44538548846378,
+        "applied_tilt": -30.486621064424455,
+        "applied_roll": 0.0,
+        "last_source": "startup_init",
+        "last_preset_name": "default_initial",
+        "fallback": false,
+        "fallback_reason": null
+      },
+      "target_xyz": [
+        -2.157680300806472,
+        42.169464139463756,
+        16.446931593538007
+      ],
+      "lookat_target_prim": "/World/Diaolan/Diaolan/Model/Gaochuzuoye_Diaolan/Diaolan",
+      "is_post_recover_first_capture_frame": false,
+      "recover_render_capture_attempted_this_tick": false
+    },
+    "black_origin_stage": null,
+    "cache_lag_analysis": null
+  }
+}

@@ -1,0 +1,16 @@
+总样本数: 10
+各 scene_pattern 数量: {'single_airborne': 4, 'double_airborne': 3, 'all_ground': 3}
+各 basket_state 数量: {'ground_empty': 10, 'air_with_person': 10, 'ground_with_person': 0, 'unknown': 0}
+可视性状态计数: {'ok': 5, 'fail': 5, 'skip': 0}
+可视性 failed_rule 计数: {'target_far_from_basket_center': 4, 'basket1_offaxis_81.9deg': 1, 'basket1_offaxis_96.6deg': 1, 'basket2_offaxis_87.3deg': 1, 'basket2_offaxis_96.6deg': 1}
+可视性 fail 样本数: 5
+异常/失败样本数: 0
+manifest: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck_tuned/manifests/dataset_manifest_full.jsonl
+stats: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck_tuned/stats/dataset_stats_full.json
+check_report: /home/uniubi/xuanyuan/camera05/camera03/dataset_run_10_camcheck_tuned/logs/dataset_check_report.json
+可视性失败样本Top5:
+- sample=single_airborne_0001 rules=['target_far_from_basket_center']
+- sample=single_airborne_0002 rules=['target_far_from_basket_center', 'basket1_offaxis_81.9deg', 'basket2_offaxis_87.3deg']
+- sample=double_airborne_0001 rules=['target_far_from_basket_center']
+- sample=double_airborne_0003 rules=['target_far_from_basket_center']
+- sample=all_ground_0001 rules=['basket1_offaxis_96.6deg', 'basket2_offaxis_96.6deg']

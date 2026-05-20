@@ -1,0 +1,85 @@
+bitrate: 1M
+camera_prim: /World/CameraRig/CamTilt/Camera
+camera_rig_translate_xyz:
+- 114.16
+- -47.75
+- 20.11
+ctrl_port: 8081
+diaolan_camera_sampling_enabled: true
+focal_length_1x: 6
+fps: 10
+hydra_c_branch_geometry_only: false
+hydra_target_material_mode: none
+initial_pan: 0.0
+initial_tilt: -15.0
+initial_zoom: 1.5
+launcher_port: 8080
+mediamtx:
+  auto_download: true
+  path: ./mediamtx
+  port: 8554
+  version: v1.17.0
+mjpeg_quality: 80
+onvif_rtsp_host: ''
+osd_time:
+  enabled: false
+preview_enabled: false
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+renderer: PathTracing
+hdri_whitelist:
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/sunny_rose_garden_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/minedump_flats_8k.hdr
+- /home/uniubi/xuanyuan/camera05/camera03/changjing/farm_road_8k.hdr
+resolution:
+- 960
+- 540
+rtsp_enabled: true
+rtsp_url: rtsp://localhost:8554/ptz_cam
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_4diaolan_ptz.usda
+sim_hz: 60
+force_active_diaolan_path: /World/Diaolan_Ver1_0_2026_05
+force_gondola_height: 8.574312134624009
+force_workers_count: 1
+camera_height_wall_prim_path: /World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228
+wall_constraint_prim_path: /World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228
+wall_collection_mode: semantic_parent
+wall_collection_root_path: /World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5
+wall_constraint_xy_margin: 0.005
+wall_constraint_z_margin: 0.05
+camera_orientation_mode: dynamic_lookat
+camera_lookat_target_xyz:
+- 58.39
+- -4.34
+- 10.85
+preset_left_pan_offset_deg: 90.0
+preset_right_pan_offset_deg: -90.0
+preset_overlook_tilt_deg: 30.0
+presets:
+  '1':
+    name: Preset639111737191581468
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '2':
+    name: Front
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '3':
+    name: Right90
+    pan: 90.0
+    tilt: -15.0
+    zoom: 1.5
+  '4':
+    name: Left90
+    pan: -90.0
+    tilt: -15.0
+    zoom: 1.5
+  '5':
+    name: TopDown
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.2
+dynamic_startup_pan_offset_deg: -15.0
+dynamic_startup_tilt_offset_deg: -17.0

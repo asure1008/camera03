@@ -1,0 +1,10 @@
+=== ptz_config.yaml grep ffmpeg ===
+=== grep python_sh ===
+27:python_sh: /home/uniubi/xuanyuan/python.sh
+=== grep mediamtx ===
+17:mediamtx:
+19:  path: ./mediamtx
+=== grep rtsp ===
+23:onvif_rtsp_host: ''
+38:rtsp_enabled: true
+39:rtsp_url: rtsp://localhost:8554/ptz_cam

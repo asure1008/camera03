@@ -1,0 +1,80 @@
+# PTZ 虚拟摄像头配置（192.168.46.144）
+# scene_path：使用 scene_single_with_ptz.usda，该文件引用 DiaoLan_ChangJing_2026.03.18.usdz
+# tilt 符号约定（Z-up 场景）：正值=更俯视（向下），负值=更仰视（向上），有效范围 (-90, 30]
+launcher_port: 8080
+ctrl_port: 8081
+python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+scene_path: /home/uniubi/xuanyuan/camera05/camera03/scene_6diaolan_ptz.usda
+camera_prim: /World/CameraRig/CamTilt/Camera
+rtsp_url: rtsp://localhost:8554/ptz_cam
+resolution:
+- 960
+- 540
+fps: 10
+bitrate: 1M
+sim_hz: 60
+rtsp_enabled: true
+preview_enabled: false
+mjpeg_quality: 80
+renderer: RaytracedLighting
+osd_time:
+  enabled: true
+  fmt: '%Y-%m-%d %H:%M:%S'
+  x: 10
+  y: 10
+  size: 28
+  font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+# 广角基焦距（mm），与 USDA Camera.focalLength 一致；zoom=1× 时沿用此值
+focal_length_1x: 6
+# CameraRig translate：与 scene_single_with_ptz.usda 已验证机位一致（非旧配置 84/10/6 低空位）
+camera_rig_translate_xyz: [82, -72, 28]
+# false=关闭随机采样，启动时强制写入 camera_rig_translate_xyz（A/B 与 scene_single 对齐）
+# 确认非采样问题后改为 true，并依赖下方 diaolan_camera_sample_box 收紧采样
+diaolan_camera_sampling_enabled: false
+# 随机采样时的轴对齐盒（西南外围 + 与验证机位同量级高度），避免过大 y/x 范围与过低 z
+diaolan_camera_sample_box:
+  x_min: 72
+  x_max: 96
+  y_min: -90
+  y_max: -55
+  z_min: 20
+  z_max: 32
+# scene_6diaolan 内 /World/AmbientBoost；>0 时启动写入强度（补光实验，默认 0 不改变）
+diaolan_ambient_boost_intensity: 0
+# 启动 PTZ（与预置位 1「默认」一致）；机位仅由 camera_rig_translate_xyz 固定
+initial_pan: 0.0
+initial_tilt: -15.0
+initial_zoom: 1.5
+mediamtx:
+  path: ./mediamtx
+  port: 8554
+  auto_download: true
+  version: v1.17.0
+# 可选：强制 ONVIF GetStreamUri 返回的 RTSP 主机名（留空则自动：从 Host 解析 IPv4；环回时用通往 ODM 的网卡 IP）
+onvif_rtsp_host: ""
+presets:
+  '1':
+    name: 默认
+    pan: 0.0
+    tilt: -15.0
+    zoom: 1.5
+  '2':
+    name: 水平正视
+    pan: 0.0
+    tilt: -6.0
+    zoom: 1.4
+  '3':
+    name: 左90°
+    pan: -90.0
+    tilt: -6.0
+    zoom: 1.5
+  '4':
+    name: 右90°
+    pan: 90.0
+    tilt: -6.0
+    zoom: 1.5
+  '5':
+    name: 俯视
+    pan: 0.0
+    tilt: 30.0
+    zoom: 1.2

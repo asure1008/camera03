@@ -1,0 +1,2 @@
+LISTEN 0      5                          0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=165233,fd=5)) 
+LISTEN 0      4096                             *:8554             *:*    users:(("mediamtx",pid=219935,fd=7))

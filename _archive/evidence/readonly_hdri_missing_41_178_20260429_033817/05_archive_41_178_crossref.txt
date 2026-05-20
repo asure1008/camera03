@@ -1,0 +1,13 @@
+=== _archive/evidence 中与 41.178 相关的历史只读片段（非本轮产生）===
+
+1) controlled_start_41_178_20260429_031521/G_post_start.txt
+   提及 log_path: "/home/uniubi/xuanyuan/camera03/isaac_stream.log"
+   说明：历史采集在 41.178 上使用的部署根路径可能是 /home/uniubi/xuanyuan/camera03（无 camera05 段）。
+
+2) 同目录 L_logs_tail.txt / fix_ffmpeg_path 证据
+   FileNotFoundError: ffmpeg 缺失等（与 HDRI 不同根因，但说明 41.178 环境与仓库路径/依赖曾不一致）。
+
+3) 本轮在仓库内未检索到包含 "HDRI file not found" 的运行日志文本文件命中 isaac_stream.log；
+   用户报告的 41.178 上 sky_sun.hdr 缺失需在目标机对下列路径做 stat（本轮未执行）：
+   - 配置中 hdri_whitelist 所列绝对路径
+   - 若现场使用 /home/uniubi/xuanyuan/camera03/... 而配置仍指向 .../camera05/camera03/...，则属路径迁移不一致。

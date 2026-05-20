@@ -1,0 +1,81 @@
+            lines = f.readlines()[-max_scan_lines:]
+        for ln in lines:
+            low = ln.lower()
+            if any(m in low for m in _OOM_LOG_MARKERS):
+                hints.append(ln.rstrip("\n")[:500])
+    except Exception:
+        return []
+    return hints[-max_hints:]
+
+
+def _env_for_ptz_stream_subprocess() -> dict:
+    """ptz_stream 子进程环境：剥离 IsaacLab _isaac_sim 注入，使用 conda site-packages 内完整 Isaac Sim。
+
+    可通过 ptz_config.yaml 设置 isaac_child_preserve_isaaclab_runtime: true 恢复旧行为（仅调试）。
+    """
+    env = os.environ.copy()
+    preserve = bool(cfg.get("isaac_child_preserve_isaaclab_runtime", False))
+    if not preserve:
+        for k in _ISAACLAB_RUNTIME_ENV_KEYS:
+            env.pop(k, None)
+        if not cfg.get("isaac_child_preserve_pythonpath", False):
+            env.pop("PYTHONPATH", None)
+        raw_ld = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = _strip_pathlist_with_banned(raw_ld, _LD_PATH_BAN_SUBSTR)
+    py_exe = os.path.abspath(PYTHON_SH)
+    lib_dir = os.path.normpath(os.path.join(os.path.dirname(py_exe), "..", "lib"))
+    if os.path.isdir(lib_dir):
+        prev = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = lib_dir + (os.pathsep + prev if prev else "")
+    return env
+
+
+_PRESET_LEFT_PAN_OFFSET_DEG = float(cfg.get("preset_left_pan_offset_deg", 90.0))
+_PRESET_RIGHT_PAN_OFFSET_DEG = float(cfg.get("preset_right_pan_offset_deg", -90.0))
+_PRESET_OVERLOOK_TILT_DEG = float(cfg.get("preset_overlook_tilt_deg", 30.0))
+# 与 ptz_stream._resolve_orientation_profile 中 default_initial 一致：启动/随机后「可见中性朝向」相对几何 look-at 的偏置
+_DYNAMIC_STARTUP_PAN_OFFSET_DEG = float(cfg.get("dynamic_startup_pan_offset_deg", 0.0))
+_DYNAMIC_STARTUP_TILT_OFFSET_DEG = float(cfg.get("dynamic_startup_tilt_offset_deg", 0.0))
+
+
+def _read_stream_config_from_disk(config_path: str) -> dict:
+    """从磁盘读取 ptz 推流相关字段（与 ptz_stream 启动时读取一致；用于诊断/确认样本 USD）。"""
+    out: dict = {
+        "scene_path": None,
+        "scene_basename": None,
+        "camera_prim": None,
+        "rtsp_url": None,
+        "preview_enabled": None,
+        "renderer": None,
+        "read_error": None,
+    }
+    try:
+        cp = os.path.abspath(config_path)
+        with open(cp, "r", encoding="utf-8") as f:
+            y = yaml.safe_load(f) or {}
+        sp = y.get("scene_path")
+        if sp:
+            if not os.path.isabs(str(sp)):
+                sp = os.path.join(script_dir, str(sp))
+            sp_abs = os.path.abspath(sp)
+            out["scene_path"] = sp_abs
+            out["scene_basename"] = os.path.basename(sp_abs)
+        out["camera_prim"] = y.get("camera_prim")
+        out["rtsp_url"] = y.get("rtsp_url")
+        out["preview_enabled"] = y.get("preview_enabled")
+        out["renderer"] = y.get("renderer")
+    except Exception as e:
+        out["read_error"] = str(e)
+    return out
+
+
+_PRESET_LIMIT = 5
+_STARTUP_PRESET_TOKEN = "startup"
+_STARTUP_PRESET_NAME = "StartupView"
+_DEFAULT_PRESETS = {
+    "1": {"name": "Home", "pan": 0.0, "tilt": -15.0, "zoom": 1.5},
+    "2": {"name": "Front", "pan": 0.0, "tilt": -15.0, "zoom": 1.5},
+    "3": {"name": "Right90", "pan": 90.0, "tilt": -15.0, "zoom": 1.5},
+    "4": {"name": "Left90", "pan": -90.0, "tilt": -15.0, "zoom": 1.5},
+    "5": {"name": "TopDown", "pan": 0.0, "tilt": 30.0, "zoom": 1.2},
+}

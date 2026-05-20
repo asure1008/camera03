@@ -1,0 +1,102 @@
+{
+  "ok": true,
+  "camera_prim": "/World/CameraRig/CamTilt/Camera",
+  "renderer_mode": "RTXRealTime",
+  "ab_capture_seq": 127,
+  "replicator_source": {
+    "source_name": "replicator",
+    "render_product_path": "/Render/OmniverseKit/HydraTextures/Replicator",
+    "camera_prim": "/World/CameraRig/CamTilt/Camera",
+    "raw_rgba_stats": {
+      "shape": [
+        540,
+        960,
+        4
+      ],
+      "dtype": "uint8",
+      "channels": {
+        "channel_count": 4,
+        "rgb_min": 0.0,
+        "rgb_max": 207.0,
+        "rgb_mean": 0.8682651748971193,
+        "rgb_nonzero_ratio": 0.009359567901234567,
+        "alpha_min": 161.0,
+        "alpha_max": 255.0,
+        "alpha_mean": 254.881875,
+        "alpha_nonzero_ratio": 1.0
+      }
+    },
+    "normalized_rgb_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 207,
+      "mean": 0.8682651748971193,
+      "nonzero_ratio": 0.009359567901234567
+    },
+    "jpeg_input_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 207,
+      "mean": 0.8682651748971193,
+      "nonzero_ratio": 0.009359567901234567
+    },
+    "capture_seq": 127,
+    "source_seq": 0,
+    "frame_ok": true,
+    "jpeg_encoded_ok": true,
+    "jpeg_byte_len": 11050,
+    "error": null
+  },
+  "viewport_delegate_source": {
+    "source_name": "viewport_delegate",
+    "render_product_path": "/Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0",
+    "camera_prim": "/World/CameraRig/CamTilt/Camera",
+    "raw_rgba_stats": {
+      "shape": null,
+      "dtype": null,
+      "error": "raw_none"
+    },
+    "normalized_rgb_stats": {
+      "error": "no_normalized_buffer"
+    },
+    "jpeg_input_stats": {
+      "error": "no_normalized_buffer"
+    },
+    "capture_seq": 127,
+    "source_seq": 1,
+    "frame_ok": false,
+    "jpeg_encoded_ok": false,
+    "jpeg_byte_len": null,
+    "error": "callback:TypeError:memoryview: a bytes-like object is required, not 'PyCapsule'",
+    "capture_method": "byte_capture_LdrColor+sim_app.run_coroutine(wait_for_result)",
+    "callback_fired": true,
+    "wait_ms": 28.85,
+    "retry_count": 2,
+    "viewport_delegate_id": "Viewport/Viewport0",
+    "viewport_window_title": "Viewport",
+    "ab_probe_sim_app_update_count": 5,
+    "ab_probe_capture_attempts": 3,
+    "ab_probe_viewport_phase_wait_ms": 126.2
+  },
+  "comparison": {
+    "same_camera_assumed": true,
+    "replicator_rgb_mean": 0.8682651748971193,
+    "viewport_rgb_mean": null,
+    "replicator_nonzero_ratio": 0.009359567901234567,
+    "viewport_nonzero_ratio": null,
+    "which_source_is_healthier": "undetermined",
+    "replicator_frame_ok": true,
+    "viewport_delegate_frame_ok": false
+  },
+  "elapsed_monotonic_s": 0.16142738913185894
+}

@@ -1,0 +1,75 @@
+================================================================================
+camera05 / camera03 PTZ 仿真 — 新对话接力说明（请整段复制给新助手）
+更新日期：2026-03-27
+================================================================================
+
+【工作目录】
+/home/uniubi/xuanyuan/camera05/camera03
+
+【主目标】
+- PTZ 仿真服务稳定启动，ODM 可发现设备并可拉流；单入口场景加载吊篮工地模型。
+
+【模型与场景】
+- 模型文件：DiaoLan_ChangJing_2026.03.18.usdz（与目录内命名一致）
+- 不用 V4.0.usd 作稳定入口（组合加载曾出现错位/重复）。
+- 有效入口：scene_single_with_ptz.usda（引用上述 usdz），camera_prim=/World/CameraRig/CamTilt/Camera
+- 配置：ptz_config.yaml 中 scene_path 指向该单入口。
+
+【磁盘】
+- 曾因磁盘满导致不可交互；已清理到约 41G 可用（以当时 df 为准），需定期关注 磁盘空间。
+
+【稳定性与安全操作】
+以下脚本均在 camera03 目录，已 chmod +x：
+- stop_all.sh          ：熔断停机（ptz_launcher / ptz_stream / mediamtx / ffmpeg）
+- start_safe.sh        ：受控启动；用法 ./start_safe.sh <启动等待秒> <推流判定超时秒>
+  例：./start_safe.sh 6 180
+- check_health.sh      ：端口 8080/8081/8554、进程、日志关键字
+- rollback_safe.sh     ：回滚到较早安全备份（配置+场景）
+
+【环境与坑】
+- 终端若设代理，curl 访问 127.0.0.1 可能走 7890 失败；start_safe.sh 已对本地 curl 使用 --noproxy 与清除代理变量。
+- start_safe.sh 第二参数建议 150～180，避免 Isaac 启动慢误判超时熔断。
+- isaac_stream.log 里大量 omni.graph…tests / CXXABI 报错多为噪声；以「Simulation App Startup Complete」「相机绑定成功」「开始推流」「push_fps」为准。
+
+【纯灰画面问题 — 已解决要点】
+- 现象：RTSP/ffplay 有流、时间戳 OSD 正常，但画面整片灰，不是 nosignal。
+- 原因：相机局部 orient 四元数 (0.5,0.5,0.5,0.5) 与云台旋转叠加后视线偏离几何体。
+- 处理（当前生效版本）：
+  * scene_single_with_ptz.usda：Camera 的 xformOp:orient 改为单位四元数 (1,0,0,0)；CameraRig 平移为俯视机位（约 50,-30,42）；增加合理 clippingRange；略提高 FillLight。
+  * ptz_config.yaml：initial_pan / initial_tilt / initial_zoom 从配置读取；俯视起点用 initial_pan=0、initial_tilt=0。
+- 结果：用户确认「可以看到楼体」。
+
+【回滚备份文件（按需）】
+- ptz_config.yaml.bak_safe_20260326094631
+- scene_single_with_ptz.usda.bak_camfix_20260326095640
+- scene_single_with_ptz.usda.bak_blackfix_20260326100429
+- scene_single_with_ptz.usda.bak_grayfix_20260327、ptz_config.yaml.bak_grayfix_20260327（灰屏调试前）
+- scene_single_with_ptz.usda.bak_grayfix2_20260327、ptz_config.yaml.bak_grayfix2_20260327（灰屏调试另一版）
+
+【常用命令】
+cd /home/uniubi/xuanyuan/camera05/camera03
+./stop_all.sh
+./start_safe.sh 6 180
+./check_health.sh
+
+本机看流：
+ffplay -rtsp_transport tcp rtsp://127.0.0.1:8554/ptz_cam
+
+云台网页：
+http://127.0.0.1:8081/
+
+ONVIF/启动器：
+http://127.0.0.1:8080/  （按需 POST /start 已由 start_safe 触发）
+
+【Python 与配置】
+- 环境：/home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
+- 主进程：ptz_launcher.py → ptz_stream.py；RTSP：mediamtx + ffmpeg（h264_nvenc）
+
+【新对话建议第一件事】
+1) 读本文件与本目录 ptz_config.yaml、scene_single_with_ptz.usda。
+2) 若需改构图：优先改 ptz_config.yaml 的 initial_pan / initial_tilt，再改 CameraRig 平移；改后必须 stop_all + start_safe。
+3) 大改动前先复制一份备份。
+
+================================================================================
+结束。将本文件路径发给新对话即可：见「工作目录」下 cursor_handoff_接力上下文.txt
+================================================================================

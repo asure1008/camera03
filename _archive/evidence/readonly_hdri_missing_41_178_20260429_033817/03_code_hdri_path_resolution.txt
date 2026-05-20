@@ -1,0 +1,22 @@
+=== 路径解析依据（ptz_stream.py，只读结论）===
+
+1) 脚本目录相对路径（通用）
+   _resolve_path(p): 若 p 非绝对路径，则 os.path.join(script_dir, p)。
+   scene_path 等加载时使用；HDRI 白名单条目若为相对路径也会经此规则。
+
+2) HDRI 路径归一化
+   _normalize_hdri_path(raw) -> os.path.abspath(_resolve_path(str(raw).strip()))
+
+3) 默认四条 HDRI 规格（内置 basename）
+   _HDRI_FIXED_SPECS 中 A1 为 ("A1", 1, "sky_sun", os.path.join("changjing", "sky_sun.hdr"), ...)
+
+4) 与 yaml 覆盖
+   _configured_hdri_entries(): 若 cfg['hdri_whitelist'] 为长度足够的 list，则按槽位用 yaml 中的路径覆盖默认 raw_path，再经 _build_hdri_entry -> _normalize_hdri_path；exists = os.path.isfile(normalized_path)。
+
+5) 应用贴图时的硬校验（抛出用户所述类异常）
+   _apply_hdri_texture(stage, hdri_path):
+     normalized_path = _normalize_hdri_path(hdri_path)
+     if not os.path.isfile(normalized_path):
+         raise FileNotFoundError(f"HDRI file not found: {normalized_path}")
+
+说明：若异常文案中仅见 "sky_sun.hdr" 而无完整绝对路径，可能是日志截断或上游包装；源码中 f-string 使用完整 normalized_path。若传入已为绝对路径且文件不存在，则消息为完整路径。

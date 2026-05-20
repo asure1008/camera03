@@ -1,0 +1,33 @@
+=== 采集范围说明 ===
+本轮 shell 命令在 Cursor 工作区所在主机执行（见下方 hostname / IP），并非用户问题中的 192.168.41.178。
+原因：用户约束仅允许 ls/find/grep/sed/head/tail/cat/stat/ss/ps/curl GET 等，未包含 SSH；且本环境对 192.168.41.178 的 curl GET 未成功（见 09_curl_41_178.txt）。
+
+=== hostname ===
+uniubi
+
+=== hostname -I ===
+192.168.46.144 100.120.42.75 172.17.0.1 fd7a:115c:a1e0::f001:2aa2
+
+=== pwd（采集时）===
+/home/uniubi/xuanyuan/camera05
+
+=== date ===
+Wed Apr 29 03:38:21 AM UTC 2026
+
+=== df -h（摘要）===
+/ 约 200G；/home 约 753G（详见采集终端）
+
+=== ss -lntp | grep -E ':8080|:8081|:8554' ===
+LISTEN 0.0.0.0:8080 python3 (ptz_launcher)
+LISTEN 0.0.0.0:8081 python3 ptz_stream.py ... scene_4diaolan_ptz.usda
+LISTEN *:8554 mediamtx
+
+=== ps 相关进程（grep ptz_launcher|ptz_stream|mediamtx|ffmpeg|kit）===
+python3 ptz_launcher.py
+python3 ... ptz_stream.py --config .../ptz_config.yaml --ctrl-port 8081 ...
+ffmpeg ... rtsp://localhost:8554/ptz_cam
+mediamtx ... mediamtx.yml
+
+=== 工作目录说明 ===
+用户优先路径 /home/uniubi/xuanyuan/camera03 在本机不存在；
+仓库内 camera03 实际路径为：/home/uniubi/xuanyuan/camera05/camera03

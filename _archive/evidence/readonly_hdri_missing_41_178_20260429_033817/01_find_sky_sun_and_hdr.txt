@@ -1,0 +1,13 @@
+=== find /home/uniubi/xuanyuan -type f -name 'sky_sun.hdr' ===
+/home/uniubi/xuanyuan/camera05/camera03/changjing/sky_sun.hdr
+/home/uniubi/xuanyuan/camera05/archive/plan5_parent_cleanup_20260429_013023/export/camera03_export_for_github_20260422_063429/changjing/sky_sun.hdr
+/home/uniubi/xuanyuan/camera05/archive/plan5_parent_cleanup_20260429_013023/export/camera03_export_clean_20260423_085255/changjing/sky_sun.hdr
+（另有 export 目录下重复副本，略）
+
+=== 主部署目录 changjing 四张白名单 HDR（stat 前 ls）===
+farm_road_8k.hdr
+minedump_flats_8k.hdr
+sky_sun.hdr
+sunny_rose_garden_8k.hdr
+
+sky_sun.hdr Size: 97466049 bytes（约 93MB）

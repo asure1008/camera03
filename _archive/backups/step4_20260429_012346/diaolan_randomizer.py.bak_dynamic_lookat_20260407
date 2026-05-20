@@ -1,0 +1,1081 @@
+import json
+import random
+import math
+import yaml
+from pxr import Usd, UsdGeom, UsdShade, Gf, Sdf
+
+def compute_changjing_aabb(stage, changjing_path="/World/Changjing_AlgorithmVerification_2026_03"):
+    prim = stage.GetPrimAtPath(changjing_path)
+    if not prim.IsValid():
+        # Fallback if not found
+        return {
+            "xmin": 41.10, "xmax": 161.10,
+            "ymin": -92.60, "ymax": 93.40,
+            "zmin": -0.16, "zmax": 36.42,
+            "center": (101.1, 0.4, 18.13),
+            "size": (120.0, 186.0, 36.58)
+        }
+        
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    bbox = bbox_cache.ComputeWorldBound(prim)
+    box_range = bbox.ComputeAlignedRange()
+    
+    min_pt = box_range.GetMin()
+    max_pt = box_range.GetMax()
+    
+    aabb = {
+        "xmin": float(min_pt[0]), "xmax": float(max_pt[0]),
+        "ymin": float(min_pt[1]), "ymax": float(max_pt[1]),
+        "zmin": float(min_pt[2]), "zmax": float(max_pt[2]),
+        "center": (float((min_pt[0]+max_pt[0])/2), float((min_pt[1]+max_pt[1])/2), float((min_pt[2]+max_pt[2])/2)),
+        "size": (float(max_pt[0]-min_pt[0]), float(max_pt[1]-min_pt[1]), float(max_pt[2]-min_pt[2]))
+    }
+    
+    with open("changjing_aabb_report.yaml", "w") as f:
+        yaml.dump(aabb, f)
+        
+    return aabb
+
+def find_best_target_prim(stage, model_path, changjing_aabb):
+    model_prim = stage.GetPrimAtPath(model_path)
+    if not model_prim.IsValid():
+        return None
+        
+    candidates = []
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    
+    print(f"\n[TargetSelection] Scanning candidates under {model_path}")
+    
+    # Iterate over children of Model
+    for child in model_prim.GetChildren():
+        child_path = child.GetPath().pathString
+        child_name = child.GetName()
+        
+        # Skip known person nodes
+        if "node______" in child_name:
+            continue
+            
+        # Check if it has meshes
+        has_mesh = False
+        for desc in Usd.PrimRange(child):
+            if desc.IsA(UsdGeom.Mesh):
+                has_mesh = True
+                break
+                
+        # Compute bbox
+        bbox = bbox_cache.ComputeWorldBound(child)
+        box_range = bbox.ComputeAlignedRange()
+        if box_range.IsEmpty():
+            continue
+            
+        min_pt = box_range.GetMin()
+        max_pt = box_range.GetMax()
+        z_center = (min_pt[2] + max_pt[2]) / 2.0
+        z_min = min_pt[2]
+        z_max = max_pt[2]
+        
+        candidates.append({
+            "path": child_path,
+            "name": child_name,
+            "has_mesh": has_mesh,
+            "z_center": z_center,
+            "z_min": z_min,
+            "z_max": z_max
+        })
+        
+    if not candidates:
+        print(f"[TargetSelection] No valid candidates found under {model_path}")
+        return None
+        
+    # Print candidates
+    for c in candidates:
+        print(f"  - Candidate: {c['path']} | has_mesh={c['has_mesh']} | z_center={c['z_center']:.2f} | z_range=[{c['z_min']:.2f}, {c['z_max']:.2f}]")
+        
+    # Filter by realistic Z (e.g. within changjing_aabb zmax + some margin)
+    valid_z_max = changjing_aabb["zmax"] + 150.0 # generous margin, but avoids 1500+
+    
+    best_candidate = None
+    
+    # 1. Prefer Group8761 if it has mesh and valid Z
+    for c in candidates:
+        if c["name"] == "Group8761" and c["has_mesh"] and c["z_center"] < valid_z_max:
+            best_candidate = c
+            break
+            
+    # 2. Prefer any with mesh and valid Z
+    if not best_candidate:
+        valid_candidates = [c for c in candidates if c["has_mesh"] and c["z_center"] < valid_z_max]
+        if valid_candidates:
+            # Sort by Z center closest to 0 or just pick first
+            best_candidate = sorted(valid_candidates, key=lambda x: abs(x["z_center"]))[0]
+            
+    # 3. Fallback to any valid Z
+    if not best_candidate:
+        valid_candidates = [c for c in candidates if c["z_center"] < valid_z_max]
+        if valid_candidates:
+            best_candidate = sorted(valid_candidates, key=lambda x: abs(x["z_center"]))[0]
+            
+    # 4. Absolute fallback
+    if not best_candidate:
+        best_candidate = candidates[0]
+        
+    print(f"[TargetSelection] Chosen target prim for {model_path}: {best_candidate['path']} (z_center={best_candidate['z_center']:.2f})\n")
+    return best_candidate["path"]
+
+def _is_diaolan_name(name: str) -> bool:
+    """名字含 diaolan/gondola（大小写不敏感）即视为吊篮候选。"""
+    low = name.lower()
+    return "diaolan" in low or "gondola" in low
+
+
+def _find_target_prim_under_model(stage, gondola_root_path: str) -> str | None:
+    """
+    在新模型结构下寻找最佳 target prim：
+      优先取 {root}/Model/* 中网格数最多的直接子节点（通常是 Diaolan_01）。
+    返回其完整 prim 路径，或 None。
+    """
+    model = stage.GetPrimAtPath(f"{gondola_root_path}/Model")
+    if not model.IsValid():
+        return None
+
+    best_path = None
+    best_count = -1
+    for child in model.GetChildren():
+        cnt = sum(1 for d in Usd.PrimRange(child) if d.IsA(UsdGeom.Mesh))
+        if cnt > best_count:
+            best_count = cnt
+            best_path = child.GetPath().pathString
+
+    return best_path  # 可以是 None（Model 无子节点）
+
+
+def _collect_worker_prims(stage, diaolan01_path: str) -> list[str]:
+    """
+    在 Diaolan_01 直接子中找工人节点：
+      名字含 People/Worker/Person 且有 Mesh 后代的 prim。
+    """
+    prim = stage.GetPrimAtPath(diaolan01_path)
+    if not prim.IsValid():
+        return []
+
+    WORKER_KEYWORDS = ("people", "worker", "person")
+    result = []
+    for child in prim.GetChildren():
+        low = child.GetName().lower()
+        if any(kw in low for kw in WORKER_KEYWORDS):
+            has_mesh = any(True for d in Usd.PrimRange(child) if d.IsA(UsdGeom.Mesh))
+            if has_mesh:
+                result.append(child.GetPath().pathString)
+    return sorted(result)  # 保证顺序一致
+
+
+def scan_diaolan_prims(stage):
+    """
+    基于 stage 遍历发现吊篮 prim——不依赖任何硬编码路径。
+
+    发现策略：
+      1. 遍历 /World 直接子节点（不递归全局，避免性能问题）。
+      2. 筛选名字含 "diaolan"/"gondola" 的 Xform prim。
+      3. 要求存在 Model 子节点且 Model 下有 Mesh 后代（确保是真实几何节点）。
+      4. 在 Model 直接子中取网格最多的节点作为 target prim（兼容旧 group1 键）。
+      5. 在 target prim 直接子中找工人节点（名含 People/Worker/Person）。
+
+    返回格式（向后兼容）：
+      list of {
+        "path":    "/World/Diaolan_Ver1_0_2026_XX",
+        "group1":  "/World/.../Model/Diaolan_01",   # target prim
+        "persons": ["/World/.../People_01", ...],
+      }
+    """
+    world = stage.GetPrimAtPath("/World")
+    if not world.IsValid():
+        # 尝试 stage defaultPrim
+        root = stage.GetDefaultPrim()
+        if root and root.IsValid():
+            world = root
+        else:
+            print("[scan_diaolan_prims] WARNING: /World not found; falling back to full stage traverse")
+            world = None
+
+    candidates = []
+    if world is not None:
+        children = list(world.GetChildren())
+    else:
+        children = [
+            p for p in stage.Traverse()
+            if p.GetParent() and not p.GetParent().GetParent().IsValid()
+        ]
+
+    for prim in children:
+        if not _is_diaolan_name(prim.GetName()):
+            continue
+        path = prim.GetPath().pathString
+
+        # 必须有 Model 子节点
+        model = stage.GetPrimAtPath(f"{path}/Model")
+        if not model.IsValid():
+            print(f"[scan_diaolan_prims] skip {path}: no Model child")
+            continue
+
+        # Model 下必须有 Mesh 后代
+        has_mesh = any(True for d in Usd.PrimRange(model) if d.IsA(UsdGeom.Mesh))
+        if not has_mesh:
+            print(f"[scan_diaolan_prims] skip {path}: Model has no mesh descendants")
+            continue
+
+        candidates.append(path)
+
+    print(f"[scan_diaolan_prims] discovered candidates: {candidates}")
+
+    diaolans = []
+    for path in candidates:
+        target_prim_path = _find_target_prim_under_model(stage, path)
+        if not target_prim_path or not stage.GetPrimAtPath(target_prim_path).IsValid():
+            print(f"[scan_diaolan_prims] skip {path}: no valid target prim under Model")
+            continue
+
+        workers = _collect_worker_prims(stage, target_prim_path)
+
+        diaolans.append({
+            "path":    path,
+            "group1":  target_prim_path,  # 保持 key 名兼容旧代码
+            "persons": workers,
+        })
+        print(
+            f"[scan_diaolan_prims] accepted path={path} "
+            f"target={target_prim_path} workers={workers}"
+        )
+
+    return diaolans
+
+
+def _iter_mesh_prims(root_prim):
+    for desc in Usd.PrimRange(root_prim):
+        if desc.IsA(UsdGeom.Mesh):
+            yield desc
+
+
+def _compute_world_range(bbox_cache, prim):
+    bbox = bbox_cache.ComputeWorldBound(prim)
+    return bbox.ComputeAlignedRange()
+
+
+def _get_bound_material(mesh_prim):
+    binding = UsdShade.MaterialBindingAPI(mesh_prim).ComputeBoundMaterial()
+    if isinstance(binding, tuple):
+        return binding[0]
+    return binding
+
+
+def _collect_target_branch_render_stats(stage, target_prim_path):
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    if not target_prim.IsValid():
+        return None
+
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+    world_range = _compute_world_range(bbox_cache, target_prim)
+    root_imageable = UsdGeom.Imageable(target_prim)
+    root_visibility = "non-imageable"
+    root_purpose = "non-imageable"
+    if root_imageable:
+        root_visibility = root_imageable.ComputeVisibility(Usd.TimeCode.Default())
+        root_purpose = root_imageable.GetPurposeAttr().Get() or "default"
+
+    stats = {
+        "path": target_prim_path,
+        "world_min": tuple(float(v) for v in world_range.GetMin()),
+        "world_max": tuple(float(v) for v in world_range.GetMax()),
+        "world_mid": tuple(float(v) for v in world_range.GetMidpoint()),
+        "root_visibility": str(root_visibility),
+        "root_purpose": str(root_purpose),
+        "mesh_count": 0,
+        "mesh_invisible_count": 0,
+        "mesh_nondefault_purpose_count": 0,
+        "mesh_missing_material_count": 0,
+        "mesh_preview_surface_count": 0,
+        "mesh_mdl_only_count": 0,
+        "materials": {},
+    }
+
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        stats["mesh_count"] += 1
+        imageable = UsdGeom.Imageable(mesh_prim)
+        mesh_visibility = imageable.ComputeVisibility(Usd.TimeCode.Default())
+        mesh_purpose = imageable.GetPurposeAttr().Get() or "default"
+        if mesh_visibility != UsdGeom.Tokens.inherited:
+            stats["mesh_invisible_count"] += 1
+        if mesh_purpose != UsdGeom.Tokens.default_:
+            stats["mesh_nondefault_purpose_count"] += 1
+
+        material = _get_bound_material(mesh_prim)
+        if not material or not material.GetPrim().IsValid():
+            stats["mesh_missing_material_count"] += 1
+            continue
+
+        material_path = material.GetPath().pathString
+        output_names = sorted(out.GetFullName() for out in material.GetOutputs())
+        has_preview_surface = "outputs:surface" in output_names
+        has_mdl_surface = "outputs:mdl:surface" in output_names
+        if has_preview_surface:
+            stats["mesh_preview_surface_count"] += 1
+        if has_mdl_surface and not has_preview_surface:
+            stats["mesh_mdl_only_count"] += 1
+
+        entry = stats["materials"].setdefault(
+            material_path,
+            {
+                "mesh_count": 0,
+                "outputs": output_names,
+            },
+        )
+        entry["mesh_count"] += 1
+
+    return stats
+
+
+def log_target_branch_render_state(stage, target_prim_path, renderer_name=""):
+    stats = _collect_target_branch_render_stats(stage, target_prim_path)
+    if not stats:
+        print(f"[target-branch] invalid target_prim={target_prim_path}")
+        return None
+
+    print(
+        "[target-branch] "
+        f"renderer={renderer_name or 'unknown'} "
+        f"chosen={stats['path']} "
+        f"world_z={stats['world_mid'][2]:.2f} "
+        f"bbox_min={stats['world_min']} "
+        f"bbox_max={stats['world_max']}"
+    )
+    print(
+        "[target-branch] "
+        f"root_visibility={stats['root_visibility']} "
+        f"root_purpose={stats['root_purpose']} "
+        f"mesh_count={stats['mesh_count']} "
+        f"mesh_invisible={stats['mesh_invisible_count']} "
+        f"mesh_nondefault_purpose={stats['mesh_nondefault_purpose_count']} "
+        f"mesh_missing_material={stats['mesh_missing_material_count']} "
+        f"mesh_preview_surface={stats['mesh_preview_surface_count']} "
+        f"mesh_mdl_only={stats['mesh_mdl_only_count']}"
+    )
+
+    top_materials = sorted(
+        stats["materials"].items(),
+        key=lambda item: (-item[1]["mesh_count"], item[0]),
+    )[:6]
+    for material_path, material_info in top_materials:
+        print(
+            "[target-branch-material] "
+            f"path={material_path} "
+            f"mesh_count={material_info['mesh_count']} "
+            f"outputs={material_info['outputs']}"
+        )
+
+    hydra_mdl_only = (
+        renderer_name == "HydraStorm"
+        and stats["mesh_count"] > 0
+        and stats["mesh_preview_surface_count"] == 0
+        and stats["mesh_mdl_only_count"] > 0
+    )
+    print(f"[target-branch] hydra_mdl_only={hydra_mdl_only}")
+    return stats
+
+
+def _get_direct_binding_targets(prim):
+    rel = UsdShade.MaterialBindingAPI(prim).GetDirectBindingRel()
+    if not rel:
+        return []
+    return [str(t) for t in rel.GetTargets()]
+
+
+def _get_subset_prims(mesh_prim):
+    subset_prims = []
+    for child in mesh_prim.GetChildren():
+        if child.GetTypeName() == "GeomSubset":
+            subset_prims.append(child)
+    return subset_prims
+
+
+def _get_shader_inputs_from_material(material):
+    result = {}
+    if not material or not material.GetPrim().IsValid():
+        return result
+    for out in material.GetOutputs():
+        if out.GetFullName() not in ("outputs:mdl:surface", "outputs:surface"):
+            continue
+        sources, _ = out.GetConnectedSources()
+        if not sources:
+            continue
+        shader_prim = sources[0].source.GetPrim()
+        if not shader_prim or not shader_prim.IsValid():
+            continue
+        shader = UsdShade.Shader(shader_prim)
+        for inp in shader.GetInputs():
+            result[inp.GetBaseName()] = inp.Get()
+    return result
+
+
+def _as_color3f(v, default_color):
+    if isinstance(v, (Gf.Vec3f, Gf.Vec3d)):
+        return Gf.Vec3f(float(v[0]), float(v[1]), float(v[2]))
+    if isinstance(v, (tuple, list)) and len(v) >= 3:
+        return Gf.Vec3f(float(v[0]), float(v[1]), float(v[2]))
+    return default_color
+
+
+def _as_float(v, default_value):
+    try:
+        return float(v)
+    except Exception:
+        return float(default_value)
+
+
+def _build_preview_surface_material(stage, mat_path, base_color, opacity, roughness, metallic, emissive=None):
+    mat = UsdShade.Material.Define(stage, mat_path)
+    shader = UsdShade.Shader.Define(stage, f"{mat_path}/PreviewSurface")
+    shader.CreateIdAttr("UsdPreviewSurface")
+    shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(base_color)
+    shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(opacity)
+    shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(roughness)
+    shader.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(metallic)
+    if emissive is not None:
+        shader.CreateInput("emissiveColor", Sdf.ValueTypeNames.Color3f).Set(emissive)
+    mat.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), "surface")
+    return mat
+
+
+def force_debug_emissive_on_target_branch(stage, target_prim_path):
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    if not target_prim.IsValid():
+        print(f"[force-debug] invalid target_prim={target_prim_path}")
+        return {"total": 0, "covered": 0, "uncovered": 0, "subset_mesh_count": 0}
+
+    debug_mat = _build_preview_surface_material(
+        stage,
+        "/World/Looks/HydraStormDebugEmissive",
+        Gf.Vec3f(1.0, 0.0, 0.0),
+        1.0,
+        1.0,
+        0.0,
+        emissive=Gf.Vec3f(1.0, 0.0, 0.0),
+    )
+
+    total = 0
+    covered = 0
+    subset_mesh_count = 0
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        total += 1
+        mesh_path = mesh_prim.GetPath().pathString
+        bound_mat = _get_bound_material(mesh_prim)
+        bound_path = bound_mat.GetPath().pathString if bound_mat and bound_mat.GetPrim().IsValid() else "None"
+        direct_targets = _get_direct_binding_targets(mesh_prim)
+        subset_prims = _get_subset_prims(mesh_prim)
+        has_subset_binding = False
+        for subset_prim in subset_prims:
+            subset_targets = _get_direct_binding_targets(subset_prim)
+            if subset_targets:
+                has_subset_binding = True
+                break
+        if subset_prims:
+            subset_mesh_count += 1
+
+        imageable = UsdGeom.Imageable(mesh_prim)
+        visibility = str(imageable.ComputeVisibility(Usd.TimeCode.Default()))
+        purpose = str(imageable.GetPurposeAttr().Get() or "default")
+        mesh = UsdGeom.Mesh(mesh_prim)
+        double_sided = mesh.GetDoubleSidedAttr().Get() if mesh.GetDoubleSidedAttr() else None
+        normals_attr = mesh.GetNormalsAttr()
+        has_normals = bool(normals_attr and normals_attr.HasValue())
+        print(
+            "[force-debug-before] "
+            f"mesh={mesh_path} bound={bound_path} direct={direct_targets} "
+            f"subset_binding={has_subset_binding} visibility={visibility} "
+            f"purpose={purpose} doubleSided={double_sided} hasNormals={has_normals}"
+        )
+
+        UsdShade.MaterialBindingAPI(mesh_prim).Bind(
+            debug_mat,
+            bindingStrength=UsdShade.Tokens.strongerThanDescendants,
+        )
+        mesh.GetDisplayColorAttr().Set([Gf.Vec3f(1.0, 0.0, 0.0)])
+        mesh.GetDoubleSidedAttr().Set(True)
+        UsdGeom.Imageable(mesh_prim).MakeVisible()
+
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        mesh_path = mesh_prim.GetPath().pathString
+        bound_mat = _get_bound_material(mesh_prim)
+        bound_path = bound_mat.GetPath().pathString if bound_mat and bound_mat.GetPrim().IsValid() else "None"
+        is_debug = (bound_path == "/World/Looks/HydraStormDebugEmissive")
+        if is_debug:
+            covered += 1
+        print(f"[force-debug-after] mesh={mesh_path} bound={bound_path} is_debug={is_debug}")
+
+    uncovered = total - covered
+    print(
+        "[force-debug-summary] "
+        f"total={total} covered={covered} uncovered={uncovered} subset_mesh_count={subset_mesh_count}"
+    )
+    return {"total": total, "covered": covered, "uncovered": uncovered, "subset_mesh_count": subset_mesh_count}
+
+
+def apply_hydrastorm_formal_materials_on_target_branch(stage, target_prim_path):
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    if not target_prim.IsValid():
+        print(f"[formal-preview] invalid target_prim={target_prim_path}")
+        return {"total": 0, "covered": 0, "uncovered": 0}
+
+    mat_cache = {}
+    default_color = Gf.Vec3f(0.72, 0.72, 0.72)
+    total = 0
+    covered = 0
+
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        total += 1
+        source_mat = _get_bound_material(mesh_prim)
+        source_path = source_mat.GetPath().pathString if source_mat and source_mat.GetPrim().IsValid() else "none"
+        if source_path in mat_cache:
+            compat_mat = mat_cache[source_path]
+        else:
+            params = _get_shader_inputs_from_material(source_mat)
+            base_color = _as_color3f(params.get("diffuseColor", params.get("diffuse_color_constant")), default_color)
+            opacity = _as_float(params.get("opacity", params.get("opacity_constant", 1.0)), 1.0)
+            roughness = _as_float(params.get("roughness", 0.8), 0.8)
+            metallic = _as_float(params.get("metallic", 0.0), 0.0)
+            safe_name = source_path.replace("/", "_").replace(":", "_")
+            if source_path == "none":
+                safe_name = "fallback_none"
+            mat_path = f"/World/Looks/HydraStormCompat/{safe_name}"
+            compat_mat = _build_preview_surface_material(stage, mat_path, base_color, opacity, roughness, metallic)
+            mat_cache[source_path] = compat_mat
+
+        UsdShade.MaterialBindingAPI(mesh_prim).Bind(
+            compat_mat,
+            bindingStrength=UsdShade.Tokens.strongerThanDescendants,
+        )
+        mesh = UsdGeom.Mesh(mesh_prim)
+        mesh.GetDoubleSidedAttr().Set(True)
+        UsdGeom.Imageable(mesh_prim).MakeVisible()
+
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        bound_mat = _get_bound_material(mesh_prim)
+        bound_path = bound_mat.GetPath().pathString if bound_mat and bound_mat.GetPrim().IsValid() else "None"
+        is_compat = bound_path.startswith("/World/Looks/HydraStormCompat/")
+        if is_compat:
+            covered += 1
+        print(f"[formal-preview-after] mesh={mesh_prim.GetPath().pathString} bound={bound_path} is_compat={is_compat}")
+
+    uncovered = total - covered
+    print(f"[formal-preview-summary] total={total} covered={covered} uncovered={uncovered}")
+    return {"total": total, "covered": covered, "uncovered": uncovered}
+
+
+def _clear_direct_material_binding(prim):
+    rel = UsdShade.MaterialBindingAPI(prim).GetDirectBindingRel()
+    if rel:
+        rel.ClearTargets(True)
+
+
+def prepare_geometry_only_target_branch(stage, target_prim_path):
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    if not target_prim.IsValid():
+        print(f"[geometry-only] invalid target_prim={target_prim_path}")
+        return {"mesh_count": 0, "subset_count": 0, "unbound_count": 0}
+
+    subset_count = 0
+    unbound_count = 0
+    mesh_count = 0
+    white = Gf.Vec3f(1.0, 1.0, 1.0)
+
+    root_img = UsdGeom.Imageable(target_prim)
+    if root_img:
+        root_img.MakeVisible()
+        root_img.GetPurposeAttr().Set(UsdGeom.Tokens.default_)
+
+    # Clear direct material bindings for every prim in branch first.
+    for prim in Usd.PrimRange(target_prim):
+        _clear_direct_material_binding(prim)
+        unbound_count += 1
+
+    for mesh_prim in _iter_mesh_prims(target_prim):
+        mesh_count += 1
+        mesh_path = mesh_prim.GetPath().pathString
+
+        # Remove subset bindings under mesh
+        for subset_prim in _get_subset_prims(mesh_prim):
+            subset_count += 1
+            _clear_direct_material_binding(subset_prim)
+
+        mesh = UsdGeom.Mesh(mesh_prim)
+        mesh.GetDisplayColorAttr().Set([white])
+        mesh.GetDoubleSidedAttr().Set(True)
+        img = UsdGeom.Imageable(mesh_prim)
+        img.MakeVisible()
+        img.GetPurposeAttr().Set(UsdGeom.Tokens.default_)
+        bound_after = _get_bound_material(mesh_prim)
+        bound_after_path = bound_after.GetPath().pathString if bound_after and bound_after.GetPrim().IsValid() else "None"
+        print(
+            "[geometry-only-mesh] "
+            f"path={mesh_path} "
+            f"bound_after={bound_after_path} "
+            "displayColor=(1,1,1) purpose=default visibility=inherited doubleSided=True"
+        )
+
+    print(
+        "[geometry-only-summary] "
+        f"mesh_count={mesh_count} subset_count={subset_count} unbound_count={unbound_count}"
+    )
+    return {"mesh_count": mesh_count, "subset_count": subset_count, "unbound_count": unbound_count}
+
+def pick_active_diaolan(all_diaolans, rng, forced_path: str | None = None):
+    paths = [d.get("path") for d in all_diaolans]
+    print(f"[diaolan-pick-debug] candidates={paths}")
+    if not all_diaolans:
+        print("[diaolan-pick-debug] no candidates")
+        return None
+    if forced_path:
+        for d in all_diaolans:
+            if d.get("path") == forced_path:
+                print(f"[diaolan-pick-debug] forced={forced_path}")
+                return d
+        print(f"[diaolan-pick-debug] forced_missing={forced_path} -> fallback_random")
+    picked = rng.choice(all_diaolans)
+    print(f"[diaolan-pick-debug] random={picked.get('path')}")
+    return picked
+
+def apply_diaolan_visibility(stage, active_diaolan, all_diaolans):
+    active_path = active_diaolan["path"]
+    for d in all_diaolans:
+        prim = stage.GetPrimAtPath(d["path"])
+        if not prim.IsValid(): continue
+        imageable = UsdGeom.Imageable(prim)
+        if d["path"] == active_path:
+            imageable.MakeVisible()
+        else:
+            imageable.MakeInvisible()
+
+def randomize_workers(stage, diaolan_info, rng):
+    persons = diaolan_info["persons"]
+    if not persons:
+        return 0
+    
+    # 0, 1, or 2 persons
+    count = rng.randint(0, len(persons))
+    
+    # Shuffle to pick random persons
+    person_paths = list(persons)
+    rng.shuffle(person_paths)
+    
+    visible_count = 0
+    for i, p_path in enumerate(person_paths):
+        prim = stage.GetPrimAtPath(p_path)
+        if not prim.IsValid(): continue
+        imageable = UsdGeom.Imageable(prim)
+        if i < count:
+            imageable.MakeVisible()
+            visible_count += 1
+        else:
+            imageable.MakeInvisible()
+            
+    return visible_count
+
+def sync_workers_to_group1(stage, group1_path, person_paths, active_count):
+    # This is handled by USD hierarchy if persons are children of Group1,
+    # but in this structure, they are siblings under Model.
+    # We need to copy the Z translation from Group1 to persons.
+    group1_prim = stage.GetPrimAtPath(group1_path)
+    if not group1_prim.IsValid(): return
+    
+    group1_xform = UsdGeom.Xformable(group1_prim)
+    ops = group1_xform.GetOrderedXformOps()
+    
+    z_val = 0.0
+    for op in ops:
+        if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+            val = op.Get()
+            if val is not None:
+                z_val = val[2]
+            break
+            
+    for p_path in person_paths:
+        p_prim = stage.GetPrimAtPath(p_path)
+        if not p_prim.IsValid(): continue
+        
+        p_xform = UsdGeom.Xformable(p_prim)
+        p_ops = p_xform.GetOrderedXformOps()
+        
+        # Find translate op or create one
+        trans_op = None
+        for op in p_ops:
+            if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+                trans_op = op
+                break
+                
+        if trans_op is None:
+            trans_op = p_xform.AddTranslateOp()
+            
+        current_val = trans_op.Get()
+        if current_val is None:
+            current_val = Gf.Vec3d(0, 0, 0)
+            
+        # Update Z
+        trans_op.Set(Gf.Vec3d(current_val[0], current_val[1], z_val))
+
+def check_safety_hazard(group1_world_z, persons_visible_count, ground_z_baseline=0.12, ground_eps=0.5):
+    is_on_ground = group1_world_z < ground_z_baseline + ground_eps
+    if not is_on_ground and persons_visible_count == 0:
+        return True, "吊篮在空中但人数为0"
+    if is_on_ground and persons_visible_count != 0:
+        return False, None  # 地面有人=合规
+    return False, None
+
+
+_WALL_HEIGHT_EPS = 1e-5
+_WALL_HEIGHT_PRIM_DEFAULT = "/World/Changjing_Jichu_2026_04_01/Changjing_AlgorithmVerification_2026_03/Model/Group5/Group7/AIShaoBing_Wall_Metal_2_26/Component431_26/Mesh228"
+_WALL_CONSTRAINT_XY_MARGIN_DEFAULT = 0.005
+_WALL_CONSTRAINT_Z_MARGIN_DEFAULT = 0.05
+
+
+def _vec3_to_tuple(vec):
+    return (float(vec[0]), float(vec[1]), float(vec[2]))
+
+
+def _compute_world_bbox_info(stage, prim_path):
+    prim = stage.GetPrimAtPath(prim_path)
+    if not prim.IsValid():
+        raise RuntimeError(f"wall prim not found: {prim_path}")
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    box_range = bbox_cache.ComputeWorldBound(prim).ComputeAlignedRange()
+    if box_range.IsEmpty():
+        raise RuntimeError(f"wall prim has empty world bbox: {prim_path}")
+    min_pt = _vec3_to_tuple(box_range.GetMin())
+    max_pt = _vec3_to_tuple(box_range.GetMax())
+    values = (*min_pt, *max_pt)
+    if not all(math.isfinite(v) for v in values):
+        raise RuntimeError(f"wall prim bbox contains non-finite values: {prim_path} -> {values}")
+    return {
+        'prim_path': prim_path,
+        'min': min_pt,
+        'max': max_pt,
+    }
+
+
+def _normalize_margin_value(raw_value, default_value, label):
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError):
+        print(f"[wall-constraint] WARN: invalid {label}={raw_value!r}; fallback={default_value}")
+        return float(default_value)
+    if value < 0.0:
+        print(f"[wall-constraint] WARN: negative {label}={value}; clamp_to=0.0")
+        return 0.0
+    return value
+
+
+def _shrink_world_bbox_with_margin(wall_bbox, xy_margin, z_margin):
+    xy_margin = _normalize_margin_value(
+        xy_margin, _WALL_CONSTRAINT_XY_MARGIN_DEFAULT, "wall_constraint_xy_margin"
+    )
+    z_margin = _normalize_margin_value(
+        z_margin, _WALL_CONSTRAINT_Z_MARGIN_DEFAULT, "wall_constraint_z_margin"
+    )
+
+    src_min = wall_bbox['min']
+    src_max = wall_bbox['max']
+    spans = tuple(float(src_max[i] - src_min[i]) for i in range(3))
+    if any(span <= _WALL_HEIGHT_EPS for span in spans):
+        raise RuntimeError(
+            f"wall prim bbox has degenerate span: path={wall_bbox['prim_path']} spans={spans}"
+        )
+
+    effective_min = (
+        float(src_min[0] + xy_margin),
+        float(src_min[1] + xy_margin),
+        float(src_min[2] + z_margin),
+    )
+    effective_max = (
+        float(src_max[0] - xy_margin),
+        float(src_max[1] - xy_margin),
+        float(src_max[2] - z_margin),
+    )
+    effective_spans = tuple(float(effective_max[i] - effective_min[i]) for i in range(3))
+    if any(span <= _WALL_HEIGHT_EPS for span in effective_spans):
+        raise RuntimeError(
+            "wall prim bbox becomes invalid after inward margin shrink: "
+            f"path={wall_bbox['prim_path']} raw_min={src_min} raw_max={src_max} "
+            f"xy_margin={xy_margin} z_margin={z_margin} shrunk_min={effective_min} shrunk_max={effective_max}"
+        )
+
+    return {
+        'prim_path': wall_bbox['prim_path'],
+        'raw_min': src_min,
+        'raw_max': src_max,
+        'effective_min': effective_min,
+        'effective_max': effective_max,
+        'xy_margin': float(xy_margin),
+        'z_margin': float(z_margin),
+        'raw_spans': spans,
+        'effective_spans': effective_spans,
+    }
+
+
+def _set_world_translate_on_prim(stage, prim, world_xyz):
+    xform = UsdGeom.Xformable(prim)
+    ops = xform.GetOrderedXformOps()
+    trans_op = None
+    for op in ops:
+        if op.GetOpType() == UsdGeom.XformOp.TypeTranslate:
+            trans_op = op
+            break
+    if trans_op is None:
+        trans_op = xform.AddTranslateOp()
+
+    xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
+    parent = prim.GetParent()
+    world_vec = Gf.Vec3d(float(world_xyz[0]), float(world_xyz[1]), float(world_xyz[2]))
+    if parent and parent.IsValid():
+        parent_world = xform_cache.GetLocalToWorldTransform(parent)
+        local_vec = parent_world.GetInverse().TransformAffine(world_vec)
+    else:
+        local_vec = world_vec
+    trans_op.Set(local_vec)
+    return (float(local_vec[0]), float(local_vec[1]), float(local_vec[2]))
+
+
+def sample_camera_in_changjing(
+    stage,
+    changjing_path,
+    camera_rig_path,
+    rng,
+    seed=None,
+    cam_z_min=5.0,
+    cam_z_max=25.0,
+    max_retries=20,
+    sample_box=None,
+    wall_prim_path=_WALL_HEIGHT_PRIM_DEFAULT,
+    wall_constraint_xy_margin=_WALL_CONSTRAINT_XY_MARGIN_DEFAULT,
+    wall_constraint_z_margin=_WALL_CONSTRAINT_Z_MARGIN_DEFAULT,
+):
+    """
+    ???? wall_prim_path ? world-space AABB ????????
+    ??? prim/bbox ????????????????????
+    """
+    del max_retries
+
+    aabb = compute_changjing_aabb(stage, changjing_path)
+    wall_path = str(wall_prim_path or _WALL_HEIGHT_PRIM_DEFAULT).strip()
+
+    def _legacy_sampling_box(reason):
+        mode = "legacy_xy_from_sample_box" if sample_box else "legacy_wide_xy"
+        notes = [f"fallback_reason={reason}"]
+        if sample_box:
+            x_min = max(float(sample_box["x_min"]), aabb["xmin"])
+            x_max = min(float(sample_box["x_max"]), aabb["xmax"])
+            y_min = max(float(sample_box["y_min"]), aabb["ymin"])
+            y_max = min(float(sample_box["y_max"]), aabb["ymax"])
+            z_min = max(float(sample_box.get("z_min", cam_z_min)), aabb["zmin"])
+            z_max = min(float(sample_box.get("z_max", cam_z_max)), aabb["zmax"])
+        else:
+            x_min = max(aabb["xmin"], 70.0)
+            x_max = min(aabb["xmax"], 150.0)
+            y_min = max(aabb["ymin"], -60.0)
+            y_max = min(aabb["ymax"], 60.0)
+            z_min = max(float(cam_z_min), aabb["zmin"])
+            z_max = min(float(cam_z_max), aabb["zmax"])
+            notes.append("fallback_box=legacy_xy_box_[70,150]x[-60,60]")
+
+        if x_max <= x_min or y_max <= y_min:
+            raise RuntimeError(
+                f"legacy sampling box invalid after fallback: x=[{x_min},{x_max}] y=[{y_min},{y_max}]"
+            )
+        if z_max < z_min:
+            z_min = z_max = max(float(cam_z_min), min(float(cam_z_max), float(aabb["zmax"])))
+            notes.append("fallback_z collapsed to fixed value")
+
+        return {
+            "source": "legacy_fallback",
+            "mode": mode,
+            "box_min": (float(x_min), float(y_min), float(z_min)),
+            "box_max": (float(x_max), float(y_max), float(z_max)),
+            "notes": notes,
+            "raw_wall_bbox": None,
+            "effective_wall_bbox": None,
+            "fallback_reason": reason,
+        }
+
+    fallback_used = False
+    try:
+        wall_bbox = _compute_world_bbox_info(stage, wall_path)
+        shrunk_bbox = _shrink_world_bbox_with_margin(
+            wall_bbox,
+            wall_constraint_xy_margin,
+            wall_constraint_z_margin,
+        )
+        constraint = {
+            "source": "wall_bbox_xyz",
+            "mode": "wall_bbox_xyz",
+            "box_min": tuple(float(v) for v in shrunk_bbox["effective_min"]),
+            "box_max": tuple(float(v) for v in shrunk_bbox["effective_max"]),
+            "notes": [],
+            "raw_wall_bbox": {
+                "min": tuple(float(v) for v in shrunk_bbox["raw_min"]),
+                "max": tuple(float(v) for v in shrunk_bbox["raw_max"]),
+            },
+            "effective_wall_bbox": {
+                "min": tuple(float(v) for v in shrunk_bbox["effective_min"]),
+                "max": tuple(float(v) for v in shrunk_bbox["effective_max"]),
+            },
+            "fallback_reason": None,
+        }
+    except Exception as exc:
+        fallback_used = True
+        constraint = _legacy_sampling_box(str(exc))
+        print(f"[wall-constraint] WARN: fallback_to_legacy=PASS reason={exc}")
+
+    box_min = constraint["box_min"]
+    box_max = constraint["box_max"]
+
+    print(f"[wall-constraint] prim_path={wall_path}")
+    print(
+        f"[wall-constraint] raw_world_bbox_min={constraint['raw_wall_bbox']['min'] if constraint['raw_wall_bbox'] else None} "
+        f"raw_world_bbox_max={constraint['raw_wall_bbox']['max'] if constraint['raw_wall_bbox'] else None}"
+    )
+    print(
+        f"[wall-constraint] effective_bbox_min={box_min} effective_bbox_max={box_max} "
+        f"xy_margin={wall_constraint_xy_margin} z_margin={wall_constraint_z_margin} fallback_used={fallback_used}"
+    )
+
+    x = rng.uniform(box_min[0], box_max[0])
+    y = rng.uniform(box_min[1], box_max[1])
+    if box_max[2] - box_min[2] < _WALL_HEIGHT_EPS:
+        z = box_min[2]
+        z_mode = "degenerate_fixed_z"
+    else:
+        z = rng.uniform(box_min[2], box_max[2])
+        z_mode = "uniform_box_xyz"
+
+    box_meta = {
+        "mode": constraint["mode"],
+        "constraint_source": constraint["source"],
+        "fallback_invalid": fallback_used,
+        "effective_box": {
+            "x_min": box_min[0],
+            "x_max": box_max[0],
+            "y_min": box_min[1],
+            "y_max": box_max[1],
+            "z_min": box_min[2],
+            "z_max": box_max[2],
+        },
+        "config_box": dict(sample_box) if sample_box else None,
+        "changjing_aabb": {
+            "xmin": aabb["xmin"],
+            "xmax": aabb["xmax"],
+            "ymin": aabb["ymin"],
+            "ymax": aabb["ymax"],
+            "zmin": aabb["zmin"],
+            "zmax": aabb["zmax"],
+        },
+        "aabb_clip_notes": list(constraint["notes"]),
+        "fallback_reason": constraint["fallback_reason"],
+    }
+
+    cam_prim = stage.GetPrimAtPath(camera_rig_path)
+    if not cam_prim.IsValid():
+        msg = f"camera rig prim invalid: {camera_rig_path}"
+        print(f"[camera-sample] ERROR: {msg}")
+        raise RuntimeError(msg)
+
+    sampled_world_xyz = (x, y, z)
+    local_xyz = _set_world_translate_on_prim(stage, cam_prim, sampled_world_xyz)
+    xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
+    camera_world = xform_cache.GetLocalToWorldTransform(cam_prim).ExtractTranslation()
+    camera_world_xyz = _vec3_to_tuple(camera_world)
+    within_constraint_box = all(
+        (box_min[i] - _WALL_HEIGHT_EPS) <= camera_world_xyz[i] <= (box_max[i] + _WALL_HEIGHT_EPS)
+        for i in range(3)
+    )
+    status = "PASS" if within_constraint_box else "FAIL"
+
+    constraint_meta = {
+        "camera_xyz": [round(float(v), 4) for v in camera_world_xyz],
+        "camera_local_xyz": [round(float(v), 4) for v in local_xyz],
+        "constraint_source": constraint["source"],
+        "constraint_mode": constraint["mode"],
+        "wall_path": wall_path,
+        "wall_bbox_min": [round(float(v), 4) for v in (constraint["raw_wall_bbox"]["min"] if constraint["raw_wall_bbox"] else box_min)],
+        "wall_bbox_max": [round(float(v), 4) for v in (constraint["raw_wall_bbox"]["max"] if constraint["raw_wall_bbox"] else box_max)],
+        "effective_bbox_min": [round(float(v), 4) for v in box_min],
+        "effective_bbox_max": [round(float(v), 4) for v in box_max],
+        "wall_constraint_xy_margin": round(float(wall_constraint_xy_margin), 4),
+        "wall_constraint_z_margin": round(float(wall_constraint_z_margin), 4),
+        "z_sampling_mode": z_mode,
+        "within_wall_constraint_box": within_constraint_box,
+        "fallback_used": fallback_used,
+        "fallback_reason": constraint["fallback_reason"],
+    }
+    box_meta["wall_height_constraint"] = constraint_meta
+
+    print(
+        "[camera-sample] "
+        f"sampled_world_xyz=({camera_world_xyz[0]:.4f},{camera_world_xyz[1]:.4f},{camera_world_xyz[2]:.4f}) "
+        f"fallback_used={fallback_used} result={status}"
+    )
+    print("[camera-sample] " + json.dumps(constraint_meta, ensure_ascii=False, sort_keys=True))
+
+    if not within_constraint_box:
+        raise RuntimeError(
+            f"camera world xyz outside constraint box: camera={camera_world_xyz} min={box_min} max={box_max}"
+        )
+
+    return (x, y, z, seed, box_meta)
+
+
+def check_preset_visibility(stage, camera_rig_path, presets_cfg, target_prim_path, fov_half_deg=60.0):
+    cam_prim = stage.GetPrimAtPath(camera_rig_path)
+    target_prim = stage.GetPrimAtPath(target_prim_path)
+    
+    if not cam_prim.IsValid() or not target_prim.IsValid():
+        return {k: False for k in presets_cfg}
+        
+    # Get camera world position
+    bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ['default', 'proxy', 'render'])
+    cam_bbox = bbox_cache.ComputeWorldBound(cam_prim)
+    cam_pos = cam_bbox.ComputeAlignedRange().GetMidpoint()
+    
+    # Get target world position
+    target_bbox = bbox_cache.ComputeWorldBound(target_prim)
+    target_pos = target_bbox.ComputeAlignedRange().GetMidpoint()
+    
+    # Vector from cam to target
+    vec_to_target = target_pos - cam_pos
+    dist = vec_to_target.GetLength()
+    if dist < 1e-5:
+        return {k: False for k in presets_cfg}
+        
+    dir_to_target = vec_to_target / dist
+    
+    results = {}
+    fov_cos = math.cos(math.radians(fov_half_deg))
+    
+    for preset_name, preset_data in presets_cfg.items():
+        pan = preset_data.get("pan", 0.0)
+        tilt = preset_data.get("tilt", 0.0)
+        
+        # Calculate forward vector based on pan/tilt in Z-up
+        # Assuming pan is rotation around Z (yaw), tilt is rotation around local X (pitch)
+        pan_rad = math.radians(pan)
+        tilt_rad = math.radians(tilt)
+        
+        # Base forward is +Y in this setup (or +X depending on camera rig orientation)
+        # Let's assume standard PTZ where pan=0, tilt=0 looks along +Y
+        # Forward vector:
+        fx = -math.sin(pan_rad) * math.cos(tilt_rad)
+        fy = math.cos(pan_rad) * math.cos(tilt_rad)
+        fz = math.sin(tilt_rad)
+        
+        forward = Gf.Vec3d(fx, fy, fz)
+        forward.Normalize()
+        
+        dot_prod = Gf.Dot(dir_to_target, forward)
+        results[preset_name] = dot_prod > fov_cos
+        
+    return results

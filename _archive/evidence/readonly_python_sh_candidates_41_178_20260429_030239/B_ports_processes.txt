@@ -1,0 +1,11 @@
+=== ss -lntp (8080/8081/8554) ===
+LISTEN 0      5            0.0.0.0:8080       0.0.0.0:*    users:(("python3",pid=554536,fd=5))      
+
+=== ps (ptz/kit/isaac/mediamtx/ffmpeg) ===
+rtkit       1500  0.0  0.0  88484  2004 ?        SNsl Mar30   0:24 /usr/libexec/rtkit-daemon
+uniubi      2773  0.0  0.0 73501164 3684 ?       SLl  Mar30   0:40 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 18 20
+uniubi      2803  0.0  0.0 74165628 31752 ?      SLl  Mar30  18:56 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 26 23 25
+uniubi    554536  0.5  0.1 283164 42568 ?        Sl   10:56   0:02 python3 ptz_launcher.py --config ./ptz_config.yaml
+uniubi   1236262  0.0  0.0 73503800 5240 ?       SLl  Apr13   1:13 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess 1 30 33
+uniubi   1236271  3.1  1.6 75960304 522248 ?     SLl  Apr13 731:26 /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess 4 36 40
+polkitd  2313635  0.0  0.0 386604 13588 ?        Ssl  Apr16   0:21 /usr/lib/polkit-1/polkitd --no-debug

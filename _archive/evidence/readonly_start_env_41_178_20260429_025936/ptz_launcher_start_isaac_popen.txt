@@ -1,0 +1,66 @@
+                print(
+                    f"[PTZ-Launcher] Isaac Sim ctrl_port busy: reuse external (port={ISAAC_PORT}, pids={existing_pids}).",
+                    flush=True,
+                )
+
+                _isaac_state = "starting"
+                _start_time  = time.time()
+                _isaac_proc  = None  # 无法持有旧进程句柄，置 None
+                reuse_external = True
+                existing_pid = existing_pids[0] if existing_pids else -1
+
+        if not reuse_external:
+            log_file = open(ISAAC_LOG, "w", encoding="utf-8", buffering=1)
+            sc = _read_stream_config_from_disk(CONFIG_PATH)
+            print("[PTZ-Launcher] ========== 本次 Isaac 子进程将加载（ptz_stream 读盘）==========", flush=True)
+            print(f"[PTZ-Launcher] config_path={os.path.abspath(CONFIG_PATH)}", flush=True)
+            print(f"[PTZ-Launcher] scene_path={sc.get('scene_path')}", flush=True)
+            print(f"[PTZ-Launcher] scene_basename={sc.get('scene_basename')}", flush=True)
+            print(f"[PTZ-Launcher] camera_prim={sc.get('camera_prim')}", flush=True)
+            print(f"[PTZ-Launcher] renderer={sc.get('renderer')}", flush=True)
+            if sc.get("read_error"):
+                print(f"[PTZ-Launcher] 读取 YAML 异常: {sc['read_error']}", flush=True)
+
+            config_abs = os.path.abspath(CONFIG_PATH)
+            cmd = [
+                PYTHON_SH, "-u", STREAM_SCRIPT,
+                "--config", config_abs,
+                "--ctrl-port", str(ISAAC_PORT),
+            ]
+            _ov = os.environ.get("PTZ_SCENE_OVERRIDE", "").strip()
+            if _ov:
+                cmd.extend(["--scene", os.path.abspath(_ov)])
+                print(f"[PTZ-Launcher] PTZ_SCENE_OVERRIDE（可被磁盘 scene_path 覆盖）→ {_ov}", flush=True)
+
+            _cam_ov = os.environ.get("PTZ_CAMERA_PRIM_OVERRIDE", "").strip()
+            if _cam_ov:
+                cmd.extend(["--camera", _cam_ov])
+                print(f"[PTZ-Launcher] PTZ_CAMERA_PRIM_OVERRIDE 生效 → {_cam_ov}", flush=True)
+
+            if sc.get("scene_path"):
+                cmd.extend(["--scene", sc["scene_path"]])
+                print(
+                    f"[PTZ-Launcher] 子进程 --scene（与 YAML 一致，最终生效）={sc['scene_path']}",
+                    flush=True,
+                )
+
+            spawned_proc = subprocess.Popen(
+                cmd,
+                stdout=log_file,
+                stderr=log_file,
+                cwd=script_dir,
+                start_new_session=True,
+                env=_env_for_ptz_stream_subprocess(),
+            )
+            _isaac_proc = spawned_proc
+            _start_time  = time.time()
+            _isaac_state = "starting"
+
+    preview = bool(cfg.get("preview_enabled", True))
+    ok_ready, ready_msg, ready_elapsed = _wait_isaac_post_spawn_ready(
+        spawned_proc if not reuse_external else None, preview
+    )
+    _isaac_startup_streak = 0
+    if not ok_ready:
+        if spawned_proc is not None:
+            _terminate_isaac_spawn(spawned_proc)

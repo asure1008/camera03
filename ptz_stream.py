@@ -22,10 +22,15 @@ PTZ 安防球机 RTSP 流输出组件
 # 第一阶段：SimulationApp 必须在所有 omni.* 导入之前启动
 # ============================================================
 import argparse
-from collections import Counter
+from collections import Counter, deque
 import copy
+import datetime as _dt
 import os
 import sys
+try:
+    from zoneinfo import ZoneInfo as _ZoneInfo
+except Exception:
+    _ZoneInfo = None
 
 # python.sh 会设置 CARB_APP_PATH=$ISAAC_SIM_ROOT/kit/
 # isaacsim 包的 expose_api() 依赖 ISAAC_PATH 指向 Isaac Sim 根目录；
@@ -100,14 +105,80 @@ FOCAL_LENGTH_1X = float(cfg.get("focal_length_1x", 18.14756))
 # 新增配置项
 preview_enabled = cfg.get("preview_enabled", True)   # false=关闭 MJPEG/ws-flv，仅 RTSP
 snapshot_interval_s = max(0.1, float(cfg.get("snapshot_interval_s", 0.5)))
+_RTSP_LOW_LATENCY_MODE = bool(cfg.get("rtsp_low_latency_mode", True))
+_RTSP_GOP_SECONDS = max(0.2, float(cfg.get("rtsp_gop_seconds", 1.0)))
+_RTSP_REPEAT_LATEST_FRAME = bool(cfg.get("rtsp_repeat_latest_frame", True))
+_RTSP_PUBLISH_TRANSPORT = str(cfg.get("rtsp_publish_transport", "tcp") or "tcp").strip().lower()
+if _RTSP_PUBLISH_TRANSPORT not in ("tcp", "udp"):
+    _RTSP_PUBLISH_TRANSPORT = "tcp"
+_RTSP_VIEWPORT_PRIMARY_PROBE_INTERVAL_S = max(
+    1.0, float(cfg.get("rtsp_viewport_primary_probe_interval_s", 5.0))
+)
+_RTSP_VIEWPORT_CAPTURE_TIMEOUT_MS = max(
+    20.0, float(cfg.get("rtsp_viewport_capture_timeout_ms", 150.0))
+)
+_RTSP_STALE_WARN_MS = max(
+    100.0, float(cfg.get("rtsp_stale_warn_ms", 800.0))
+)
+_RTSP_STALE_RECOVERY_MS = max(
+    _RTSP_STALE_WARN_MS, float(cfg.get("rtsp_stale_recovery_ms", 1500.0))
+)
+_RTSP_STALE_RECOVERY_HOLD_S = max(
+    1.0, float(cfg.get("rtsp_stale_recovery_hold_s", 10.0))
+)
+_STATUS_SCENE_REFRESH_INTERVAL_S = max(
+    0.5, float(cfg.get("status_scene_refresh_interval_s", 5.0))
+)
+_STATUS_SCENE_REFRESH_FULL_SCAN = bool(
+    cfg.get("status_scene_refresh_full_scan", not _RTSP_LOW_LATENCY_MODE)
+)
 _NEAR_BLACK_RECOVER_CONSECUTIVE = max(
     2, int(cfg.get("near_black_recover_consecutive", 4))
 )
 _NEAR_BLACK_RECOVER_COOLDOWN_S = max(
     1.0, float(cfg.get("near_black_recover_cooldown_s", 15.0))
 )
+_RANDOMIZE_FAST_RESPONSE = bool(cfg.get("randomize_fast_response", True))
 _RANDOMIZE_RENDER_STABILIZE_WINDOW_S = max(
-    0.0, float(cfg.get("randomize_render_stabilize_window_s", 3.0))
+    0.0, float(cfg.get("randomize_render_stabilize_window_s", 0.5))
+)
+_RANDOMIZE_RENDER_SETTLE_MIN_GOOD_FRAMES = max(
+    1, int(cfg.get("randomize_render_settle_min_good_frames", 1))
+)
+_RANDOMIZE_RENDER_SETTLE_MAX_FRAMES = max(
+    _RANDOMIZE_RENDER_SETTLE_MIN_GOOD_FRAMES,
+    int(cfg.get("randomize_render_settle_max_frames", 2)),
+)
+_RANDOMIZE_CONTEXT_ORIENTATION_MAX_CANDIDATES = max(
+    1, int(cfg.get("randomize_context_orientation_max_candidates", 24))
+)
+_RANDOMIZE_CONTEXT_DOWN_TILT_WINDOW = max(
+    1, int(cfg.get("randomize_context_down_tilt_window", 10))
+)
+_RANDOMIZE_CONTEXT_DOWN_TILT_MAX_IN_WINDOW = max(
+    0,
+    min(
+        _RANDOMIZE_CONTEXT_DOWN_TILT_WINDOW,
+        int(cfg.get("randomize_context_down_tilt_max_in_window", 4)),
+    ),
+)
+_RANDOMIZE_CONTEXT_DOWN_TILT_PROBABILITY = max(
+    0.0, min(1.0, float(cfg.get("randomize_context_down_tilt_probability", 0.45)))
+)
+_RANDOMIZE_FREEZE_STREAM_DURING_APPLY = bool(
+    cfg.get("randomize_freeze_stream_during_apply", True)
+)
+_RANDOMIZE_STABLE_MIN_GOOD_FRAMES = max(
+    1, int(cfg.get("randomize_stable_min_good_frames", 3))
+)
+_RANDOMIZE_STABLE_MAX_WAIT_S = max(
+    1.0, float(cfg.get("randomize_stable_max_wait_s", 12.0))
+)
+_RANDOMIZE_CANDIDATE_INTERVAL_MS = max(
+    20.0, float(cfg.get("randomize_candidate_interval_ms", 100.0))
+)
+_RANDOMIZE_FORCE_VIEWPORT_PRIMARY_ON_BLACK = bool(
+    cfg.get("randomize_force_viewport_primary_on_black", True)
 )
 _POST_RECOVER_SNAPSHOT_GATE_S = max(
     0.0, float(cfg.get("post_recover_snapshot_gate_s", 2.5))
@@ -151,6 +222,13 @@ _CAMERA_WALL_CONSTRAINT_XY_MARGIN = _cfg_float(
 _CAMERA_WALL_CONSTRAINT_Z_MARGIN = _cfg_float(
     cfg.get("wall_constraint_z_margin", 0.05), 0.05, "wall_constraint_z_margin"
 )
+_CAMERA_WALL_MOUNT_INSET_M = _cfg_float(
+    cfg.get("wall_mount_inset_m", 0.0), 0.0, "wall_mount_inset_m"
+)
+_CAMERA_WALL_MOUNT_INSET_MODE = _cfg_str(
+    cfg.get("wall_mount_inset_mode", ""),
+    "",
+).strip().lower()
 _WALL_COLLECTION_MODE = _cfg_str(
     cfg.get("wall_collection_mode", "semantic_parent"),
     "semantic_parent",
@@ -159,6 +237,24 @@ _WALL_COLLECTION_ROOT_PATH = _cfg_str(
     cfg.get("wall_collection_root_path", ""),
     "",
 )
+_WALL_CANDIDATE_REGION = (
+    copy.deepcopy(cfg.get("wall_candidate_region"))
+    if isinstance(cfg.get("wall_candidate_region"), dict)
+    else None
+)
+_SCENE_RANDOMIZE_WAIT_TIMEOUT_S = max(
+    30.0,
+    _cfg_float(
+        cfg.get("scene_randomize_wait_timeout_s", cfg.get("randomize_wait_timeout_s", 360.0)),
+        360.0,
+        "scene_randomize_wait_timeout_s",
+    ),
+)
+try:
+    _GONDOLA_RENDERABLE_DETAIL_LIMIT = max(0, int(cfg.get("gondola_renderable_detail_limit", 24)))
+except (TypeError, ValueError):
+    _GONDOLA_RENDERABLE_DETAIL_LIMIT = 24
+_GONDOLA_RENDERABLE_VERBOSE_LOG = bool(cfg.get("gondola_renderable_verbose_log", False))
 
 _JI_KENG_CHANGJING_DEFAULT = "/World/JiKeng_ChangJing01"
 _DEFAULT_LOOKAT_TARGET_BUILDING_PRIM = "/World/JiKeng_ChangJing01/Architecture_High"
@@ -231,7 +327,38 @@ renderer_mode   = _normalize_renderer_mode(cfg.get("renderer", _RENDERER_TARGET_
 cfg["renderer"] = renderer_mode
 sim_renderer_name = _simulation_renderer_name(renderer_mode)
 _osd_cfg        = cfg.get("osd_time", {})
-osd_enabled     = _osd_cfg.get("enabled", False)
+osd_enabled     = bool(_osd_cfg.get("enabled", False))
+_OSD_STAGE = str(_osd_cfg.get("stage", "frame_capture") or "frame_capture").strip().lower()
+_OSD_FRAME_CAPTURE_ENABLED = bool(osd_enabled and _OSD_STAGE in ("frame_capture", "capture", "python"))
+_OSD_TIMEZONE_NAME = str(_osd_cfg.get("timezone", "Asia/Shanghai") or "Asia/Shanghai").strip()
+_OSD_FMT = str(_osd_cfg.get("fmt", "%Y-%m-%d %H:%M:%S") or "%Y-%m-%d %H:%M:%S")
+_OSD_X = max(0, int(_osd_cfg.get("x", 10) or 0))
+_OSD_Y = max(0, int(_osd_cfg.get("y", 10) or 0))
+_OSD_SIZE = max(8, int(_osd_cfg.get("size", 28) or 28))
+_OSD_FONT = str(_osd_cfg.get("font", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf") or "")
+_OSD_COLOR_MODE = str(_osd_cfg.get("color_mode", "auto") or "auto").strip().lower()
+_OSD_BG_LUMA_THRESHOLD = float(_osd_cfg.get("bg_luma_threshold", 145.0) or 145.0)
+_OSD_STROKE_WIDTH = max(0, int(_osd_cfg.get("stroke_width", 1) or 0))
+_OSD_STROKE_ALPHA = max(0, min(255, int(_osd_cfg.get("stroke_alpha", 150) or 150)))
+_OSD_BOX_ENABLED = bool(_osd_cfg.get("box", False))
+_CAPTURE_SOURCE_PREFER_RTSP_LATEST_FOR_SNAPSHOT = bool(
+    cfg.get("capture_source_prefer_rtsp_latest_for_snapshot", True)
+)
+
+
+def _resolve_osd_tzinfo():
+    if _ZoneInfo is not None and _OSD_TIMEZONE_NAME:
+        try:
+            return _ZoneInfo(_OSD_TIMEZONE_NAME)
+        except Exception:
+            pass
+    try:
+        return _dt.datetime.now().astimezone().tzinfo
+    except Exception:
+        return None
+
+
+_OSD_TZINFO = _resolve_osd_tzinfo()
 
 
 def _camera_rig_translate_from_cfg(c: dict) -> tuple[float, float, float]:
@@ -257,9 +384,11 @@ print(f"[PTZ-RTSP]       renderer={renderer_mode}  preview_enabled={preview_enab
 print(
     f"[PTZ-RTSP]       wall_constraint_prim={_CAMERA_WALL_CONSTRAINT_PRIM} "
     f"xy_margin={_CAMERA_WALL_CONSTRAINT_XY_MARGIN} z_margin={_CAMERA_WALL_CONSTRAINT_Z_MARGIN} "
+    f"wall_mount_inset_m={_CAMERA_WALL_MOUNT_INSET_M} wall_mount_inset_mode={_CAMERA_WALL_MOUNT_INSET_MODE or '-'} "
     f"wall_collection_mode={_WALL_COLLECTION_MODE} "
     f"wall_collection_root_path={_WALL_COLLECTION_ROOT_PATH or '-'}"
 )
+print(f"[PTZ-RTSP]       wall_candidate_region={_WALL_CANDIDATE_REGION or '-'}")
 print(f"[PTZ-RTSP]       orientation_mode={_CAMERA_ORIENTATION_MODE} lookat_target={_CAMERA_LOOKAT_TARGET_XYZ}")
 print(f"[PTZ-RTSP]       preset_offsets left={_PRESET_LEFT_PAN_OFFSET_DEG} right={_PRESET_RIGHT_PAN_OFFSET_DEG} overlook_tilt={_PRESET_OVERLOOK_TILT_DEG}")
 print(f"[PTZ-RTSP]       sim_hz={sim_hz}  skip_frames={skip_frames}")
@@ -539,6 +668,10 @@ def _vol_snapshot() -> dict:
         raw = live.get(k)
         if isinstance(raw, (list, tuple)) and len(raw) >= 3:
             live[k], _ = _vol_normalize_color3(raw, st.get(k) or _VOLUMETRIC_DEFAULT_STATE[k])
+    gondola_renderable_paths = list(runtime.get("gondola_renderable_paths") or [])
+    gondola_visible_renderable_paths = list(runtime.get("gondola_visible_renderable_paths") or [])
+    gondola_hidden_paths = list(runtime.get("gondola_hidden_paths") or [])
+    gondola_renderable_debug = list(runtime.get("gondola_renderable_debug") or [])
     return {
         "ok": True,
         "renderer_mode": renderer_mode,
@@ -576,6 +709,27 @@ _STREAM_DIAG: dict = {
     "render_product": "",
     "rtsp_enabled": rtsp_enabled,
     "rtsp_url": rtsp_url if rtsp_enabled else None,
+    "rtsp_low_latency_mode": _RTSP_LOW_LATENCY_MODE,
+    "rtsp_publish_transport": _RTSP_PUBLISH_TRANSPORT,
+    "rtsp_writer_target_fps": fps,
+    "rtsp_writer_push_fps": None,
+    "rtsp_writer_repeated_frame": False,
+    "rtsp_writer_frame_age_ms": None,
+    "rtsp_writer_last_source": None,
+    "rtsp_source_new_fps": None,
+    "rtsp_source_repeat_ratio": None,
+    "rtsp_source_max_gap_ms": None,
+    "rtsp_viewport_capture_wait_ms": None,
+    "rtsp_stale_recovery_mode": "normal",
+    "rtsp_latest_capture_epoch_ms": None,
+    "rtsp_latest_capture_iso": None,
+    "rtsp_latest_osd_text": None,
+    "osd_enabled": osd_enabled,
+    "osd_stage": _OSD_STAGE,
+    "osd_draw_ms": None,
+    "snapshot_prefer_rtsp_latest": _CAPTURE_SOURCE_PREFER_RTSP_LATEST_FOR_SNAPSHOT,
+    "rtsp_capture_mode": "replicator_probe",
+    "rtsp_capture_mode_reason": None,
     "preview_enabled": preview_enabled,
     "resolution_wh": [W, H],
     "control_base": f"http://127.0.0.1:{_CTRL_PORT}",
@@ -588,12 +742,195 @@ _STREAM_DIAG: dict = {
     "render_capture_last_fallback_reason": None,
     "render_capture_last_replicator_rgb_mean": None,
     "render_capture_last_viewport_rgb_mean": None,
+    "randomize_active": False,
+    "randomize_stream_mode": "idle",
+    "randomize_frozen_frame_age_ms": None,
+    "randomize_candidate_health": None,
+    "randomize_last_commit_source": None,
+    "randomize_black_frames_blocked_total": 0,
 }
 
 
 def _stream_diag_update(**kwargs) -> None:
     with _stream_diag_lock:
         _STREAM_DIAG.update(kwargs)
+
+
+_OSD_PIL_STATE: dict = {"init": False, "Image": None, "ImageDraw": None, "ImageFont": None, "font": None}
+_OSD_CV2_STATE: dict = {"init": False, "cv2": None}
+
+
+def _capture_time_meta(epoch_s: float | None = None) -> dict:
+    ts = time.time() if epoch_s is None else float(epoch_s)
+    dt = _dt.datetime.fromtimestamp(ts, tz=_OSD_TZINFO)
+    osd_text = dt.strftime(_OSD_FMT)
+    return {
+        "capture_epoch_ms": int(round(ts * 1000.0)),
+        "capture_iso": dt.isoformat(timespec="milliseconds"),
+        "osd_text": osd_text,
+    }
+
+
+def _load_osd_pil_font():
+    if not _OSD_PIL_STATE.get("init"):
+        _OSD_PIL_STATE["init"] = True
+        try:
+            from PIL import Image as _PILImage  # noqa
+            from PIL import ImageDraw as _PILImageDraw  # noqa
+            from PIL import ImageFont as _PILImageFont  # noqa
+
+            font = None
+            if _OSD_FONT:
+                try:
+                    font = _PILImageFont.truetype(_OSD_FONT, _OSD_SIZE)
+                except Exception:
+                    font = None
+            if font is None:
+                try:
+                    font = _PILImageFont.load_default()
+                except Exception:
+                    font = None
+            _OSD_PIL_STATE.update(
+                {"Image": _PILImage, "ImageDraw": _PILImageDraw, "ImageFont": _PILImageFont, "font": font}
+            )
+        except Exception:
+            _OSD_PIL_STATE.update({"Image": None, "ImageDraw": None, "ImageFont": None, "font": None})
+    return _OSD_PIL_STATE.get("Image"), _OSD_PIL_STATE.get("ImageDraw"), _OSD_PIL_STATE.get("font")
+
+
+def _load_osd_cv2():
+    if not _OSD_CV2_STATE.get("init"):
+        _OSD_CV2_STATE["init"] = True
+        try:
+            import cv2 as _cv2  # noqa
+
+            _OSD_CV2_STATE["cv2"] = _cv2
+        except Exception:
+            _OSD_CV2_STATE["cv2"] = None
+    return _OSD_CV2_STATE.get("cv2")
+
+
+def _osd_pick_text_colors(arr: np.ndarray, x0: int, y0: int, x1: int, y1: int) -> tuple[tuple[int, int, int, int], tuple[int, int, int, int], float]:
+    luma = 128.0
+    try:
+        h, w = arr.shape[:2]
+        x0c = max(0, min(w, int(x0)))
+        x1c = max(0, min(w, int(x1)))
+        y0c = max(0, min(h, int(y0)))
+        y1c = max(0, min(h, int(y1)))
+        if x1c > x0c and y1c > y0c:
+            rgb = arr[y0c:y1c, x0c:x1c, :3].astype(np.float32)
+            luma_map = rgb[..., 0] * 0.2126 + rgb[..., 1] * 0.7152 + rgb[..., 2] * 0.0722
+            luma = float(np.mean(luma_map))
+    except Exception:
+        pass
+    if _OSD_COLOR_MODE == "black":
+        text_rgb = (0, 0, 0)
+    elif _OSD_COLOR_MODE == "white":
+        text_rgb = (255, 255, 255)
+    else:
+        text_rgb = (0, 0, 0) if luma >= _OSD_BG_LUMA_THRESHOLD else (255, 255, 255)
+    stroke_rgb = (255, 255, 255) if text_rgb == (0, 0, 0) else (0, 0, 0)
+    return (*text_rgb, 255), (*stroke_rgb, _OSD_STROKE_ALPHA), luma
+
+
+def _draw_osd_rgba_inplace(rgba_u8: np.ndarray, text: str) -> tuple[np.ndarray, float, str]:
+    if not (_OSD_FRAME_CAPTURE_ENABLED and text):
+        return rgba_u8, 0.0, "disabled"
+    t0 = time.monotonic()
+    arr = np.ascontiguousarray(rgba_u8)
+    pil_image_mod, pil_draw_mod, pil_font = _load_osd_pil_font()
+    if pil_image_mod is not None and pil_draw_mod is not None and pil_font is not None:
+        try:
+            img = pil_image_mod.fromarray(arr)
+            draw = pil_draw_mod.Draw(img, "RGBA")
+            try:
+                bbox = draw.textbbox((_OSD_X, _OSD_Y), text, font=pil_font)
+                tw = int(bbox[2] - bbox[0])
+                th = int(bbox[3] - bbox[1])
+            except Exception:
+                tw = max(1, int(len(text) * _OSD_SIZE * 0.62))
+                th = int(_OSD_SIZE * 1.25)
+            pad_x = 4
+            pad_y = 4
+            box = [
+                _OSD_X,
+                _OSD_Y,
+                _OSD_X + tw + pad_x * 2,
+                _OSD_Y + th + pad_y * 2,
+            ]
+            fill, stroke_fill, luma = _osd_pick_text_colors(arr, box[0], box[1], box[2], box[3])
+            if _OSD_BOX_ENABLED:
+                box_fill = (0, 0, 0, 96) if fill[:3] == (255, 255, 255) else (255, 255, 255, 80)
+                draw.rectangle(box, fill=box_fill)
+            text_xy = (_OSD_X + pad_x, _OSD_Y + pad_y)
+            draw.text(
+                text_xy,
+                text,
+                font=pil_font,
+                fill=fill,
+                stroke_width=_OSD_STROKE_WIDTH,
+                stroke_fill=stroke_fill,
+            )
+            out = np.ascontiguousarray(np.asarray(img, dtype=np.uint8))
+            method = "pillow_auto_black" if fill[:3] == (0, 0, 0) else "pillow_auto_white"
+            if _OSD_COLOR_MODE in ("black", "white"):
+                method = f"pillow_{_OSD_COLOR_MODE}"
+            return out, (time.monotonic() - t0) * 1000.0, f"{method}_luma_{luma:.0f}"
+        except Exception:
+            pass
+    cv2 = _load_osd_cv2()
+    if cv2 is not None:
+        try:
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            scale = max(0.35, _OSD_SIZE / 30.0)
+            thickness = max(1, int(round(_OSD_SIZE / 14.0)))
+            (tw, th), baseline = cv2.getTextSize(text, font, scale, thickness)
+            pad_x = 5
+            pad_y = 5
+            x0 = _OSD_X
+            y0 = _OSD_Y
+            x1 = min(arr.shape[1], x0 + tw + pad_x * 2)
+            y1 = min(arr.shape[0], y0 + th + baseline + pad_y * 2)
+            fill, stroke_fill, luma = _osd_pick_text_colors(arr, x0, y0, x1, y1)
+            if _OSD_BOX_ENABLED and x1 > x0 and y1 > y0:
+                roi = arr[y0:y1, x0:x1, :3]
+                overlay = roi.copy()
+                overlay[:, :] = (0, 0, 0) if fill[:3] == (255, 255, 255) else (255, 255, 255)
+                cv2.addWeighted(overlay, 0.35, roi, 0.65, 0, dst=roi)
+            org = (_OSD_X + pad_x, _OSD_Y + pad_y + th)
+            if _OSD_STROKE_WIDTH > 0:
+                cv2.putText(
+                    arr,
+                    text,
+                    org,
+                    font,
+                    scale,
+                    stroke_fill,
+                    thickness + _OSD_STROKE_WIDTH * 2,
+                    cv2.LINE_AA,
+                )
+            cv2.putText(arr, text, org, font, scale, fill, thickness, cv2.LINE_AA)
+            method = "opencv_auto_black" if fill[:3] == (0, 0, 0) else "opencv_auto_white"
+            if _OSD_COLOR_MODE in ("black", "white"):
+                method = f"opencv_{_OSD_COLOR_MODE}"
+            return arr, (time.monotonic() - t0) * 1000.0, f"{method}_luma_{luma:.0f}"
+        except Exception:
+            pass
+    return arr, (time.monotonic() - t0) * 1000.0, "unavailable"
+
+
+def _prepare_rtsp_rgba_frame(rgba_u8, capture_epoch_s: float | None = None) -> tuple[bytes, dict]:
+    meta = _capture_time_meta(capture_epoch_s)
+    arr = np.ascontiguousarray(rgba_u8)
+    draw_ms = 0.0
+    method = "disabled"
+    if _OSD_FRAME_CAPTURE_ENABLED:
+        arr, draw_ms, method = _draw_osd_rgba_inplace(arr, str(meta.get("osd_text") or ""))
+    meta["osd_draw_ms"] = round(float(draw_ms), 3)
+    meta["osd_draw_method"] = method
+    meta["osd_applied"] = bool(_OSD_FRAME_CAPTURE_ENABLED and method != "unavailable")
+    return arr.tobytes(), meta
 
 
 # ----- RenderProduct / RGB annotator 生命周期与 get_data() 原始缓冲诊断（只读观测）-----
@@ -920,6 +1257,13 @@ def _cfg_capture_prefer_viewport_delegate_for_snapshot() -> bool:
         return False
 
 
+def _cfg_capture_prefer_rtsp_latest_for_snapshot() -> bool:
+    try:
+        return bool(_CAPTURE_SOURCE_PREFER_RTSP_LATEST_FOR_SNAPSHOT)
+    except Exception:
+        return True
+
+
 def _viewport_pixels_preferred(vp_u8, rep_u8) -> bool:
     """同一分辨率下：viewport 像素是否明显优于 Replicator（用于最小来源切换，保守阈值）。"""
     if vp_u8 is None or rep_u8 is None:
@@ -938,7 +1282,11 @@ def _viewport_pixels_preferred(vp_u8, rep_u8) -> bool:
         return False
 
 
-def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None = None) -> tuple:
+def _try_read_viewport_delegate_rgba_uint8(
+    _viewport_capture_diag: dict | None = None,
+    *,
+    timeout_ms: float | None = None,
+) -> tuple:
     """
     从当前 Kit active viewport 抓取一帧 LDR 像素（与 diagnostics 中 viewport_delegate 同源）。
     返回 (rgba_uint8_HxWx4 或 None, render_product_path 或 None, error 或 None)。
@@ -955,6 +1303,7 @@ def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None =
         _d["capture_method"] = None
         _d["callback_fired"] = False
         _d["wait_ms"] = None
+        _d["capture_epoch_s"] = None
 
     rp_path = None
     try:
@@ -1024,11 +1373,13 @@ def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None =
         except Exception:
             pass
 
-    box: dict = {"err": None, "arr": None, "w": None, "h": None, "fmt": None}
+    box: dict = {"err": None, "arr": None, "w": None, "h": None, "fmt": None, "capture_epoch_s": None}
     evt = threading.Event()
+    wait_timeout_s = max(0.02, float(timeout_ms) / 1000.0) if timeout_ms is not None else None
 
     def _cb(*args, **kwargs):
         try:
+            box["capture_epoch_s"] = time.time()
             if kwargs and not args:
                 args = tuple(kwargs.values())
             if len(args) == 1:
@@ -1119,17 +1470,23 @@ def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None =
             used_run_coroutine = True
 
             async def _await_capture():
-                return await asyncio.wait_for(wfr(2), timeout=14.0)
+                return await asyncio.wait_for(wfr(2), timeout=wait_timeout_s or 14.0)
 
             sim_app.run_coroutine(_await_capture())
         else:
             fut = capture_delegate
             if hasattr(fut, "wait"):
                 try:
-                    fut.wait(5.0)
+                    fut.wait(wait_timeout_s or 5.0)
                 except TypeError:
-                    fut.wait()
-            if not evt.wait(6.0):
+                    if wait_timeout_s is None:
+                        fut.wait()
+                    else:
+                        err_wait = "viewport_capture_wait_no_timeout_support"
+            remaining_wait_s = 6.0
+            if wait_timeout_s is not None:
+                remaining_wait_s = max(0.001, wait_timeout_s - (time.monotonic() - t_cap))
+            if err_wait is None and not evt.wait(remaining_wait_s):
                 err_wait = "viewport_capture_callback_timeout"
     except asyncio.TimeoutError:
         err_wait = "viewport_capture_async_timeout"
@@ -1144,6 +1501,7 @@ def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None =
         )
         _d["callback_fired"] = bool(evt.is_set())
         _d["wait_ms"] = round((time.monotonic() - t_cap) * 1000.0, 2)
+        _d["capture_epoch_s"] = box.get("capture_epoch_s")
 
     if err_wait:
         return None, rp_path, err_wait
@@ -1180,19 +1538,40 @@ def _try_read_viewport_delegate_rgba_uint8(_viewport_capture_diag: dict | None =
     return np.ascontiguousarray(arr), rp_path, None
 
 
-def _try_rtsp_rgba_from_viewport_delegate_safe():
+def _try_rtsp_rgba_from_viewport_delegate_safe(*, return_meta: bool = False):
     """主线程 RTSP 入队：尝试 live viewport_delegate RGBA；成功返回 (H,W,4) uint8，失败返回 None（不抛）。"""
+    meta: dict = {}
     try:
-        vp_np, _rp_path, _vp_err = _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned()
-    except Exception:
+        if return_meta:
+            vp_np, _rp_path, _vp_err, meta = _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned(
+                timeout_ms=_RTSP_VIEWPORT_CAPTURE_TIMEOUT_MS,
+                return_meta=True,
+            )
+        else:
+            vp_np, _rp_path, _vp_err = _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned()
+    except Exception as exc:
+        if return_meta:
+            return None, {"error": f"{type(exc).__name__}:{exc}"}
         return None
+    try:
+        wait_ms = meta.get("wait_ms")
+        if wait_ms is not None:
+            _stream_diag_update(rtsp_viewport_capture_wait_ms=float(wait_ms))
+    except Exception:
+        pass
     if vp_np is None or getattr(vp_np, "size", 0) <= 0:
+        if return_meta:
+            return None, meta
         return None
     try:
         vp_u8 = _normalize_replicator_rgba_for_output(vp_np)
     except Exception:
+        if return_meta:
+            return None, meta
         return None
     if vp_u8 is None or getattr(vp_u8, "size", 0) <= 0:
+        if return_meta:
+            return None, meta
         return None
     try:
         if vp_u8.shape[:2] != (H, W):
@@ -1200,9 +1579,16 @@ def _try_rtsp_rgba_from_viewport_delegate_safe():
                 np.resize(vp_u8, (H, W, vp_u8.shape[2] if vp_u8.ndim == 3 else 4))
             )
         if vp_u8.shape != (H, W, 4):
+            if return_meta:
+                return None, meta
             return None
-        return np.ascontiguousarray(vp_u8, dtype=np.uint8)
+        out = np.ascontiguousarray(vp_u8, dtype=np.uint8)
+        if return_meta:
+            return out, meta
+        return out
     except Exception:
+        if return_meta:
+            return None, meta
         return None
 
 
@@ -1281,6 +1667,11 @@ def _snapshot_viewport_api_write_camera_path(vapi, path: str) -> bool:
 
 # RTSP viewport_delegate：与 HTTP live snapshot 同款「临时绑定 camera_prim → 抓帧 → 恢复」；日志节流避免刷屏
 _RTSP_VIEWPORT_CAMERA_BIND_LOG_MONO: float = 0.0
+_RTSP_VIEWPORT_PRIMARY = False
+_RTSP_VIEWPORT_PRIMARY_LAST_PROBE_MONO = 0.0
+_RTSP_VIEWPORT_PRIMARY_LAST_SWITCH_MONO = 0.0
+_RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO = 0.0
+_RTSP_STALE_RECOVERY_UNTIL_MONO = 0.0
 
 
 def _rtsp_log_viewport_camera_bind_throttled(msg: str) -> None:
@@ -1292,7 +1683,71 @@ def _rtsp_log_viewport_camera_bind_throttled(msg: str) -> None:
     print(f"[PTZ-RTSP][viewport-camera-bind] {msg}", flush=True)
 
 
-def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
+def _rtsp_viewport_primary_enabled() -> bool:
+    return bool(_RTSP_LOW_LATENCY_MODE and _RTSP_VIEWPORT_PRIMARY)
+
+
+def _rtsp_latest_age_ms(now: float | None = None) -> float | None:
+    try:
+        latest_mono = float(_rtsp_latest_mono or 0.0)
+        if latest_mono <= 0.0:
+            return None
+        return max(0.0, ((time.monotonic() if now is None else float(now)) - latest_mono) * 1000.0)
+    except Exception:
+        return None
+
+
+def _rtsp_update_stale_recovery(now: float | None = None) -> tuple[float | None, str]:
+    global _RTSP_STALE_RECOVERY_UNTIL_MONO
+    now_f = time.monotonic() if now is None else float(now)
+    age_ms = _rtsp_latest_age_ms(now_f)
+    if age_ms is not None and age_ms >= _RTSP_STALE_RECOVERY_MS:
+        _RTSP_STALE_RECOVERY_UNTIL_MONO = max(
+            float(_RTSP_STALE_RECOVERY_UNTIL_MONO),
+            now_f + _RTSP_STALE_RECOVERY_HOLD_S,
+        )
+    mode = "viewport_only_recovery" if now_f < float(_RTSP_STALE_RECOVERY_UNTIL_MONO) else "normal"
+    _stream_diag_update(rtsp_stale_recovery_mode=mode)
+    return age_ms, mode
+
+
+def _rtsp_set_viewport_primary(enabled: bool, reason: str) -> None:
+    global _RTSP_VIEWPORT_PRIMARY, _RTSP_VIEWPORT_PRIMARY_LAST_SWITCH_MONO
+    enabled = bool(enabled)
+    if _RTSP_VIEWPORT_PRIMARY == enabled:
+        return
+    _RTSP_VIEWPORT_PRIMARY = enabled
+    _RTSP_VIEWPORT_PRIMARY_LAST_SWITCH_MONO = time.monotonic()
+    _stream_diag_update(
+        rtsp_capture_mode="viewport_delegate_primary" if enabled else "replicator_probe",
+        rtsp_capture_mode_reason=str(reason),
+    )
+    print(
+        f"[PTZ-RTSP][capture-mode] mode={'viewport_delegate_primary' if enabled else 'replicator_probe'} "
+        f"reason={reason}",
+        flush=True,
+    )
+
+
+def _rtsp_should_probe_replicator() -> bool:
+    global _RTSP_VIEWPORT_PRIMARY_LAST_PROBE_MONO
+    if not _rtsp_viewport_primary_enabled():
+        return True
+    now = time.monotonic()
+    age_ms, mode = _rtsp_update_stale_recovery(now)
+    if mode == "viewport_only_recovery" or (age_ms is not None and age_ms > _RTSP_STALE_WARN_MS):
+        return False
+    if now - _RTSP_VIEWPORT_PRIMARY_LAST_PROBE_MONO >= _RTSP_VIEWPORT_PRIMARY_PROBE_INTERVAL_S:
+        _RTSP_VIEWPORT_PRIMARY_LAST_PROBE_MONO = now
+        return True
+    return False
+
+
+def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned(
+    *,
+    timeout_ms: float | None = None,
+    return_meta: bool = False,
+):
     """
     仅 RTSP 路径：在 _try_read_viewport_delegate_rgba_uint8 前临时将 active viewport 相机切到
     camera_prim（与 _run_snapshot_http_viewport_jpeg / _run_diag_snapshot_live_once_pipeline 同源），
@@ -1300,12 +1755,28 @@ def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
     返回 (rgba, render_product_path, err) 与 _try_read_viewport_delegate_rgba_uint8 相同。
     """
     target_prim = str(camera_prim).strip()
+    diag: dict = {}
+    effective_timeout_ms = (
+        _RTSP_VIEWPORT_CAPTURE_TIMEOUT_MS
+        if timeout_ms is None and _RTSP_LOW_LATENCY_MODE
+        else timeout_ms
+    )
+
+    def _ret(vp, rp_path, err):
+        if return_meta:
+            return vp, rp_path, err, dict(diag)
+        return vp, rp_path, err
+
     vapi, _vapi_err = _snapshot_http_resolve_active_viewport_api()
     if not target_prim or vapi is None:
-        return _try_read_viewport_delegate_rgba_uint8(None)
+        vp, rp_path, err = _try_read_viewport_delegate_rgba_uint8(
+            diag, timeout_ms=effective_timeout_ms
+        )
+        return _ret(vp, rp_path, err)
 
     prev_cam: str | None = None
     align_applied = False
+    restore_after_capture = not _RTSP_LOW_LATENCY_MODE
     try:
         try:
             prev_cam = _snapshot_viewport_api_read_camera_path(vapi)
@@ -1313,14 +1784,20 @@ def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
             prev_cam = None
 
         if prev_cam == target_prim:
-            return _try_read_viewport_delegate_rgba_uint8(None)
+            vp, rp_path, err = _try_read_viewport_delegate_rgba_uint8(
+                diag, timeout_ms=effective_timeout_ms
+            )
+            return _ret(vp, rp_path, err)
 
         if not _snapshot_viewport_api_write_camera_path(vapi, target_prim):
             _rtsp_log_viewport_camera_bind_throttled(
                 f"bind_ok=False restore_skipped rtsp_bind_target={target_prim!r} "
                 f"restore_path={prev_cam!r} reason=write_camera_failed"
             )
-            return _try_read_viewport_delegate_rgba_uint8(None)
+            vp, rp_path, err = _try_read_viewport_delegate_rgba_uint8(
+                diag, timeout_ms=effective_timeout_ms
+            )
+            return _ret(vp, rp_path, err)
 
         align_applied = True
         try:
@@ -1330,7 +1807,7 @@ def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
                 f"bind_ok=True restore_pending rtsp_bind_target={target_prim!r} restore_path={prev_cam!r} "
                 f"reason=post_bind_update:{type(ex).__name__}"
             )
-            return None, None, f"sim_app.update_after_bind:{type(ex).__name__}:{ex}"
+            return _ret(None, None, f"sim_app.update_after_bind:{type(ex).__name__}:{ex}")
 
         for _ in range(2):
             try:
@@ -1340,11 +1817,14 @@ def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
                     f"bind_ok=True restore_pending rtsp_bind_target={target_prim!r} restore_path={prev_cam!r} "
                     f"reason=warmup_update:{type(ex).__name__}"
                 )
-                return None, None, f"sim_app.update_warmup:{type(ex).__name__}:{ex}"
+                return _ret(None, None, f"sim_app.update_warmup:{type(ex).__name__}:{ex}")
 
-        return _try_read_viewport_delegate_rgba_uint8(None)
+        vp, rp_path, err = _try_read_viewport_delegate_rgba_uint8(
+            diag, timeout_ms=effective_timeout_ms
+        )
+        return _ret(vp, rp_path, err)
     finally:
-        if align_applied and vapi is not None:
+        if align_applied and vapi is not None and restore_after_capture:
             restore_ok: bool | None = None
             try:
                 if prev_cam is not None:
@@ -1359,6 +1839,10 @@ def _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned():
                 restore_ok = False
             _rtsp_log_viewport_camera_bind_throttled(
                 f"bind_ok=True restore_ok={restore_ok} rtsp_bind_target={target_prim!r} restore_path={prev_cam!r}"
+            )
+        elif align_applied and vapi is not None:
+            _rtsp_log_viewport_camera_bind_throttled(
+                f"bind_ok=True restore_skipped_low_latency rtsp_bind_target={target_prim!r} previous_path={prev_cam!r}"
             )
 
 
@@ -2802,8 +3286,12 @@ def _refresh_status_http_scene_cache_main_thread(*, force: bool = False) -> None
         return
     _LAST_STATUS_SCENE_MAIN_REFRESH_MONO = now
     try:
-        stage = omni.usd.get_context().get_stage()
-        snap = _scene_state_snapshot(stage, runtime_lock_timeout=0.5)
+        if _STATUS_SCENE_REFRESH_FULL_SCAN:
+            stage = omni.usd.get_context().get_stage()
+            snap = _scene_state_snapshot(stage, runtime_lock_timeout=0.5)
+        else:
+            snap = _scene_state_lightweight_snapshot()
+            snap["scene_cache_mode"] = "lightweight_rtsp_low_latency"
     except Exception as exc:
         snap = {
             "error": f"{type(exc).__name__}:{exc}",
@@ -2993,6 +3481,28 @@ _orientation_state: dict = {
     "fallback": False,
     "fallback_reason": None,
 }
+_randomize_context_tilt_history = deque(maxlen=_RANDOMIZE_CONTEXT_DOWN_TILT_WINDOW)
+
+
+_TILT_DIRECTION_THRESHOLD_DEG = 2.0
+
+
+def _tilt_direction_label(tilt_deg) -> str | None:
+    try:
+        tilt = float(tilt_deg)
+    except (TypeError, ValueError):
+        return None
+    if tilt > _TILT_DIRECTION_THRESHOLD_DEG:
+        return "down"
+    if tilt < -_TILT_DIRECTION_THRESHOLD_DEG:
+        return "up"
+    return "level"
+
+
+def _is_down_tilt(tilt_deg) -> bool:
+    return _tilt_direction_label(tilt_deg) == "down"
+
+
 _startup_view_state: dict = {
     "token": "startup",
     "name": "StartupView",
@@ -3199,10 +3709,39 @@ def _dynamic_sky_preset_id_from_path(path_str: str) -> str:
     return base
 
 
-def _http_dynamic_sky_presets_payload(stage=None) -> dict:
-    st = stage or omni.usd.get_context().get_stage()
+def _http_dynamic_sky_presets_payload(stage=None, *, include_stage_status: bool = True) -> dict:
     presets = _list_dynamic_sky_web_presets()
-    env = _environment_public_status(st)
+    if include_stage_status:
+        st = stage or omni.usd.get_context().get_stage()
+        env = _environment_public_status(st)
+    else:
+        with _scene_lock:
+            mode = str(_scene_state.get("environment_mode") or "hdri")
+            dy_en = bool(_scene_state.get("dynamic_sky_enabled"))
+            preset = str(_scene_state.get("dynamic_sky_preset_path") or "")
+            root = str(_scene_state.get("dynamic_sky_root_prim") or "/World/DynamicSkyRoot")
+            mount_ok = bool(_scene_state.get("dynamic_sky_mount_ok"))
+            mounted_preset = _scene_state.get("dynamic_sky_mounted_preset_path")
+            last_err = _scene_state.get("dynamic_sky_last_error")
+            last_at = _scene_state.get("dynamic_sky_last_action_at")
+        env = {
+            "environment_mode": mode,
+            "dynamic_sky_effective": bool(str(mode).strip().lower() == "dynamic_sky" and dy_en),
+            "dynamic_sky_enabled": dy_en,
+            "dynamic_sky_preset_path": preset,
+            "dynamic_sky_root_prim": root,
+            "dynamic_sky_mount_ok": mount_ok,
+            "dynamic_sky_mounted_preset_path": mounted_preset,
+            "dynamic_sky_root_exists": None,
+            "dynamic_sky_root_active": None,
+            "preset_file_exists": bool(preset and os.path.isfile(preset)),
+            "hdri_environment_prims_disabled": [],
+            "hdri_env_mutually_excluded": None,
+            "dynamic_sky_last_error": last_err,
+            "dynamic_sky_last_action_at": last_at,
+            "stream": {},
+            "stage_status_omitted": True,
+        }
     mounted = str(env.get("dynamic_sky_mounted_preset_path") or "").strip()
     configured = str(env.get("dynamic_sky_preset_path") or "").strip()
     cur_path = mounted or configured
@@ -3722,6 +4261,26 @@ def _repair_broken_texture_paths(stage) -> None:
     fallback_dir = "/home/uniubi/xuanyuan/camera05/camera03/textures"
     repaired_count = 0
     fallback_count = 0
+    alias_count = 0
+    missing_reported = set()
+
+    texture_aliases = {
+        "Ground037_4K-PNG_NormalDX.png": "Ground037_4K-PNG_NormalGL.png",
+        "Ground037_4K-PNG_AmbientOcclusion.png": "Ground037_4K-PNG_Color.png",
+        "T_Grunge_Concrete_Wall_01_2K_BaseColor.png": "Damaged_Concrete_Wall_vdcnfcd_4K_BaseColor.jpg",
+        "T_Grunge_Concrete_Wall_01_2K_Normal.png": "Damaged_Concrete_Wall_vdcnfcd_4K_Normal.jpg",
+    }
+
+    def _resolve_texture_fallback(base_name: str) -> tuple[str, str]:
+        direct_path = os.path.join(fallback_dir, base_name)
+        if os.path.isfile(direct_path):
+            return direct_path, "exact"
+        alias_name = texture_aliases.get(base_name)
+        if alias_name:
+            alias_path = os.path.join(fallback_dir, alias_name)
+            if os.path.isfile(alias_path):
+                return alias_path, f"alias:{alias_name}"
+        return "", ""
     
     for prim in stage.Traverse():
         if not prim.IsA(UsdShade.Shader):
@@ -3744,16 +4303,24 @@ def _repair_broken_texture_paths(stage) -> None:
                     changed = True
                     repaired_count += 1
                 
-                # 若贴图包含 textures/，则强制重定向到 fallback_dir 绝对路径，修复 usdz 内部相对路径解析失败或漏打包的问题
+                # 若贴图包含 textures/，则重定向到 fallback_dir 中的精确文件；少数 USDZ 漏打包贴图使用明确同族/同通道别名兜底。
                 if "textures/" in new_val:
                     base_name = os.path.basename(new_val).strip()
-                    fallback_path = os.path.join(fallback_dir, base_name)
-                    if os.path.isfile(fallback_path):
+                    fallback_path, fallback_source = _resolve_texture_fallback(base_name)
+                    if fallback_path:
                         new_val = fallback_path
                         changed = True
-                        fallback_count += 1
+                        if fallback_source == "exact":
+                            fallback_count += 1
+                        else:
+                            alias_count += 1
                     else:
-                        if "Ground037" in base_name or "cgaxis_pbr" in base_name:
+                        if base_name not in missing_reported and (
+                            "Ground037" in base_name
+                            or "cgaxis_pbr" in base_name
+                            or "T_Grunge_Concrete_Wall_01_2K" in base_name
+                        ):
+                            missing_reported.add(base_name)
                             print(f"[texture-repair-missing] {base_name} not found in {fallback_dir}", flush=True)
                 
                 if changed:
@@ -3765,8 +4332,12 @@ def _repair_broken_texture_paths(stage) -> None:
                     except Exception:
                         pass
                         
-    if repaired_count > 0 or fallback_count > 0:
-        print(f"[texture-repair] Successfully repaired {repaired_count} broken texture paths, redirected {fallback_count} to fallback dir", flush=True)
+    if repaired_count > 0 or fallback_count > 0 or alias_count > 0:
+        print(
+            f"[texture-repair] Successfully repaired {repaired_count} broken texture paths, "
+            f"redirected {fallback_count} exact textures, redirected {alias_count} alias textures",
+            flush=True,
+        )
 
 
 def _attr_value(prim, attr_name: str, default=None):
@@ -4900,6 +5471,29 @@ def _cm_to_stage_units(stage, height_cm: float) -> float:
     return (float(height_cm) / 100.0) / _stage_meters_per_unit(stage)
 
 
+def _diaolan_candidate_meta(path_value: str, target_prim_path=None, workers_max=0) -> dict:
+    path_value = str(path_value or "").strip()
+    parts = [x for x in path_value.strip("/").split("/") if x]
+    cluster_name = parts[1] if len(parts) >= 2 and parts[0] == "World" else ""
+    instance_name = parts[2] if len(parts) >= 3 and parts[0] == "World" else (os.path.basename(path_value.rstrip("/")) or path_value)
+    cluster_path = f"/World/{cluster_name}" if cluster_name else ""
+    cluster_label = cluster_name or "Diaolan"
+    label = f"{cluster_label} / {instance_name}" if cluster_label and instance_name else (instance_name or path_value)
+    try:
+        workers_max_i = int(workers_max or 0)
+    except Exception:
+        workers_max_i = 0
+    return {
+        "path": path_value,
+        "target_prim_path": str(target_prim_path or "").strip() or None,
+        "label": label,
+        "workers_max": workers_max_i,
+        "cluster_path": cluster_path or None,
+        "cluster_label": cluster_label,
+        "instance_name": instance_name,
+    }
+
+
 def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = None) -> dict:
     stage = stage or omni.usd.get_context().get_stage()
     runtime = _scene_state_runtime_snapshot(lock_timeout=runtime_lock_timeout)
@@ -4909,14 +5503,7 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
         path_value = str(item.get("path") or "").strip()
         if not path_value:
             continue
-        diaolan_candidates.append(
-            {
-                "path": path_value,
-                "target_prim_path": str(item.get("group1") or "") or None,
-                "label": os.path.basename(path_value.rstrip("/")) or path_value,
-                "workers_max": len(item.get("persons") or []),
-            }
-        )
+        diaolan_candidates.append(_diaolan_candidate_meta(path_value, item.get("group1"), len(item.get("persons") or [])))
     scanned_paths = [str(d.get("path") or "").strip() for d in scanned if str(d.get("path") or "").strip()]
     all_paths_snap = list(runtime.get("all_diaolan_paths") or [])
     if not all_paths_snap:
@@ -4945,14 +5532,7 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
                 workers_max = len(wlist)
             except Exception:
                 pass
-        diaolan_candidates.append(
-            {
-                "path": pv,
-                "target_prim_path": g1,
-                "label": os.path.basename(pv.rstrip("/")) or pv,
-                "workers_max": workers_max,
-            }
-        )
+        diaolan_candidates.append(_diaolan_candidate_meta(pv, g1, workers_max))
         cand_paths_set.add(pv)
     sel_snap = str(runtime.get("selected_diaolan_path") or runtime.get("active_diaolan_path") or "").strip() or None
     if sel_snap and sel_snap not in cand_paths_set:
@@ -4970,14 +5550,7 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
                 workers_max = len(wlist)
             except Exception:
                 pass
-        diaolan_candidates.append(
-            {
-                "path": pv,
-                "target_prim_path": g1,
-                "label": os.path.basename(pv.rstrip("/")) or pv,
-                "workers_max": workers_max,
-            }
-        )
+        diaolan_candidates.append(_diaolan_candidate_meta(pv, g1, workers_max))
         cand_paths_set.add(pv)
     workers_max_for_selected = 0
     resolved_height_for_selected = None
@@ -4995,6 +5568,11 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
             resolved_height_for_selected = None
     current_target_path = resolved_height_for_selected or (_GONDOLA_PRIM or None)
     eff_look = _effective_lookat_target_prim_path(stage) if stage is not None else None
+    building_context = _context_lookat_selection(stage) if stage is not None else {"prim_path": None, "reason": "stage_unavailable"}
+    gondola_renderable_paths = list(runtime.get("gondola_renderable_paths") or [])
+    gondola_visible_renderable_paths = list(runtime.get("gondola_visible_renderable_paths") or [])
+    gondola_hidden_paths = list(runtime.get("gondola_hidden_paths") or [])
+    gondola_renderable_debug = list(runtime.get("gondola_renderable_debug") or [])
     out = {
         "gondola_height_cm": _stage_units_to_cm(stage, runtime["gondola_y"]),
         "workers": runtime["workers"],
@@ -5006,6 +5584,8 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
         ),
         "lookat_target_prim_path": eff_look,
         "active_lookat_target_prim_path": eff_look,
+        "lookat_building_context_prim_path": building_context.get("prim_path"),
+        "lookat_building_context_selection": building_context,
         "all_diaolan_paths": all_paths_snap,
         "workers_visible_count_by_diaolan_path": dict(
             runtime.get("workers_visible_count_by_diaolan_path") or {}
@@ -5018,14 +5598,37 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
         "workers_visible_logical_count": count_logical_workers_from_paths(
             list(runtime.get("visible_worker_paths") or [])
         ),
-        "gondola_renderable_paths": runtime["gondola_renderable_paths"],
-        "gondola_visible_renderable_paths": runtime["gondola_visible_renderable_paths"],
-        "gondola_hidden_paths": runtime["gondola_hidden_paths"],
-        "gondola_renderable_debug": runtime["gondola_renderable_debug"],
+        "gondola_renderable_paths": gondola_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_visible_renderable_paths": gondola_visible_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_hidden_paths": gondola_hidden_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_debug": gondola_renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_counts": {
+            "total": len(gondola_renderable_paths),
+            "visible": len(gondola_visible_renderable_paths),
+            "hidden": len(gondola_hidden_paths),
+            "sample_limit": _GONDOLA_RENDERABLE_DETAIL_LIMIT,
+        },
         "height_debug": runtime["height_debug"],
         "gondola_heights": dict(runtime.get("gondola_heights") or {}),
         "diaolan_candidates": diaolan_candidates,
         "random_config": runtime["random_config"],
+        "randomize_fast_response": bool(_RANDOMIZE_FAST_RESPONSE),
+        "randomize_render_settle_max_frames": int(_RANDOMIZE_RENDER_SETTLE_MAX_FRAMES),
+        "randomize_render_stabilize_window_s": float(_RANDOMIZE_RENDER_STABILIZE_WINDOW_S),
+        "randomize_context_orientation_max_candidates": int(_RANDOMIZE_CONTEXT_ORIENTATION_MAX_CANDIDATES),
+        "randomize_context_down_tilt_policy": {
+            "window": int(_RANDOMIZE_CONTEXT_DOWN_TILT_WINDOW),
+            "max_down_in_window": int(_RANDOMIZE_CONTEXT_DOWN_TILT_MAX_IN_WINDOW),
+            "down_probability": float(_RANDOMIZE_CONTEXT_DOWN_TILT_PROBABILITY),
+            "down_threshold_deg": float(_TILT_DIRECTION_THRESHOLD_DEG),
+            "down_condition": "tilt > down_threshold_deg",
+            "tilt_semantics": "positive_down_negative_up",
+            "recent_tilts": [float(v) for v in _randomize_context_tilt_history],
+            "recent_tilt_direction_labels": [
+                _tilt_direction_label(v) for v in _randomize_context_tilt_history
+            ],
+            "recent_down_count": sum(1 for v in _randomize_context_tilt_history if _is_down_tilt(v)),
+        },
         "hdri_control": runtime["hdri_control"],
         "last_random_result": runtime["last_random_result"],
         "pending_active_diaolan_path": runtime["pending_active_diaolan_path"] or None,
@@ -5034,6 +5637,9 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
             "wall_collection_mode": _WALL_COLLECTION_MODE,
             "wall_collection_root_path": (_WALL_COLLECTION_ROOT_PATH or None),
             "wall_constraint_prim_path": _CAMERA_WALL_CONSTRAINT_PRIM,
+            "wall_mount_inset_m": float(_CAMERA_WALL_MOUNT_INSET_M),
+            "wall_mount_inset_mode": (_CAMERA_WALL_MOUNT_INSET_MODE or None),
+            "wall_candidate_region": copy.deepcopy(_WALL_CANDIDATE_REGION),
             "camera_lookat_target_xyz": [float(v) for v in _CAMERA_LOOKAT_TARGET_XYZ],
         },
     }
@@ -5041,6 +5647,31 @@ def _scene_state_snapshot(stage=None, *, runtime_lock_timeout: float | None = No
     out["hdri_groups"] = _describe_hdri_control_state(stage)
     out["environment"] = _environment_public_status(stage)
     return out
+
+
+def _scene_state_lightweight_snapshot(stage=None, *, result: dict | None = None) -> dict:
+    runtime = _scene_state_runtime_snapshot(lock_timeout=0.05)
+    last = result if isinstance(result, dict) else runtime.get("last_random_result")
+    wall_status = last.get("wall_constraint_status") if isinstance(last, dict) else None
+    return {
+        "ok": True,
+        "state_deferred": True,
+        "full_state_endpoint": "/scene/state",
+        "selected_diaolan_path": runtime.get("selected_diaolan_path") or None,
+        "active_diaolan_path": runtime.get("active_diaolan_path") or None,
+        "gondola_y": runtime.get("gondola_y"),
+        "gondola_heights": dict(runtime.get("gondola_heights") or {}),
+        "workers": runtime.get("workers"),
+        "workers_visible_count_by_diaolan_path": dict(
+            runtime.get("workers_visible_count_by_diaolan_path") or {}
+        ),
+        "random_config": runtime.get("random_config"),
+        "camera_xyz": last.get("camera_xyz") if isinstance(last, dict) else None,
+        "startup_view_visible": last.get("startup_view_visible") if isinstance(last, dict) else None,
+        "wall_constraint_status": wall_status if isinstance(wall_status, dict) else None,
+        "last_random_request_id": last.get("request_id") if isinstance(last, dict) else None,
+        "last_random_timestamp": last.get("timestamp") if isinstance(last, dict) else None,
+    }
 
 
 def _describe_hdri_control_state(stage=None) -> dict:
@@ -5308,13 +5939,11 @@ def _queue_randomize_scene(req: dict | None = None) -> dict:
             raise RuntimeError("randomize request already pending")
         _scene_randomize_request = holder
         _scene_randomize_dirty.set()
-    if not event.wait(timeout=180):
+    if not event.wait(timeout=_SCENE_RANDOMIZE_WAIT_TIMEOUT_S):
         raise TimeoutError("scene randomize timed out waiting for main-thread execution")
     response = holder.get("response") if isinstance(holder, dict) else None
     if not isinstance(response, dict):
         raise RuntimeError("scene randomize returned invalid response")
-    if not response.get("ok", False):
-        raise RuntimeError(str(response.get("error") or "scene randomize failed"))
     return response
 
 
@@ -5342,14 +5971,7 @@ def _select_diaolan_response_state(stage) -> dict:
                 workers_max = len(wlist) if wlist else workers_max
             except Exception:
                 pass
-        diaolan_candidates.append(
-            {
-                "path": pv,
-                "target_prim_path": g1,
-                "label": os.path.basename(pv.rstrip("/")) or pv,
-                "workers_max": workers_max,
-            }
-        )
+        diaolan_candidates.append(_diaolan_candidate_meta(pv, g1, workers_max))
     workers_max_for_selected = 0
     if sel:
         for c in diaolan_candidates:
@@ -5374,6 +5996,7 @@ def _select_diaolan_response_state(stage) -> dict:
             except Exception:
                 pass
     eff_look = _effective_lookat_target_prim_path(st) if st is not None else None
+    building_context = _context_lookat_selection(st) if st is not None else {"prim_path": None, "reason": "stage_unavailable"}
     return {
         "gondola_height_cm": gcm,
         "workers": runtime["workers"],
@@ -5385,6 +6008,8 @@ def _select_diaolan_response_state(stage) -> dict:
         ),
         "lookat_target_prim_path": eff_look,
         "active_lookat_target_prim_path": eff_look,
+        "lookat_building_context_prim_path": building_context.get("prim_path"),
+        "lookat_building_context_selection": building_context,
         "all_diaolan_paths": paths,
         "workers_visible_count_by_diaolan_path": dict(
             runtime.get("workers_visible_count_by_diaolan_path") or {}
@@ -5409,6 +6034,9 @@ def _select_diaolan_response_state(stage) -> dict:
             "wall_collection_mode": _WALL_COLLECTION_MODE,
             "wall_collection_root_path": (_WALL_COLLECTION_ROOT_PATH or None),
             "wall_constraint_prim_path": _CAMERA_WALL_CONSTRAINT_PRIM,
+            "wall_mount_inset_m": float(_CAMERA_WALL_MOUNT_INSET_M),
+            "wall_mount_inset_mode": (_CAMERA_WALL_MOUNT_INSET_MODE or None),
+            "wall_candidate_region": copy.deepcopy(_WALL_CANDIDATE_REGION),
             "camera_lookat_target_xyz": [float(v) for v in _CAMERA_LOOKAT_TARGET_XYZ],
         },
     }
@@ -5600,6 +6228,9 @@ def _wrap_api_randomize_response(resp: dict) -> dict:
     if resp.get("ok") and isinstance(resp.get("result"), dict):
         r = resp["result"]
         out["timestamp"] = r.get("timestamp")
+        out["timing"] = r.get("timing")
+        out["state_deferred"] = bool(r.get("state_deferred", resp.get("state_deferred", _RANDOMIZE_FAST_RESPONSE)))
+        out["full_state_endpoint"] = r.get("full_state_endpoint") or resp.get("full_state_endpoint") or "/scene/state"
         out["source"] = r.get("source")
         out["request_id"] = r.get("request_id")
         out["random_event"] = r.get("random_event")
@@ -5622,6 +6253,26 @@ def _wrap_api_randomize_response(resp: dict) -> dict:
         out["hazard_evaluation"] = r.get("hazard_evaluation")
         out["scene_state_evaluation"] = r.get("scene_state_evaluation")
         out["camera_observability"] = r.get("camera_observability")
+        for _rk in (
+            "render_commit_status",
+            "randomize_stream_freeze_used",
+            "randomize_stream_commit_source",
+            "randomize_stream_black_frames_blocked",
+            "randomize_stream_stable_wait_s",
+            "randomize_stream_recovery_attempted",
+        ):
+            out[_rk] = r.get(_rk)
+    elif not resp.get("ok"):
+        for _rk in (
+            "render_commit_status",
+            "randomize_stream_freeze_used",
+            "randomize_stream_commit_source",
+            "randomize_stream_black_frames_blocked",
+            "randomize_stream_stable_wait_s",
+            "randomize_stream_recovery_attempted",
+        ):
+            if _rk in resp:
+                out[_rk] = resp.get(_rk)
     return out
 
 
@@ -5771,9 +6422,18 @@ def _http_json_scene_randomize(body: bytes, *, route_source: str, api_envelope: 
         resp_data = _queue_randomize_scene(req)
         if resp_data.get("ok") and isinstance(resp_data.get("result"), dict):
             br = resp_data["result"]
+            resp_data["timing"] = br.get("timing")
+            resp_data["state_deferred"] = bool(br.get("state_deferred", _RANDOMIZE_FAST_RESPONSE))
+            resp_data["full_state_endpoint"] = br.get("full_state_endpoint") or "/scene/state"
             resp_data["hazard_eval"] = br.get("hazard_eval")
             for _pk in (
                 "randomize_event_meta",
+                "render_commit_status",
+                "randomize_stream_freeze_used",
+                "randomize_stream_commit_source",
+                "randomize_stream_black_frames_blocked",
+                "randomize_stream_stable_wait_s",
+                "randomize_stream_recovery_attempted",
                 "event_id",
                 "event_type",
                 "hazard_category",
@@ -5789,6 +6449,17 @@ def _http_json_scene_randomize(body: bytes, *, route_source: str, api_envelope: 
                 "camera_observability",
             ):
                 resp_data[_pk] = br.get(_pk)
+        elif not resp_data.get("ok"):
+            for _pk in (
+                "render_commit_status",
+                "randomize_stream_freeze_used",
+                "randomize_stream_commit_source",
+                "randomize_stream_black_frames_blocked",
+                "randomize_stream_stable_wait_s",
+                "randomize_stream_recovery_attempted",
+            ):
+                if _pk in resp_data:
+                    resp_data[_pk] = resp_data.get(_pk)
         if api_envelope:
             resp_data = _wrap_api_randomize_response(resp_data)
         _invalidate_scene_state_http_cache()
@@ -5797,7 +6468,15 @@ def _http_json_scene_randomize(body: bytes, *, route_source: str, api_envelope: 
     except Exception as exc:
         with _scene_lock:
             _scene_state["pending_active_diaolan_path"] = ""
-        err_obj: dict = {"ok": False, "error": str(exc), "state": _scene_state_snapshot()}
+        err_obj: dict = {
+            "ok": False,
+            "error": str(exc),
+            "state": _scene_state_lightweight_snapshot()
+                if _RANDOMIZE_FAST_RESPONSE
+                else _scene_state_runtime_snapshot(lock_timeout=0.05),
+            "state_deferred": bool(_RANDOMIZE_FAST_RESPONSE),
+            "full_state_endpoint": "/scene/state",
+        }
         if trace_id:
             err_obj["request_id"] = trace_id
         if api_envelope:
@@ -5884,6 +6563,21 @@ _last_snapshot_http_dt_ms: float = 0.0
 _last_rep_orchestrator_step_ms: float = 0.0
 _stream_diag_stale_cache: dict = {}
 _scene_runtime_stale_cache: dict = {}
+
+# These endpoints are intentionally served even while heavy control-plane work is
+# saturated. They either read short-lived in-memory caches or return liveness
+# data needed by the launcher/UI to recover instead of filling the accept queue.
+_CTRL_HTTP_LIGHT_GET_PATHS = {
+    "/api/health",
+    "/api/stream_ready",
+    "/ptz_state",
+    "/status",
+    "/scene/random-config",
+    "/api/scene/random-config",
+    "/api/scene/randomize/last",
+    "/scene/hdri",
+    "/scene/dynamic-sky-presets",
+}
 
 # 重型 GET 短 TTL 缓存：减少与 PTZ/场景 POST 争用同一组控制面槽位的时间（不改变各接口 JSON 字段含义，仅允许极短延迟内读到略旧快照）
 _STATUS_HTTP_CACHE_LOCK = threading.Lock()
@@ -6000,6 +6694,211 @@ def _get_last_good_snapshot_jpeg() -> tuple[bytes | None, int, int | None]:
 
 _RTSP_RANDOMIZE_KEEPALIVE_LOG_MONO: float = 0.0
 _RTSP_RANDOMIZE_KEEPALIVE_LOG_INTERVAL_S = 2.0
+_RANDOMIZE_STREAM_GUARD_LOCK = threading.Lock()
+_RANDOMIZE_STREAM_GUARD: dict = {
+    "active": False,
+    "freeze_active": False,
+    "mode": "idle",
+    "frozen": None,
+    "black_frames_blocked_total": 0,
+    "black_frames_blocked_start": 0,
+    "last_commit_source": None,
+    "candidate_health": None,
+}
+
+
+def _rtsp_latest_frame_snapshot_for_randomize_freeze() -> dict | None:
+    with _rtsp_latest_cond:
+        frame = _rtsp_latest_frame
+        if not isinstance(frame, (bytes, bytearray)) or len(frame) != int(W) * int(H) * 4:
+            return None
+        try:
+            return {
+                "raw": bytes(frame),
+                "seq": int(_rtsp_latest_seq),
+                "source": str(_rtsp_latest_source or "rtsp_latest"),
+                "mono_ts": float(_rtsp_latest_mono or 0.0),
+                "capture_epoch_ms": _rtsp_latest_capture_epoch_ms,
+                "capture_iso": _rtsp_latest_capture_iso,
+                "osd_text": _rtsp_latest_osd_text,
+                "osd_draw_ms": _rtsp_latest_osd_draw_ms,
+            }
+        except Exception:
+            return None
+
+
+def _randomize_stream_diag_update() -> None:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        guard = dict(_RANDOMIZE_STREAM_GUARD)
+        frozen = guard.get("frozen")
+    age_ms = None
+    if isinstance(frozen, dict):
+        try:
+            mono_ts = float(frozen.get("mono_ts") or 0.0)
+            if mono_ts > 0:
+                age_ms = round((time.monotonic() - mono_ts) * 1000.0, 1)
+        except Exception:
+            age_ms = None
+    if age_ms is None and str(guard.get("mode") or "") == "frozen_last_good":
+        try:
+            with _rtsp_latest_cond:
+                if _rtsp_latest_randomize_mode == "frozen_last_good" and float(_rtsp_latest_mono or 0.0) > 0.0:
+                    age_ms = round((time.monotonic() - float(_rtsp_latest_mono)) * 1000.0, 1)
+        except Exception:
+            age_ms = None
+    _stream_diag_update(
+        randomize_active=bool(guard.get("active")),
+        randomize_stream_mode=str(guard.get("mode") or "idle"),
+        randomize_frozen_frame_age_ms=age_ms,
+        randomize_candidate_health=copy.deepcopy(guard.get("candidate_health")),
+        randomize_last_commit_source=guard.get("last_commit_source"),
+        randomize_black_frames_blocked_total=int(guard.get("black_frames_blocked_total") or 0),
+    )
+
+
+def _randomize_stream_guard_diag_snapshot() -> dict:
+    _randomize_stream_diag_update()
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        freeze_active = bool(_RANDOMIZE_STREAM_GUARD.get("freeze_active"))
+    with _stream_diag_lock:
+        return {
+            "randomize_stream_mode": _STREAM_DIAG.get("randomize_stream_mode"),
+            "randomize_last_commit_source": _STREAM_DIAG.get("randomize_last_commit_source"),
+            "randomize_black_frames_blocked_total": _STREAM_DIAG.get("randomize_black_frames_blocked_total"),
+            "randomize_active": _STREAM_DIAG.get("randomize_active"),
+            "randomize_freeze_active": freeze_active,
+        }
+
+
+def _randomize_stream_guard_begin() -> dict:
+    frozen = _rtsp_latest_frame_snapshot_for_randomize_freeze()
+    freeze_active = bool(_RANDOMIZE_FREEZE_STREAM_DURING_APPLY and frozen is not None)
+    mode = "frozen_last_good" if freeze_active else "active_no_frozen_frame"
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        blocked_start = int(_RANDOMIZE_STREAM_GUARD.get("black_frames_blocked_total") or 0)
+        _RANDOMIZE_STREAM_GUARD.update(
+            active=True,
+            freeze_active=freeze_active,
+            mode=mode,
+            frozen=frozen,
+            black_frames_blocked_start=blocked_start,
+            candidate_health=None,
+        )
+    _randomize_stream_diag_update()
+    if freeze_active and isinstance(frozen, dict):
+        meta = {
+            "capture_epoch_ms": frozen.get("capture_epoch_ms"),
+            "capture_iso": frozen.get("capture_iso"),
+            "osd_text": frozen.get("osd_text"),
+            "osd_draw_ms": frozen.get("osd_draw_ms"),
+            "osd_draw_method": "frozen_last_good",
+            "osd_applied": True,
+            "randomize_mode": "frozen_last_good",
+        }
+        _rtsp_put_frame_bytes(
+            frozen["raw"],
+            "randomize_frozen_last_good",
+            meta,
+        )
+    print(
+        "[scene-randomize][stream-guard] begin "
+        f"freeze_active={freeze_active} frozen_seq={(frozen or {}).get('seq') if isinstance(frozen, dict) else None}",
+        flush=True,
+    )
+    return {
+        "active": True,
+        "freeze_active": freeze_active,
+        "frozen": frozen,
+        "mode": mode,
+        "black_frames_blocked_start": blocked_start,
+    }
+
+
+def _randomize_stream_guard_finish(*, commit_source: str | None = None, mode: str = "idle") -> None:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        _RANDOMIZE_STREAM_GUARD["active"] = False
+        _RANDOMIZE_STREAM_GUARD["freeze_active"] = False
+        _RANDOMIZE_STREAM_GUARD["mode"] = mode
+        if mode != "frozen_last_good":
+            _RANDOMIZE_STREAM_GUARD["frozen"] = None
+        if commit_source:
+            _RANDOMIZE_STREAM_GUARD["last_commit_source"] = commit_source
+    _randomize_stream_diag_update()
+
+
+def _randomize_stream_guard_note_candidate(health: dict | None) -> None:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        _RANDOMIZE_STREAM_GUARD["candidate_health"] = copy.deepcopy(health) if isinstance(health, dict) else health
+    _randomize_stream_diag_update()
+
+
+def _randomize_stream_guard_block_black(stage_label: str, source: str, health: dict | None, *, reason: str | None = None) -> None:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        _RANDOMIZE_STREAM_GUARD["black_frames_blocked_total"] = int(
+            _RANDOMIZE_STREAM_GUARD.get("black_frames_blocked_total") or 0
+        ) + 1
+        if _RANDOMIZE_STREAM_GUARD.get("active"):
+            if isinstance(_RANDOMIZE_STREAM_GUARD.get("frozen"), dict):
+                _RANDOMIZE_STREAM_GUARD["mode"] = "frozen_last_good"
+            else:
+                _RANDOMIZE_STREAM_GUARD["mode"] = "black_blocked_no_frozen_frame"
+        _RANDOMIZE_STREAM_GUARD["candidate_health"] = copy.deepcopy(health) if isinstance(health, dict) else health
+        total = int(_RANDOMIZE_STREAM_GUARD.get("black_frames_blocked_total") or 0)
+    _randomize_stream_diag_update()
+    print(
+        "[scene-randomize][stream-guard] black_frame_blocked "
+        f"stage={stage_label} source={source} reason={reason or (health or {}).get('black_reason')} total={total}",
+        flush=True,
+    )
+
+
+def _randomize_stream_guard_should_block_publish(health: dict | None = None) -> bool:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        mode = str(_RANDOMIZE_STREAM_GUARD.get("mode") or "")
+        active = bool(_RANDOMIZE_STREAM_GUARD.get("active"))
+        frozen = _RANDOMIZE_STREAM_GUARD.get("frozen")
+    if active:
+        return True
+    if mode != "frozen_last_good":
+        return False
+    if isinstance(health, dict) and bool(health.get("healthy")):
+        _randomize_stream_guard_finish(mode="idle")
+        return False
+    if not isinstance(frozen, dict):
+        _randomize_stream_guard_finish(mode="idle")
+        return False
+    return True
+
+
+def _randomize_stream_guard_publish_block_active() -> bool:
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        mode = str(_RANDOMIZE_STREAM_GUARD.get("mode") or "")
+        active = bool(_RANDOMIZE_STREAM_GUARD.get("active"))
+        frozen = _RANDOMIZE_STREAM_GUARD.get("frozen")
+    if active:
+        return True
+    if mode == "frozen_last_good" and isinstance(frozen, dict):
+        return True
+    if mode == "frozen_last_good":
+        _randomize_stream_guard_finish(mode="idle")
+    return False
+
+
+def _randomize_stream_guard_commit(
+    rgba,
+    source: str,
+    *,
+    capture_epoch_s: float | None = None,
+) -> tuple[bool, dict]:
+    commit_source = f"randomize_commit:{source}"
+    raw, meta = _prepare_rtsp_rgba_frame(rgba, capture_epoch_s=capture_epoch_s)
+    meta["randomize_mode"] = "committed"
+    dropped = _rtsp_put_frame_bytes(raw, commit_source, meta)
+    with _RANDOMIZE_STREAM_GUARD_LOCK:
+        _RANDOMIZE_STREAM_GUARD["last_commit_source"] = commit_source
+        _RANDOMIZE_STREAM_GUARD["mode"] = "committed"
+    _randomize_stream_diag_update()
+    return dropped, meta
 
 
 def _decode_last_good_jpeg_to_rgba_hw4() -> np.ndarray | None:
@@ -6069,6 +6968,7 @@ def _log_randomize_rtsp_keepalive(
 
 def _compose_renderer_hydra_observation_for_status_cached() -> dict:
     """供 _compose_status_dict 使用：限频 + 单飞刷新，避免多线程同时读 viewport/carb。"""
+    global _renderer_obs_status_cache, _renderer_obs_status_cache_ts
     now = time.monotonic()
     with _RENDERER_OBS_STATUS_CACHE_LOCK:
         if (
@@ -6253,9 +7153,37 @@ class _BoundedThreadingHTTPServer(ThreadingHTTPServer):
     def __init__(self, server_address, request_handler_class):
         super().__init__(server_address, request_handler_class)
         self._request_slots = threading.BoundedSemaphore(_CTRL_HTTP_MAX_INFLIGHT)
+        self._request_slot_flags: dict[int, bool] = {}
+        self._request_slot_flags_lock = threading.Lock()
+
+    @staticmethod
+    def _request_path_is_light(request) -> bool:
+        try:
+            request.settimeout(0.03)
+            peek = request.recv(512, socket.MSG_PEEK)
+        except Exception:
+            return False
+        finally:
+            try:
+                request.settimeout(None)
+            except Exception:
+                pass
+        try:
+            line = peek.split(b"\r\n", 1)[0].decode("ascii", errors="ignore")
+            parts = line.split()
+            if len(parts) < 2 or parts[0] != "GET":
+                return False
+            path = parts[1].split("?", 1)[0]
+            return path in _CTRL_HTTP_LIGHT_GET_PATHS
+        except Exception:
+            return False
 
     def process_request(self, request, client_address):
-        if not self._request_slots.acquire(timeout=_CTRL_HTTP_ACQUIRE_TIMEOUT_S):
+        is_light = self._request_path_is_light(request)
+        acquired_slot = False
+        if not is_light:
+            acquired_slot = self._request_slots.acquire(timeout=_CTRL_HTTP_ACQUIRE_TIMEOUT_S)
+        if not is_light and not acquired_slot:
             try:
                 busy_body = json.dumps(
                     {"ok": False, "error": "control_plane_busy", "degraded": True},
@@ -6272,10 +7200,15 @@ class _BoundedThreadingHTTPServer(ThreadingHTTPServer):
                 pass
             self.shutdown_request(request)
             return
+        with self._request_slot_flags_lock:
+            self._request_slot_flags[id(request)] = acquired_slot
         try:
             super().process_request(request, client_address)
         except Exception:
-            self._request_slots.release()
+            with self._request_slot_flags_lock:
+                self._request_slot_flags.pop(id(request), None)
+            if acquired_slot:
+                self._request_slots.release()
             raise
 
     def process_request_thread(self, request, client_address):
@@ -6287,7 +7220,10 @@ class _BoundedThreadingHTTPServer(ThreadingHTTPServer):
         finally:
             with _CTRL_HTTP_ACTIVE_REQUESTS_LOCK:
                 _CTRL_HTTP_ACTIVE_REQUESTS -= 1
-            self._request_slots.release()
+            with self._request_slot_flags_lock:
+                acquired_slot = bool(self._request_slot_flags.pop(id(request), False))
+            if acquired_slot:
+                self._request_slots.release()
 
 
 def _init_jpeg_encoder(quality: int):
@@ -6407,8 +7343,10 @@ def _record_orientation_state(*, camera_xyz, target_xyz, base_pan, base_tilt, ap
         "target_xyz": None if target_xyz is None else tuple(float(v) for v in target_xyz),
         "base_pan": None if base_pan is None else float(base_pan),
         "base_tilt": None if base_tilt is None else float(base_tilt),
+        "base_tilt_direction_label": _tilt_direction_label(base_tilt),
         "applied_pan": None if applied_pan is None else float(applied_pan),
         "applied_tilt": None if applied_tilt is None else float(applied_tilt),
+        "tilt_direction_label": _tilt_direction_label(applied_tilt),
         "applied_roll": 0.0,
         "last_source": str(source),
         "last_preset_name": str(preset_name),
@@ -6555,6 +7493,35 @@ def _apply_dynamic_lookat_after_random_camera(
         fallback=False,
         fallback_reason=None,
     )
+    if (
+        src_l in (
+            "random_camera",
+            "randomize_perception_refine",
+            "random_scene_api",
+            "random_scene_api_keep_camera",
+        )
+        and str(preset_name or "").strip().lower() in ("default_initial", "default")
+        and _CAMERA_RIG_PRIM
+        and _GONDOLA_PRIM
+    ):
+        _refine_committed_orientation_for_context_visibility(
+            stage,
+            camera_world_xyz=applied_camera_xyz,
+            target_xyz=target_xyz,
+            visibility_detail={
+                "visible": True,
+                "base_pan": base_pan,
+                "base_tilt": base_tilt,
+                "startup_preferred_pan": startup_preferred_pan,
+                "startup_preferred_tilt": startup_preferred_tilt,
+            },
+            base_pan=base_pan,
+            base_tilt=base_tilt,
+            source=source,
+            preset_name=preset_name,
+            tilt_max_deg=tilt_max_deg,
+        )
+        applied_camera_xyz = _get_world_translation(stage, _CAMERA_RIG_PRIM) or applied_camera_xyz
     print(
         "[camera-orientation] "
         f"mode={_CAMERA_ORIENTATION_MODE} source={source} preset={preset_name} "
@@ -6569,6 +7536,751 @@ def _apply_dynamic_lookat_after_random_camera(
         flush=True,
     )
     return (pan_deg, tilt_deg)
+
+
+def _commit_visibility_checked_orientation(
+    stage,
+    camera_world_xyz,
+    target_xyz,
+    visibility_detail: dict | None,
+    *,
+    source: str,
+    preset_name: str = "default_initial",
+    tilt_max_deg: float = 30.0,
+) -> tuple[float, float] | None:
+    """Apply the visible pan/tilt found by the startup visibility search."""
+    if not isinstance(visibility_detail, dict) or not visibility_detail.get("visible", False):
+        return None
+    try:
+        pan_deg = float(visibility_detail["applied_pan"])
+        tilt_deg = float(visibility_detail["applied_tilt"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    target_tuple = tuple(float(v) for v in (target_xyz or _CAMERA_LOOKAT_TARGET_XYZ))
+    try:
+        base_pan = float(visibility_detail.get("base_pan"))
+        base_tilt = float(visibility_detail.get("base_tilt"))
+    except (TypeError, ValueError):
+        try:
+            base_pan, base_tilt = _compute_dynamic_lookat_pan_tilt(
+                camera_world_xyz,
+                target_tuple,
+                tilt_max_deg=float(tilt_max_deg),
+            )
+        except Exception:
+            base_pan = base_tilt = None
+
+    pan_deg = max(-170.0, min(170.0, float(pan_deg)))
+    tilt_deg = max(-90.0, min(float(tilt_max_deg), float(tilt_deg)))
+    with _ptz_lock:
+        _ptz_state["pan"] = float(pan_deg)
+        _ptz_state["tilt"] = float(tilt_deg)
+        zoom_now = float(_ptz_state["zoom"])
+
+    _apply_ptz_state(stage)
+    applied_camera_xyz = (
+        _get_world_translation(stage, _CAMERA_RIG_PRIM)
+        or tuple(float(v) for v in camera_world_xyz)
+    )
+    _record_orientation_state(
+        camera_xyz=applied_camera_xyz,
+        target_xyz=target_tuple,
+        base_pan=base_pan,
+        base_tilt=base_tilt,
+        applied_pan=pan_deg,
+        applied_tilt=tilt_deg,
+        source=source,
+        preset_name=preset_name,
+        fallback=False,
+        fallback_reason=None,
+    )
+    print(
+        "[camera-orientation] "
+        f"source={source} committed_visibility_checked_orientation=PASS "
+        f"camera_xyz={tuple(round(float(v), 4) for v in applied_camera_xyz)} "
+        f"lookat_target_xyz={tuple(round(float(v), 4) for v in target_tuple)} "
+        f"applied_pan={pan_deg:.4f} applied_tilt={tilt_deg:.4f} zoom={zoom_now:.4f}",
+        flush=True,
+    )
+    _refine_committed_orientation_for_context_visibility(
+        stage,
+        camera_world_xyz=applied_camera_xyz,
+        target_xyz=target_tuple,
+        visibility_detail=visibility_detail,
+        base_pan=base_pan,
+        base_tilt=base_tilt,
+        source=source,
+        preset_name=preset_name,
+        tilt_max_deg=tilt_max_deg,
+    )
+    return (pan_deg, tilt_deg)
+
+
+def _projection_frame_overlap_ratio(metrics: dict | None) -> float:
+    if not isinstance(metrics, dict) or metrics.get("error"):
+        return 0.0
+    bbox = metrics.get("屏幕包围框px")
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return 0.0
+    try:
+        min_x, min_y, max_x, max_y = [float(v) for v in bbox]
+    except (TypeError, ValueError):
+        return 0.0
+    inter_w = max(0.0, min(max_x, float(W)) - max(min_x, 0.0))
+    inter_h = max(0.0, min(max_y, float(H)) - max(min_y, 0.0))
+    return max(0.0, min(1.0, (inter_w * inter_h) / max(1.0, float(W * H))))
+
+
+def _projection_metric_float(metrics: dict | None, key: str, default: float = 0.0) -> float:
+    if not isinstance(metrics, dict):
+        return float(default)
+    try:
+        val = float(metrics.get(key))
+        if math.isfinite(val):
+            return val
+    except (TypeError, ValueError):
+        pass
+    return float(default)
+
+
+def _projection_target_visible_enough(metrics: dict | None) -> bool:
+    if not isinstance(metrics, dict) or metrics.get("error"):
+        return False
+    if metrics.get("frustum内可见") is False:
+        return False
+    if not bool(metrics.get("中心在画面内")):
+        return False
+    if not bool(metrics.get("相机前方", True)):
+        return False
+    overlap = _projection_frame_overlap_ratio(metrics)
+    if overlap < 0.001:
+        return False
+    overflow = _projection_metric_float(metrics, "越界面积占比", 1.0)
+    if overflow > 0.005:
+        return False
+    bbox = metrics.get("屏幕包围框px")
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return False
+    try:
+        min_x, min_y, max_x, max_y = [float(v) for v in bbox]
+    except (TypeError, ValueError):
+        return False
+    if not all(math.isfinite(v) for v in (min_x, min_y, max_x, max_y)):
+        return False
+    margin = max(4.0, min(float(W), float(H)) * 0.01)
+    return (
+        min_x >= margin
+        and min_y >= margin
+        and max_x <= float(W) - margin
+        and max_y <= float(H) - margin
+    )
+
+
+def _projection_context_visible_enough(metrics: dict | None) -> bool:
+    if not isinstance(metrics, dict) or metrics.get("error"):
+        return False
+    if metrics.get("frustum内可见") is False:
+        return False
+    if not bool(metrics.get("中心在画面内")):
+        return False
+    if _projection_metric_float(metrics, "越界面积占比", 1.0) > 0.5:
+        return False
+    return _projection_frame_overlap_ratio(metrics) >= 0.01
+
+
+def _bbox_info_for_prim(stage, prim_path: str | None, bbox_cache=None) -> dict | None:
+    try:
+        from pxr import Usd, UsdGeom
+
+        ps = str(prim_path or "").strip()
+        if not ps:
+            return None
+        prim = stage.GetPrimAtPath(ps)
+        if not prim.IsValid():
+            return None
+        cache = bbox_cache or UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+        rng = cache.ComputeWorldBound(prim).ComputeAlignedRange()
+        if rng.IsEmpty():
+            return None
+        mn = rng.GetMin()
+        mx = rng.GetMax()
+        vals = [float(mn[0]), float(mn[1]), float(mn[2]), float(mx[0]), float(mx[1]), float(mx[2])]
+        if not all(math.isfinite(v) for v in vals):
+            return None
+        return {
+            "path": ps,
+            "min": (vals[0], vals[1], vals[2]),
+            "max": (vals[3], vals[4], vals[5]),
+            "mid": ((vals[0] + vals[3]) * 0.5, (vals[1] + vals[4]) * 0.5, (vals[2] + vals[5]) * 0.5),
+            "spans": (max(0.0, vals[3] - vals[0]), max(0.0, vals[4] - vals[1]), max(0.0, vals[5] - vals[2])),
+        }
+    except Exception:
+        return None
+
+
+def _interval_gap(a_min: float, a_max: float, b_min: float, b_max: float) -> float:
+    if a_max < b_min:
+        return float(b_min - a_max)
+    if b_max < a_min:
+        return float(a_min - b_max)
+    return 0.0
+
+
+def _interval_overlap(a_min: float, a_max: float, b_min: float, b_max: float) -> float:
+    return max(0.0, min(float(a_max), float(b_max)) - max(float(a_min), float(b_min)))
+
+
+def _active_diaolan_runtime_paths(stage) -> dict:
+    with _scene_lock:
+        active_root = str(
+            _scene_state.get("selected_diaolan_path")
+            or _scene_state.get("active_diaolan_path")
+            or ""
+        ).strip()
+    if not active_root and _GONDOLA_PRIM:
+        active_root = infer_world_diaolan_instance_root(_GONDOLA_PRIM) or ""
+    height_path = str(_GONDOLA_PRIM or "").strip()
+    assembly_path = ""
+    if active_root:
+        try:
+            ht, asm = resolve_diaolan_height_and_assembly(stage, active_root.rstrip("/"))
+            if ht:
+                height_path = str(ht).strip()
+            if asm:
+                assembly_path = str(asm).strip()
+        except Exception:
+            pass
+    return {
+        "active_root": active_root or None,
+        "gondola_prim": height_path or None,
+        "assembly_prim": assembly_path or None,
+    }
+
+
+def _is_excluded_building_context_path(path: str, active_paths: dict) -> bool:
+    p = str(path or "").strip().rstrip("/")
+    if not p:
+        return True
+    low = p.lower()
+    for token in (
+        "camera",
+        "light",
+        "domelight",
+        "sky",
+        "hdri",
+        "background",
+        "backdrop",
+        "billboard",
+        "sticker",
+        "decal",
+        "poster",
+        "dynamic_sky",
+        "dynamicsky",
+        "gondola",
+        "diaolan",
+        "worker",
+        "people",
+        "person",
+    ):
+        if token in low:
+            return True
+    for raw in (
+        active_paths.get("active_root"),
+        active_paths.get("gondola_prim"),
+        active_paths.get("assembly_prim"),
+        _CAMERA_RIG_PRIM,
+    ):
+        base = str(raw or "").strip().rstrip("/")
+        if base and (p == base or p.startswith(base + "/")):
+            return True
+    return False
+
+
+def _nearby_building_context_selection(stage) -> dict:
+    """
+    选择“当前活动吊篮所在楼体/立面”的局部 USD 几何。
+
+    关键约束：只以活动吊篮 bbox 为锚点做近邻筛选，不再把配置里的
+    Architecture_High 或整场景根包围盒当作已对准的楼体上下文。
+    """
+    try:
+        from pxr import Usd, UsdGeom
+
+        active_paths = _active_diaolan_runtime_paths(stage)
+        gondola_path = active_paths.get("gondola_prim")
+        gbox = _bbox_info_for_prim(stage, gondola_path)
+        if not gbox:
+            return {
+                "prim_path": None,
+                "reason": "active_gondola_bbox_unavailable",
+                "active_paths": active_paths,
+            }
+
+        root_path = str(_CHANGJING_PRIM_PATH or "").strip() or "/World"
+        root = stage.GetPrimAtPath(root_path)
+        if not root.IsValid():
+            root_path = "/World"
+            root = stage.GetPrimAtPath(root_path)
+        if not root.IsValid():
+            return {
+                "prim_path": None,
+                "reason": "scene_root_unavailable",
+                "active_paths": active_paths,
+            }
+
+        cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), ["default", "proxy", "render"])
+        scene_box = _bbox_info_for_prim(stage, root_path, cache)
+        h_axis = _height_axis_index()
+        h_axes = [idx for idx in (0, 1, 2) if idx != h_axis]
+        g_min, g_max, g_spans = gbox["min"], gbox["max"], gbox["spans"]
+        g_h_span = max(0.1, float(g_spans[h_axis]))
+        max_horizontal_gap = max(8.0, min(28.0, max(float(g_spans[h_axes[0]]), float(g_spans[h_axes[1]])) * 4.0 + 8.0))
+        max_vertical_gap = max(6.0, min(18.0, g_h_span * 4.0 + 4.0))
+        scene_spans = scene_box.get("spans") if isinstance(scene_box, dict) else None
+        candidates: list[dict] = []
+        scanned_meshes = 0
+
+        for prim in Usd.PrimRange(root):
+            if prim == root or not prim.IsA(UsdGeom.Mesh):
+                continue
+            scanned_meshes += 1
+            path = prim.GetPath().pathString
+            if _is_excluded_building_context_path(path, active_paths):
+                continue
+            info = _bbox_info_for_prim(stage, path, cache)
+            if not info:
+                continue
+            mn, mx, spans = info["min"], info["max"], info["spans"]
+            if any(float(v) <= 1e-5 for v in spans):
+                continue
+
+            vertical_span = float(spans[h_axis])
+            horiz_spans = [float(spans[h_axes[0]]), float(spans[h_axes[1]])]
+            if vertical_span < 1.2:
+                continue
+            if max(horiz_spans) < 0.8:
+                continue
+            if isinstance(scene_spans, tuple):
+                if max(horiz_spans) > max(45.0, max(float(scene_spans[h_axes[0]]), float(scene_spans[h_axes[1]])) * 0.55):
+                    continue
+                if vertical_span > max(45.0, float(scene_spans[h_axis]) * 0.9):
+                    continue
+
+            gaps = [
+                _interval_gap(g_min[axis], g_max[axis], mn[axis], mx[axis])
+                for axis in h_axes
+            ]
+            horizontal_gap = math.hypot(float(gaps[0]), float(gaps[1]))
+            vertical_gap = _interval_gap(g_min[h_axis], g_max[h_axis], mn[h_axis], mx[h_axis])
+            if horizontal_gap > max_horizontal_gap or vertical_gap > max_vertical_gap:
+                continue
+
+            overlap_h = _interval_overlap(g_min[h_axis], g_max[h_axis], mn[h_axis], mx[h_axis])
+            overlap_ratio = overlap_h / max(g_h_span, 1e-6)
+            facade_like = 1.0 if min(horiz_spans) <= max(1.8, max(horiz_spans) * 0.32) else 0.0
+            low = path.lower()
+            semantic_bonus = 1.0 if any(t in low for t in ("architecture", "building", "wall", "facade", "qiang", "lou", "jianzhu")) else 0.0
+            size_penalty = max(0.0, (max(horiz_spans) - 18.0) * 0.02) + max(0.0, (vertical_span - 30.0) * 0.03)
+            score = (
+                -horizontal_gap * 3.0
+                -vertical_gap * 0.6
+                +overlap_ratio * 4.0
+                +facade_like * 1.5
+                +semantic_bonus
+                -size_penalty
+            )
+            candidates.append(
+                {
+                    "prim_path": path,
+                    "score": round(float(score), 4),
+                    "horizontal_gap": round(float(horizontal_gap), 4),
+                    "vertical_gap": round(float(vertical_gap), 4),
+                    "height_overlap_ratio": round(float(overlap_ratio), 4),
+                    "spans": [round(float(v), 4) for v in spans],
+                    "mid": [round(float(v), 4) for v in info["mid"]],
+                }
+            )
+
+        candidates.sort(key=lambda c: (-float(c["score"]), float(c["horizontal_gap"]), str(c["prim_path"])))
+        best = candidates[0] if candidates else None
+        return {
+            "prim_path": best.get("prim_path") if best else None,
+            "reason": "nearby_active_gondola_building_mesh" if best else "no_nearby_building_mesh_candidate",
+            "active_paths": active_paths,
+            "active_gondola_bbox": {
+                "min": [round(float(v), 4) for v in gbox["min"]],
+                "max": [round(float(v), 4) for v in gbox["max"]],
+                "mid": [round(float(v), 4) for v in gbox["mid"]],
+                "spans": [round(float(v), 4) for v in gbox["spans"]],
+            },
+            "search_root": root_path,
+            "scanned_meshes": int(scanned_meshes),
+            "candidate_count": int(len(candidates)),
+            "candidate_sample": candidates[:8],
+        }
+    except Exception as exc:
+        return {"prim_path": None, "reason": f"error:{type(exc).__name__}:{exc}"}
+
+
+def _context_lookat_selection(stage) -> dict:
+    selection = _nearby_building_context_selection(stage)
+    prim_path = str(selection.get("prim_path") or "").strip()
+    if prim_path and prim_path != str(_GONDOLA_PRIM or "").strip():
+        return selection
+    selection["prim_path"] = None
+    return selection
+
+
+_BUILDING_CONTEXT_SELECTION_CACHE = {}
+
+
+def _building_context_cache_key(stage, active_paths: dict | None = None, gbox: dict | None = None):
+    try:
+        root = stage.GetRootLayer() if stage else None
+        stage_key = str(getattr(root, "identifier", "") or id(stage))
+    except Exception:
+        stage_key = str(id(stage))
+    active_paths = active_paths if isinstance(active_paths, dict) else _active_diaolan_runtime_paths(stage)
+    if not isinstance(gbox, dict):
+        gbox = _bbox_info_for_prim(stage, active_paths.get("gondola_prim")) if stage is not None else None
+    bbox_key = None
+    if isinstance(gbox, dict):
+        bbox_key = (
+            tuple(round(float(v), 1) for v in gbox.get("min", ())),
+            tuple(round(float(v), 1) for v in gbox.get("max", ())),
+        )
+    return (stage_key, str(active_paths.get("active_root") or ""), bbox_key)
+
+
+def _clear_building_context_selection_cache() -> None:
+    _BUILDING_CONTEXT_SELECTION_CACHE.clear()
+
+
+def _cached_context_lookat_selection(stage) -> dict:
+    try:
+        active_paths = _active_diaolan_runtime_paths(stage)
+        gbox = _bbox_info_for_prim(stage, active_paths.get("gondola_prim"))
+        key = _building_context_cache_key(stage, active_paths, gbox)
+        cached = _BUILDING_CONTEXT_SELECTION_CACHE.get(key)
+        if isinstance(cached, dict):
+            out = copy.deepcopy(cached)
+            out["cache_hit"] = True
+            return out
+        selection = _nearby_building_context_selection(stage)
+        selection["cache_hit"] = False
+        _BUILDING_CONTEXT_SELECTION_CACHE[key] = copy.deepcopy(selection)
+        return selection
+    except Exception as exc:
+        return {"prim_path": None, "reason": f"cache_error:{type(exc).__name__}:{exc}", "cache_hit": False}
+
+
+def _building_context_from_config_target(stage) -> dict | None:
+    cfg_path = str(_LOOKAT_TARGET_PRIM_PATH or "").strip()
+    if not cfg_path:
+        return None
+    active_paths = _active_diaolan_runtime_paths(stage)
+    gbox = _bbox_info_for_prim(stage, active_paths.get("gondola_prim"))
+    bbox = _bbox_info_for_prim(stage, cfg_path)
+    if not gbox or not bbox:
+        return None
+    h_axis = _height_axis_index()
+    h_axes = [idx for idx in (0, 1, 2) if idx != h_axis]
+    gaps = [
+        _interval_gap(gbox["min"][axis], gbox["max"][axis], bbox["min"][axis], bbox["max"][axis])
+        for axis in h_axes
+    ]
+    horizontal_gap = math.hypot(float(gaps[0]), float(gaps[1]))
+    vertical_gap = _interval_gap(gbox["min"][h_axis], gbox["max"][h_axis], bbox["min"][h_axis], bbox["max"][h_axis])
+    if horizontal_gap > 45.0 or vertical_gap > 30.0:
+        return None
+    return {
+        "prim_path": cfg_path,
+        "reason": "configured_building_context_near_active_gondola",
+        "active_paths": active_paths,
+        "horizontal_gap": round(float(horizontal_gap), 4),
+        "vertical_gap": round(float(vertical_gap), 4),
+        "active_gondola_bbox": {
+            "min": [round(float(v), 4) for v in gbox["min"]],
+            "max": [round(float(v), 4) for v in gbox["max"]],
+            "mid": [round(float(v), 4) for v in gbox["mid"]],
+            "spans": [round(float(v), 4) for v in gbox["spans"]],
+        },
+    }
+
+
+def _wall_sampling_target_context(stage, active_diaolan: dict | None = None) -> dict:
+    selection = _cached_context_lookat_selection(stage)
+    prim_path = str(selection.get("prim_path") or "").strip()
+    box = _bbox_info_for_prim(stage, prim_path) if prim_path else None
+    if not box and isinstance(active_diaolan, dict):
+        fallback_path = str(active_diaolan.get("group1") or active_diaolan.get("path") or "").strip()
+        box = _bbox_info_for_prim(stage, fallback_path)
+        if box:
+            prim_path = fallback_path
+            selection = {
+                "prim_path": fallback_path,
+                "reason": "fallback_active_diaolan_bbox",
+                "context_selection_before_fallback": selection,
+            }
+    if not box:
+        return {
+            "prim_path": None,
+            "bbox": None,
+            "selection": selection,
+            "reason": selection.get("reason") or "target_context_bbox_unavailable",
+        }
+    return {
+        "prim_path": prim_path,
+        "bbox": {
+            "prim_path": prim_path,
+            "min": [float(v) for v in box["min"]],
+            "max": [float(v) for v in box["max"]],
+            "mid": [float(v) for v in box["mid"]],
+            "spans": [float(v) for v in box["spans"]],
+        },
+        "selection": selection,
+        "reason": selection.get("reason") or "ok",
+    }
+
+
+def _context_lookat_prim_path(stage) -> str | None:
+    selection = _building_context_from_config_target(stage) or _context_lookat_selection(stage)
+    return str(selection.get("prim_path") or "").strip() or None
+
+
+def _refine_committed_orientation_for_context_visibility(
+    stage,
+    *,
+    camera_world_xyz,
+    target_xyz,
+    visibility_detail: dict,
+    base_pan,
+    base_tilt,
+    source: str,
+    preset_name: str,
+    tilt_max_deg: float,
+) -> None:
+    context_selection = _building_context_from_config_target(stage) or _context_lookat_selection(stage)
+    context_prim = str(context_selection.get("prim_path") or "").strip()
+    if not context_prim or not _GONDOLA_PRIM:
+        visibility_detail["context_selection"] = context_selection
+        return
+
+    with _ptz_lock:
+        initial_pan = float(_ptz_state["pan"])
+        initial_tilt = float(_ptz_state["tilt"])
+        initial_zoom = float(_ptz_state["zoom"])
+
+    def _apply_candidate(pan: float, tilt: float, zoom: float) -> tuple[dict | None, dict | None]:
+        with _ptz_lock:
+            _ptz_state["pan"] = max(-170.0, min(170.0, float(pan)))
+            _ptz_state["tilt"] = max(-90.0, min(float(tilt_max_deg), float(tilt)))
+            _ptz_state["zoom"] = max(1.0, min(32.0, float(zoom)))
+        _apply_ptz_state(stage)
+        target_m = _prim_projection_metrics(stage, camera_prim, _GONDOLA_PRIM)
+        context_m = _prim_projection_metrics(stage, camera_prim, context_prim)
+        return target_m, context_m
+
+    pan_anchors: list[float] = [initial_pan, 0.0]
+    for raw in (base_pan, visibility_detail.get("startup_preferred_pan")):
+        try:
+            val = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if all(abs(val - existing) > 1e-4 for existing in pan_anchors):
+            pan_anchors.append(val)
+    recent_down_count = sum(1 for v in _randomize_context_tilt_history if _is_down_tilt(v))
+    down_allowed = recent_down_count < int(_RANDOMIZE_CONTEXT_DOWN_TILT_MAX_IN_WINDOW)
+    prefer_down_this_time = (
+        down_allowed and random.random() < float(_RANDOMIZE_CONTEXT_DOWN_TILT_PROBABILITY)
+    )
+    neutral_tilt_candidates = (-8.0, -4.0, 0.0, 4.0)
+    down_tilt_candidates = (
+        8.0,
+        16.0,
+        24.0,
+    )
+    dynamic_tilt_candidates = (
+        initial_tilt,
+        base_tilt,
+        visibility_detail.get("startup_preferred_tilt"),
+    )
+    if prefer_down_this_time:
+        raw_tilt_candidates = down_tilt_candidates + neutral_tilt_candidates + dynamic_tilt_candidates
+    else:
+        raw_tilt_candidates = neutral_tilt_candidates + dynamic_tilt_candidates + down_tilt_candidates
+
+    tilt_values: list[float] = []
+    for raw in raw_tilt_candidates:
+        try:
+            val = max(-90.0, min(float(tilt_max_deg), float(raw)))
+        except (TypeError, ValueError):
+            continue
+        if not down_allowed and _is_down_tilt(val):
+            continue
+        if all(abs(val - existing) > 1e-4 for existing in tilt_values):
+            tilt_values.append(val)
+    zoom_values: list[float] = []
+    for raw in (1.0, 1.15, 1.3, initial_zoom):
+        val = max(1.0, min(32.0, float(raw)))
+        if all(abs(val - existing) > 1e-4 for existing in zoom_values):
+            zoom_values.append(val)
+
+    pan_offsets = [0.0, -15.0, 15.0, -30.0, 30.0, -45.0, 45.0, -60.0, 60.0, -90.0, 90.0]
+    candidates: list[tuple[float, float, float]] = []
+    if down_allowed or not _is_down_tilt(initial_tilt):
+        candidates.append((initial_pan, initial_tilt, initial_zoom))
+    for anchor in pan_anchors:
+        for offset in pan_offsets:
+            pan = max(-170.0, min(170.0, float(anchor) + float(offset)))
+            for tilt in tilt_values:
+                for zoom in zoom_values:
+                    cand = (round(pan, 4), round(float(tilt), 4), round(float(zoom), 4))
+                    if cand not in candidates:
+                        candidates.append(cand)
+    if len(candidates) > _RANDOMIZE_CONTEXT_ORIENTATION_MAX_CANDIDATES:
+        candidates = candidates[:_RANDOMIZE_CONTEXT_ORIENTATION_MAX_CANDIDATES]
+
+    incoming_target_visible = bool(visibility_detail.get("visible", False))
+    best = None
+    best_score = None
+    evaluated_count = 0
+    for pan, tilt, zoom in candidates:
+        evaluated_count += 1
+        target_m, context_m = _apply_candidate(pan, tilt, zoom)
+        target_ok = _projection_target_visible_enough(target_m)
+        target_overlap = _projection_frame_overlap_ratio(target_m)
+        target_overflow = _projection_metric_float(target_m, "越界面积占比", 1.0)
+        context_overlap = _projection_frame_overlap_ratio(context_m)
+        context_ok = _projection_context_visible_enough(context_m)
+        center = target_m.get("中心点px") if isinstance(target_m, dict) else None
+        if isinstance(center, (list, tuple)) and len(center) >= 2:
+            center_penalty = (
+                abs(float(center[0]) - float(W) * 0.5) / max(1.0, float(W))
+                + abs(float(center[1]) - float(H) * 0.5) / max(1.0, float(H))
+            )
+        else:
+            center_penalty = 9.0
+        level_tilt_score = 0.0
+        if not prefer_down_this_time or not down_allowed:
+            level_tilt_score = -abs(float(tilt) - -2.0)
+        score = (
+            10000.0 if target_ok else 0.0,
+            1000.0 if target_ok and context_ok else 0.0,
+            float(target_overlap) * 100.0,
+            -float(target_overflow) * 20.0,
+            float(context_overlap),
+            -float(center_penalty),
+            float(level_tilt_score),
+            -float(zoom),
+        )
+        if best is None or score > best_score:
+            best = (
+                pan,
+                tilt,
+                zoom,
+                target_m,
+                context_m,
+                target_ok,
+                context_ok,
+                context_overlap,
+                target_overlap,
+                target_overflow,
+            )
+            best_score = score
+        if target_ok and context_ok and (prefer_down_this_time or not _is_down_tilt(tilt)):
+            break
+        if (
+            incoming_target_visible
+            and context_ok
+            and context_overlap >= 0.08
+            and target_overflow <= 0.25
+            and (prefer_down_this_time or not _is_down_tilt(tilt))
+        ):
+            break
+
+    if best is None:
+        _apply_candidate(initial_pan, initial_tilt, initial_zoom)
+        return
+
+    (
+        pan,
+        tilt,
+        zoom,
+        target_m,
+        context_m,
+        target_ok,
+        context_ok,
+        context_overlap,
+        target_overlap,
+        target_overflow,
+    ) = best
+    if not target_ok and not incoming_target_visible:
+        target_m, context_m = _apply_candidate(initial_pan, initial_tilt, initial_zoom)
+        pan, tilt, zoom = initial_pan, initial_tilt, initial_zoom
+        target_ok = _projection_target_visible_enough(target_m)
+        target_overlap = _projection_frame_overlap_ratio(target_m)
+        target_overflow = _projection_metric_float(target_m, "越界面积占比", 1.0)
+        context_ok = _projection_context_visible_enough(context_m)
+        context_overlap = _projection_frame_overlap_ratio(context_m)
+    else:
+        _apply_candidate(pan, tilt, zoom)
+
+    applied_camera_xyz = (
+        _get_world_translation(stage, _CAMERA_RIG_PRIM)
+        or tuple(float(v) for v in camera_world_xyz)
+    )
+    _record_orientation_state(
+        camera_xyz=applied_camera_xyz,
+        target_xyz=tuple(float(v) for v in target_xyz),
+        base_pan=base_pan,
+        base_tilt=base_tilt,
+        applied_pan=pan,
+        applied_tilt=tilt,
+        source=f"{source}_context",
+        preset_name=preset_name,
+        fallback=False,
+        fallback_reason=None,
+    )
+    visibility_detail["context_prim_path"] = context_prim
+    visibility_detail["context_selection"] = context_selection
+    visibility_detail["context_projection_metrics"] = context_m
+    visibility_detail["context_visible"] = bool(context_ok)
+    visibility_detail["context_frame_overlap_ratio"] = round(float(context_overlap), 6)
+    visibility_detail["target_frame_overlap_ratio_after_context"] = round(float(target_overlap), 6)
+    visibility_detail["target_overflow_ratio_after_context"] = round(float(target_overflow), 6)
+    visibility_detail["context_commit_pan"] = round(float(pan), 4)
+    visibility_detail["context_commit_tilt"] = round(float(tilt), 4)
+    visibility_detail["context_commit_tilt_direction_label"] = _tilt_direction_label(tilt)
+    visibility_detail["context_commit_zoom"] = round(float(zoom), 4)
+    visibility_detail["context_candidates_evaluated"] = int(evaluated_count)
+    visibility_detail["context_candidate_limit"] = int(_RANDOMIZE_CONTEXT_ORIENTATION_MAX_CANDIDATES)
+    _randomize_context_tilt_history.append(float(tilt))
+    visibility_detail["context_down_tilt_policy"] = {
+        "window": int(_RANDOMIZE_CONTEXT_DOWN_TILT_WINDOW),
+        "max_down_in_window": int(_RANDOMIZE_CONTEXT_DOWN_TILT_MAX_IN_WINDOW),
+        "down_probability": float(_RANDOMIZE_CONTEXT_DOWN_TILT_PROBABILITY),
+        "down_threshold_deg": float(_TILT_DIRECTION_THRESHOLD_DEG),
+        "down_condition": "tilt > down_threshold_deg",
+        "tilt_semantics": "positive_down_negative_up",
+        "recent_down_count_before": int(recent_down_count),
+        "down_allowed": bool(down_allowed),
+        "prefer_down_this_time": bool(prefer_down_this_time),
+        "recent_tilts_after": [round(float(v), 4) for v in _randomize_context_tilt_history],
+        "recent_tilt_direction_labels_after": [
+            _tilt_direction_label(v) for v in _randomize_context_tilt_history
+        ],
+    }
+    _stream_diag_update(lookat_context_projection_metrics=context_m)
+    print(
+        "[camera-orientation] "
+        f"source={source}_context target_ok={target_ok} context_ok={context_ok} "
+        f"target_overlap={target_overlap:.6f} target_overflow={target_overflow:.6f} "
+        f"context_prim={context_prim!r} context_overlap={context_overlap:.6f} "
+        f"applied_pan={pan:.4f} applied_tilt={tilt:.4f} zoom={zoom:.4f}",
+        flush=True,
+    )
 
 def _apply_ptz_state(stage) -> None:
     """将 _ptz_state 写入 USD Stage：Pan 旋转、Tilt 旋转、相机焦距。
@@ -7353,28 +9065,38 @@ def _repair_active_gondola_renderables(stage, all_diaolans: list | None = None) 
         _scene_state["gondola_renderable_paths"] = list(renderable_paths)
         _scene_state["gondola_visible_renderable_paths"] = list(visible_renderable_paths)
         _scene_state["gondola_hidden_paths"] = list(hidden_renderable_paths)
-        _scene_state["gondola_renderable_debug"] = list(renderable_debug)
+        _scene_state["gondola_renderable_debug"] = list(renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT])
 
     print(
         "[scene-gondola-debug] "
         f"active_diaolan_path={active_diaolan_path!r} "
-        f"gondola_renderable_paths={renderable_paths} "
-        f"gondola_hidden_paths={hidden_renderable_paths}",
+        f"renderables={len(renderable_paths)} "
+        f"visible={len(visible_renderable_paths)} "
+        f"hidden={len(hidden_renderable_paths)} "
+        f"sample={renderable_paths[:3]} "
+        f"hidden_sample={hidden_renderable_paths[:3]}",
         flush=True,
     )
-    for detail in renderable_debug:
-        print(
-            "[scene-gondola-renderable] "
-            f"path={detail['path']!r} visibility={detail['visibility']} "
-            f"purpose={detail['purpose']} typeName={detail['typeName']}",
-            flush=True,
-        )
+    if _GONDOLA_RENDERABLE_VERBOSE_LOG:
+        for detail in renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT]:
+            print(
+                "[scene-gondola-renderable] "
+                f"path={detail['path']!r} visibility={detail['visibility']} "
+                f"purpose={detail['purpose']} typeName={detail['typeName']}",
+                flush=True,
+            )
     return {
         "active_diaolan_path": active_diaolan_path,
         "gondola_renderable_paths": renderable_paths,
         "gondola_visible_renderable_paths": visible_renderable_paths,
         "gondola_hidden_paths": hidden_renderable_paths,
-        "gondola_renderable_debug": renderable_debug,
+        "gondola_renderable_debug": renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_counts": {
+            "total": len(renderable_paths),
+            "visible": len(visible_renderable_paths),
+            "hidden": len(hidden_renderable_paths),
+            "debug_sample_limit": _GONDOLA_RENDERABLE_DETAIL_LIMIT,
+        },
     }
 
 
@@ -7591,10 +9313,16 @@ def _describe_active_scene_branch(stage) -> dict:
         "all_worker_paths": list(runtime["all_worker_paths"]),
         "visible_worker_paths": list(runtime["visible_worker_paths"]),
         "worker_paths": list(runtime["all_worker_paths"]),
-        "gondola_renderable_paths": list(runtime["gondola_renderable_paths"]),
-        "gondola_visible_renderable_paths": list(runtime["gondola_visible_renderable_paths"]),
-        "gondola_hidden_paths": list(runtime["gondola_hidden_paths"]),
-        "gondola_renderable_debug": list(runtime["gondola_renderable_debug"]),
+        "gondola_renderable_paths": gondola_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_visible_renderable_paths": gondola_visible_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_hidden_paths": gondola_hidden_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_debug": gondola_renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_counts": {
+            "total": len(gondola_renderable_paths),
+            "visible": len(gondola_visible_renderable_paths),
+            "hidden": len(gondola_hidden_paths),
+            "sample_limit": _GONDOLA_RENDERABLE_DETAIL_LIMIT,
+        },
         "height_debug": dict(runtime["height_debug"]),
         "model_children": model_children,
         "auxiliary_model_children": auxiliary_model_children,
@@ -7833,6 +9561,7 @@ from diaolan_randomizer import (
     apply_diaolan_safety_component,
     summarize_diaolan_safety_components,
     randomize_active_diaolan_safety_components,
+    clear_wall_mount_candidate_cache,
 )
 
 
@@ -9372,17 +11101,19 @@ def _prim_world_bbox_midpoint(stage, prim_path: str | None) -> tuple[float, floa
 
 
 def _effective_lookat_target_prim_path(stage) -> str | None:
-    """随机相机/动态 look-at：优先当前 active 吊篮 group1（_GONDOLA_PRIM），再才用配置 prim，不再自动优先 Architecture_High。"""
+    """随机相机/动态 look-at：硬目标优先当前 active 吊篮，禁止默认全局 Architecture_High 抢目标。"""
     global _GONDOLA_PRIM
     ordered: list[str] = []
-    gp = str(_GONDOLA_PRIM or "").strip()
+    active_paths = _active_diaolan_runtime_paths(stage) if stage is not None else {}
+    gp = str(active_paths.get("gondola_prim") or _GONDOLA_PRIM or "").strip()
     if gp:
         ordered.append(gp)
     lt = str(_LOOKAT_TARGET_PRIM_PATH or "").strip()
-    if lt and lt not in ordered:
+    default_arch = str(_DEFAULT_LOOKAT_TARGET_BUILDING_PRIM or "").strip()
+    if lt and lt != default_arch and lt not in ordered:
         ordered.append(lt)
     cj = str(_CHANGJING_PRIM_PATH or "").strip()
-    if cj and cj not in ordered:
+    if not gp and cj and cj not in ordered:
         ordered.append(cj)
     for cfg_p in ordered:
         if cfg_p and _prim_world_bbox_midpoint(stage, cfg_p) is not None:
@@ -9392,6 +11123,35 @@ def _effective_lookat_target_prim_path(stage) -> str | None:
 
 def _resolve_startup_lookat_target_xyz(stage, target_prim_path: str | None) -> tuple[float, float, float]:
     cfg_xyz = tuple(float(v) for v in _CAMERA_LOOKAT_TARGET_XYZ)
+    try:
+        active_paths = _active_diaolan_runtime_paths(stage) if stage is not None else {}
+        gondola_mid = _prim_world_bbox_midpoint(stage, active_paths.get("gondola_prim"))
+        building_context = _building_context_from_config_target(stage) if stage is not None else None
+        building_path = str((building_context or {}).get("prim_path") or "").strip()
+        building_mid = _prim_world_bbox_midpoint(stage, building_path)
+        if gondola_mid is not None and building_mid is not None:
+            target = (
+                float(gondola_mid[0]) * 0.72 + float(building_mid[0]) * 0.28,
+                float(gondola_mid[1]) * 0.72 + float(building_mid[1]) * 0.28,
+                float(gondola_mid[2]) * 0.82 + float(building_mid[2]) * 0.18,
+            )
+            print(
+                "[camera-startup-target] "
+                f"source=active_gondola_building_blend gondola={active_paths.get('gondola_prim')!r} "
+                f"building={building_path!r} target_xyz={tuple(round(float(v), 4) for v in target)}",
+                flush=True,
+            )
+            return target
+        if gondola_mid is not None:
+            print(
+                "[camera-startup-target] "
+                f"source=active_gondola_bbox_mid prim={active_paths.get('gondola_prim')!r} "
+                f"target_xyz={tuple(round(float(v), 4) for v in gondola_mid)}",
+                flush=True,
+            )
+            return gondola_mid
+    except Exception as exc:
+        print(f"[camera-startup-target] WARN: active target resolve failed: {exc!r}", flush=True)
     mid = _prim_world_bbox_midpoint(stage, target_prim_path)
     if mid is not None:
         print(
@@ -9566,18 +11326,26 @@ def _apply_per_diaolan_gondola_heights_for_randomize(
 
 
 def _service_stream_frame_during_randomize(
-    annotator, *, stage_label: str, force_snapshot: bool = False
-) -> None:
+    annotator,
+    *,
+    stage_label: str,
+    force_snapshot: bool = False,
+    publish: bool = False,
+    cache_snapshot: bool = False,
+) -> dict:
     if annotator is None:
-        return
+        return {"published": False, "healthy": False, "reason": "no_annotator"}
     rgba = None
     empty_replicator = True
     rtsp_source = "randomize_replicator"
+    frame_health = None
+    capture_epoch_s = None
     try:
         # 光照类 USD 写入后偶有一帧滞后；force_snapshot 时多 step 一次再抓图，避免 hazard 读到增亮前缓存
         if force_snapshot:
             rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=False)
         rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=False)
+        capture_epoch_s = time.time()
         rgba = annotator.get_data()
         rgba = _normalize_replicator_rgba_for_output(rgba)
     except Exception as exc:
@@ -9589,16 +11357,49 @@ def _service_stream_frame_during_randomize(
 
     if rgba is not None and getattr(rgba, "size", 0) > 0:
         empty_replicator = False
+        try:
+            frame_health = _render_capture_rgb_frame_health(rgba)
+        except Exception:
+            frame_health = None
+        if isinstance(frame_health, dict) and frame_health.get("should_try_viewport_fallback"):
+            rep_frame_health = dict(frame_health)
+            if _RANDOMIZE_FORCE_VIEWPORT_PRIMARY_ON_BLACK:
+                _rtsp_set_viewport_primary(True, "randomize_replicator_black")
+            try:
+                vp, vp_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
+            except Exception:
+                vp = None
+                vp_meta = {}
+            if vp is not None and getattr(vp, "size", 0) > 0:
+                vp_health = _render_capture_rgb_frame_health(vp)
+                if bool(vp_health.get("healthy")):
+                    rgba = vp
+                    frame_health = vp_health
+                    rtsp_source = "randomize_viewport_delegate"
+                    try:
+                        capture_epoch_s = float((vp_meta or {}).get("capture_epoch_s"))
+                    except Exception:
+                        capture_epoch_s = time.time()
+                    print(
+                        "[scene-randomize][frame-service] viewport fallback used "
+                        f"stage={stage_label} rep_health={rep_frame_health}",
+                        flush=True,
+                    )
     else:
         empty_replicator = True
         rgba = None
         try:
-            vp = _try_rtsp_rgba_from_viewport_delegate_safe()
+            vp, vp_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
         except Exception:
             vp = None
+            vp_meta = {}
         if vp is not None and getattr(vp, "size", 0) > 0:
             rgba = vp
             rtsp_source = "randomize_viewport_delegate"
+            try:
+                capture_epoch_s = float((vp_meta or {}).get("capture_epoch_s"))
+            except Exception:
+                capture_epoch_s = time.time()
         else:
             dec = _decode_last_good_jpeg_to_rgba_hw4()
             if dec is not None and getattr(dec, "size", 0) > 0:
@@ -9615,16 +11416,44 @@ def _service_stream_frame_during_randomize(
                     empty_frame=True,
                     queued_ok=False,
                 )
-                return
+                return {
+                    "published": False,
+                    "healthy": False,
+                    "empty_frame": True,
+                    "source": rtsp_source,
+                    "reason": "empty_frame",
+                    "rgba": None,
+                }
 
     try:
         if rgba.shape[:2] != (H, W):
             rgba = np.ascontiguousarray(
                 np.resize(rgba, (H, W, rgba.shape[2] if rgba.ndim == 3 else 4))
             )
+        if not isinstance(frame_health, dict):
+            frame_health = _render_capture_rgb_frame_health(rgba)
+        if rtsp_source == "randomize_last_good":
+            frame_health["source_is_last_good_fallback"] = True
+        frame_healthy = bool(frame_health.get("healthy")) and rtsp_source != "randomize_last_good"
+        _randomize_stream_guard_note_candidate(
+            {
+                "stage": stage_label,
+                "source": rtsp_source,
+                "healthy": bool(frame_healthy),
+                "health": frame_health,
+            }
+        )
 
-        if _jpeg_encode_fn is not None:
-            need_snapshot = bool(force_snapshot) or preview_enabled
+        if not frame_healthy:
+            _randomize_stream_guard_block_black(
+                stage_label,
+                rtsp_source,
+                frame_health,
+                reason="candidate_unhealthy",
+            )
+
+        if frame_healthy and _jpeg_encode_fn is not None:
+            need_snapshot = bool(cache_snapshot) or preview_enabled
             if not need_snapshot:
                 now_snapshot = time.monotonic()
                 with _mjpeg_lock:
@@ -9643,6 +11472,18 @@ def _service_stream_frame_during_randomize(
                     pass
                 if is_black:
                     print(f"[scene-randomize] skip caching black frame", flush=True)
+                elif rtsp_source == "randomize_last_good":
+                    print(
+                        "[scene-randomize] skip caching last_good fallback frame "
+                        f"stage={stage_label}",
+                        flush=True,
+                    )
+                elif force_snapshot and not frame_healthy:
+                    print(
+                        "[scene-randomize] skip caching unstable frame "
+                        f"stage={stage_label} health={frame_health}",
+                        flush=True,
+                    )
                 else:
                     jpg = _jpeg_encode_fn(rgba)
                     if jpg:
@@ -9652,14 +11493,15 @@ def _service_stream_frame_during_randomize(
                             mirror_mjpeg=preview_enabled,
                         )
 
-        ffmpeg_alive = bool(
-            rtsp_enabled and _ffmpeg_proc is not None and _ffmpeg_proc.poll() is None
-        )
+        ffmpeg_alive = bool(rtsp_enabled and _ffmpeg_proc is not None and _ffmpeg_proc.poll() is None)
         queue_status = "skipped"
         queued_ok_rtsp = False
-        if ffmpeg_alive:
-            raw = rgba.tobytes()
-            dropped = _rtsp_put_frame_bytes(raw, rtsp_source)
+        if publish and frame_healthy and ffmpeg_alive:
+            dropped, _rtsp_meta = _randomize_stream_guard_commit(
+                rgba,
+                rtsp_source.replace("randomize_", ""),
+                capture_epoch_s=capture_epoch_s,
+            )
             queue_status = "queued_replaced" if dropped else "queued"
             queued_ok_rtsp = True
         else:
@@ -9678,14 +11520,170 @@ def _service_stream_frame_during_randomize(
         )
         print(
             f"[scene-randomize][frame-service] stage={stage_label}{_empty_note} "
-            f"ffmpeg_alive={ffmpeg_alive} queue={queue_status}",
+            f"ffmpeg_alive={ffmpeg_alive} queue={queue_status} healthy={frame_healthy}",
             flush=True,
         )
+        return {
+            "published": bool(publish and frame_healthy and queued_ok_rtsp),
+            "healthy": frame_healthy,
+            "empty_frame": bool(empty_replicator),
+            "source": rtsp_source,
+            "ffmpeg_alive": bool(ffmpeg_alive),
+            "queue": queue_status,
+            "health": frame_health,
+            "rgba": rgba if frame_healthy else None,
+            "capture_epoch_s": capture_epoch_s,
+        }
     except Exception as exc:
         print(
             f"[scene-randomize][frame-service] stage={stage_label} publish failed: {exc}",
             flush=True,
         )
+        return {"published": False, "healthy": False, "reason": f"publish_failed:{exc}"}
+
+
+def _randomize_force_recover_render_capture(world, rp, annotator, *, reason: str) -> tuple[bool, object, object, str | None]:
+    global _render_recover_in_progress, _last_render_recover_attempt_mono
+    try:
+        _rtsp_set_viewport_primary(True, f"randomize_force_recover:{reason}")
+    except Exception:
+        pass
+    try:
+        _enforce_renderer_mode(f"randomize_force_recover:{reason}")
+    except Exception as exc:
+        print(f"[scene-randomize][recover] renderer_enforce_failed: {exc}", flush=True)
+    with _render_recover_state_lock:
+        prev_attempt = float(_last_render_recover_attempt_mono or 0.0)
+        _last_render_recover_attempt_mono = 0.0
+    try:
+        ok, rp2, annotator2, err = _recover_render_capture(
+            world,
+            rp,
+            annotator,
+            reason=f"randomize:{reason}",
+            camera_prim_path=camera_prim,
+            width=W,
+            height=H,
+        )
+        return bool(ok), rp2, annotator2, err
+    finally:
+        if not bool(_render_recover_in_progress):
+            with _render_recover_state_lock:
+                if _last_render_recover_attempt_mono <= 0.0 and prev_attempt > 0.0:
+                    _last_render_recover_attempt_mono = prev_attempt
+
+
+def _settle_render_after_randomize(world, rp, annotator, *, stage_label: str = "final") -> tuple[dict, object, object]:
+    if annotator is None:
+        return {"enabled": False, "reason": "no_annotator", "render_commit_status": "failed"}, rp, annotator
+    if world is None:
+        return {"enabled": False, "reason": "no_world", "render_commit_status": "failed"}, rp, annotator
+    min_good = int(_RANDOMIZE_STABLE_MIN_GOOD_FRAMES)
+    max_wait_s = float(_RANDOMIZE_STABLE_MAX_WAIT_S)
+    interval_s = float(_RANDOMIZE_CANDIDATE_INTERVAL_MS) / 1000.0
+    started = time.monotonic()
+    good_frames = 0
+    attempts: list[dict] = []
+    black_streak = 0
+    recovery_attempted = False
+    recovery_errors: list[str] = []
+    last_good_info: dict | None = None
+    while (time.monotonic() - started) < max_wait_s:
+        info = _service_stream_frame_during_randomize(
+            annotator,
+            stage_label=f"{stage_label}_settle_{len(attempts) + 1}",
+            force_snapshot=True,
+            publish=False,
+            cache_snapshot=False,
+        )
+        if bool(info.get("healthy")):
+            good_frames += 1
+            black_streak = 0
+            last_good_info = info
+        else:
+            good_frames = 0
+            black_streak += 1
+        attempts.append(
+            {
+                "index": len(attempts) + 1,
+                "healthy": bool(info.get("healthy")),
+                "published": bool(info.get("published")),
+                "source": info.get("source"),
+                "reason": info.get("reason"),
+            }
+        )
+        if good_frames >= min_good and isinstance(last_good_info, dict):
+            rgba = last_good_info.get("rgba")
+            if rgba is not None and getattr(rgba, "size", 0) > 0:
+                dropped, _meta = _randomize_stream_guard_commit(
+                    rgba,
+                    str(last_good_info.get("source") or "candidate").replace("randomize_", ""),
+                    capture_epoch_s=last_good_info.get("capture_epoch_s"),
+                )
+                commit_source = str(_meta.get("randomize_mode") or "committed")
+                _cache_randomize_commit_snapshot(rgba)
+                return (
+                    {
+                        "enabled": True,
+                        "attempts": len(attempts),
+                        "good_frames": int(good_frames),
+                        "min_good_frames": int(min_good),
+                        "elapsed_s": round(float(time.monotonic() - started), 3),
+                        "stable": True,
+                        "render_commit_status": "committed",
+                        "commit_source": f"randomize_commit:{str(last_good_info.get('source') or 'candidate').replace('randomize_', '')}",
+                        "commit_dropped_old": bool(dropped),
+                        "recovery_attempted": bool(recovery_attempted),
+                        "recovery_errors": recovery_errors[-4:],
+                        "attempt_sample": attempts[-8:],
+                    },
+                    rp,
+                    annotator,
+                )
+        if black_streak >= 2 and not recovery_attempted:
+            recovery_attempted = True
+            ok, rp, annotator, err = _randomize_force_recover_render_capture(
+                world,
+                rp,
+                annotator,
+                reason=f"{stage_label}_black_streak_{black_streak}",
+            )
+            if not ok and err:
+                recovery_errors.append(str(err))
+        if interval_s > 0:
+            time.sleep(interval_s)
+    return (
+        {
+            "enabled": True,
+            "attempts": len(attempts),
+            "good_frames": int(good_frames),
+            "min_good_frames": int(min_good),
+            "elapsed_s": round(float(time.monotonic() - started), 3),
+            "stable": False,
+            "render_commit_status": "failed",
+            "reason": "render_not_stable_after_randomize",
+            "recovery_attempted": bool(recovery_attempted),
+            "recovery_errors": recovery_errors[-4:],
+            "attempt_sample": attempts[-8:],
+        },
+        rp,
+        annotator,
+    )
+
+
+def _cache_randomize_commit_snapshot(rgba) -> None:
+    if _jpeg_encode_fn is None or rgba is None or getattr(rgba, "size", 0) <= 0:
+        return
+    try:
+        jpg = _jpeg_encode_fn(rgba)
+        if jpg:
+            _cache_good_snapshot_jpeg(
+                jpg,
+                capture_seq=None,
+                mirror_mjpeg=preview_enabled,
+            )
+    except Exception as exc:
+        print(f"[scene-randomize] commit snapshot cache failed: {exc}", flush=True)
 
 
 def _ptz_gondola_projection_coverage_ok(
@@ -9880,9 +11878,20 @@ def _randomize_run_perception_camera_refine(
     }
 
 
-def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -> dict:
+def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None, world_obj=None, rp_obj=None) -> tuple[dict, object, object]:
     global _GONDOLA_PRIM, _WORKER1_PRIM, _WORKER2_PRIM, _CAMERA_RIG_TRANSLATE_XYZ
     global _last_gondola_init_group1_source
+
+    randomize_started = time.monotonic()
+    guard_info = _randomize_stream_guard_begin()
+    timing = {}
+    last_timing_mark = randomize_started
+
+    def _mark_timing(name: str) -> None:
+        nonlocal last_timing_mark
+        now = time.monotonic()
+        timing[name] = round(float(now - last_timing_mark), 4)
+        last_timing_mark = now
 
     stage = omni.usd.get_context().get_stage()
     if stage is None:
@@ -9894,6 +11903,7 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
     all_diaolans = scan_diaolan_prims(stage)
     if not all_diaolans:
         raise RuntimeError("no diaolan prims found")
+    _mark_timing("init_scan")
 
     path_set = _diaolan_path_set(all_diaolans)
     forced_from_req = str(
@@ -9915,6 +11925,7 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
     with _scene_lock:
         _scene_state["pending_active_diaolan_path"] = ""
     _service_stream_frame_during_randomize(annotator, stage_label="after_diaolan_switch")
+    _mark_timing("diaolan_switch")
 
     aabb = compute_changjing_aabb(stage)
     dynamic_height_max = min(_GONDOLA_HEIGHT_MAX, aabb["zmax"]) if aabb["zmax"] > 5.0 else 36.0
@@ -9957,6 +11968,7 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
 
     _sync_worker_scalar_fields_for_control_diaolan(all_diaolans, ap_sel)
     _apply_scene_state(stage)
+    _mark_timing("scene_apply")
 
     for d in all_diaolans:
         rp = str(d.get("path") or "").strip()
@@ -10043,11 +12055,28 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
             _scene_state["hdri_control"] = control
         _refresh_hdri_backend_status_from_stage(stage, control_state=control, updated_at=control.get("last_switch_time"))
         _service_stream_frame_during_randomize(annotator, stage_label="after_hdri_apply")
+    _mark_timing("safety_hdri")
 
-    scene_after = _scene_state_snapshot(stage)
+    scene_after = _scene_state_runtime_snapshot(lock_timeout=0.05)
+    scene_after.setdefault("gondola_y", float(gondola_y))
+    scene_after["gondola_heights"] = dict(gondola_heights)
+    scene_after["workers_visible_count_by_diaolan_path"] = dict(workers_by)
+    scene_after["all_diaolan_paths"] = [str(d.get("path") or "").strip() for d in all_diaolans if str(d.get("path") or "").strip()]
+    scene_after["gondola_height_cm"] = _stage_units_to_cm(stage, float(gondola_y))
+    scene_after.setdefault("height_debug", {})
+    scene_after.setdefault("all_worker_paths", [])
+    scene_after.setdefault("visible_worker_paths", [])
+    scene_after.setdefault("gondola_renderable_paths", [])
+    scene_after.setdefault("gondola_visible_renderable_paths", [])
+    scene_after.setdefault("gondola_hidden_paths", [])
+    scene_after.setdefault("gondola_renderable_debug", [])
     hdri_state = _describe_hdri_state(stage, random_cfg)
+    _mark_timing("runtime_state")
 
-    target_xyz = _resolve_startup_lookat_target_xyz(stage, _effective_lookat_target_prim_path(stage))
+    target_prim_for_camera = _effective_lookat_target_prim_path(stage)
+    target_xyz = _resolve_startup_lookat_target_xyz(stage, target_prim_for_camera)
+    wall_target_context = _wall_sampling_target_context(stage, active_diaolan)
+    _mark_timing("wall_context")
     camera_meta = {
         "mode": "unchanged",
         "source": "keep_current_camera",
@@ -10075,9 +12104,13 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
                     wall_prim_path=_CAMERA_WALL_CONSTRAINT_PRIM,
                     wall_constraint_xy_margin=_CAMERA_WALL_CONSTRAINT_XY_MARGIN,
                     wall_constraint_z_margin=_CAMERA_WALL_CONSTRAINT_Z_MARGIN,
+                    wall_mount_inset_m=_CAMERA_WALL_MOUNT_INSET_M,
+                    wall_mount_inset_mode=_CAMERA_WALL_MOUNT_INSET_MODE,
                     target_world_xyz=target_xyz,
                     wall_collection_mode=_WALL_COLLECTION_MODE,
                     wall_collection_root_path=_WALL_COLLECTION_ROOT_PATH,
+                    target_context_bbox=wall_target_context.get("bbox"),
+                    wall_candidate_region=_WALL_CANDIDATE_REGION,
                 )
             else:
                 cam_x, cam_y, cam_z, camera_meta = _sample_camera_from_config_box(stage, rng, seed)
@@ -10087,13 +12120,25 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
             _CAMERA_RIG_TRANSLATE_XYZ = (cam_x, cam_y, cam_z)
 
             if random_cfg["auto_look_at_target"]:
-                _apply_dynamic_lookat_after_random_camera(
+                orient = _apply_dynamic_lookat_after_random_camera(
                     stage,
                     (cam_x, cam_y, cam_z),
                     source="random_scene_api",
                     preset_name="default_initial",
                     target_xyz=target_xyz,
                 )
+                if orient is not None and not random_cfg["keep_target_visible"]:
+                    _refine_committed_orientation_for_context_visibility(
+                        stage,
+                        camera_world_xyz=(cam_x, cam_y, cam_z),
+                        target_xyz=target_xyz,
+                        visibility_detail={},
+                        base_pan=orient[0],
+                        base_tilt=orient[1],
+                        source="random_scene_api",
+                        preset_name="default_initial",
+                        tilt_max_deg=30.0,
+                    )
             _service_stream_frame_during_randomize(
                 annotator,
                 stage_label=f"camera_attempt_{attempt + 1}",
@@ -10118,25 +12163,47 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
             )
             startup_visible = bool(preset_vis.get("__startup_default__", False))
             if startup_visible:
+                _commit_visibility_checked_orientation(
+                    stage,
+                    (cam_x, cam_y, cam_z),
+                    target_xyz,
+                    preset_vis_detail.get("__startup_default__", {}),
+                    source="random_scene_api_visibility_commit",
+                    preset_name="default_initial",
+                )
                 break
 
         camera_meta = dict(camera_meta or {})
         camera_meta["seed"] = last_seed
         camera_meta["attempts"] = last_attempt
+        _mark_timing("camera_sampling")
     else:
         current_xyz = _get_translate_tuple(stage, _CAMERA_RIG_PRIM) or tuple(float(v) for v in _CAMERA_RIG_TRANSLATE_XYZ)
         if random_cfg["auto_look_at_target"]:
-            _apply_dynamic_lookat_after_random_camera(
+            orient = _apply_dynamic_lookat_after_random_camera(
                 stage,
                 current_xyz,
                 source="random_scene_api_keep_camera",
                 preset_name="default_initial",
                 target_xyz=target_xyz,
             )
+            if orient is not None:
+                _refine_committed_orientation_for_context_visibility(
+                    stage,
+                    camera_world_xyz=current_xyz,
+                    target_xyz=target_xyz,
+                    visibility_detail={},
+                    base_pan=orient[0],
+                    base_tilt=orient[1],
+                    source="random_scene_api_keep_camera",
+                    preset_name="default_initial",
+                    tilt_max_deg=30.0,
+                )
             _service_stream_frame_during_randomize(
                 annotator,
                 stage_label="after_keep_camera_reorient",
             )
+        _mark_timing("camera_sampling")
 
     perception_alignment_diag = _randomize_run_perception_camera_refine(
         stage,
@@ -10146,6 +12213,7 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         active_diaolan_path=str(active_diaolan.get("path") or ""),
     )
     _refresh_projection_metrics(stage)
+    _mark_timing("perception_refine")
     effective_request_meta: dict = dict(request_meta) if isinstance(request_meta, dict) else {}
     rid_pre = _coerce_rule_id(effective_request_meta.get("rule_id"))
     if rid_pre is None:
@@ -10192,11 +12260,36 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         _service_stream_frame_during_randomize(
             annotator, stage_label="after_rule11_lighting", force_snapshot=True
         )
-    _service_stream_frame_during_randomize(
+    render_stabilization, rp_obj, annotator = _settle_render_after_randomize(
+        world_obj,
+        rp_obj,
         annotator,
         stage_label="before_result_snapshot",
-        force_snapshot=rule11_lighting_applied,
     )
+    _mark_timing("render_settle")
+    if not bool(render_stabilization.get("stable")):
+        _fail_diag = _randomize_stream_guard_diag_snapshot()
+        _randomize_stream_guard_finish(mode="frozen_last_good")
+        stable_wait = render_stabilization.get("elapsed_s")
+        blocked_total = int(_fail_diag.get("randomize_black_frames_blocked_total") or 0)
+        err = RuntimeError("render_not_stable_after_randomize")
+        setattr(
+            err,
+            "randomize_response_fields",
+            {
+                "render_commit_status": render_stabilization.get("render_commit_status") or "failed",
+                "render_stabilization": render_stabilization,
+                "randomize_stream_freeze_used": bool(_fail_diag.get("randomize_freeze_active")),
+                "randomize_stream_commit_source": _fail_diag.get("randomize_last_commit_source"),
+                "randomize_stream_black_frames_blocked": max(
+                    0,
+                    blocked_total - int(guard_info.get("black_frames_blocked_start") or 0),
+                ),
+                "randomize_stream_stable_wait_s": stable_wait,
+                "randomize_stream_recovery_attempted": bool(render_stabilization.get("recovery_attempted")),
+            },
+        )
+        raise err
     final_camera_xyz = list(_CAMERA_RIG_TRANSLATE_XYZ)
     selected_target_path = active_diaolan["group1"]
     camera_randomization_status = "randomized" if random_cfg["random_camera"] else "kept_current"
@@ -10225,22 +12318,25 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         if not path_value:
             continue
         diaolan_candidates_result.append(
-            {
-                "path": path_value,
-                "target_prim_path": str(item.get("group1") or "").strip() or None,
-                "label": os.path.basename(path_value.rstrip("/")) or path_value,
-                "workers_max": len(
-                    dedupe_worker_prim_paths_ordered([str(p) for p in (item.get("persons") or []) if str(p).strip()])
-                ),
-            }
+            _diaolan_candidate_meta(
+                path_value,
+                str(item.get("group1") or "").strip() or None,
+                len(dedupe_worker_prim_paths_ordered([str(p) for p in (item.get("persons") or []) if str(p).strip()])),
+            )
         )
     with _scene_lock:
         gondola_y_result = float(_scene_state.get("gondola_y", 0.0))
     eff_lookat_prim = _effective_lookat_target_prim_path(stage)
+    building_context = _cached_context_lookat_selection(stage)
     _vis_paths_list = list(scene_after.get("visible_worker_paths") or [])
     _logical_visible_workers = int(count_logical_workers_from_paths(_vis_paths_list))
     _active_persons_logical = dedupe_worker_prim_paths_ordered(active_diaolan.get("persons") or [])
     _logical_capacity = len(_active_persons_logical)
+    gondola_renderable_paths = list(scene_after.get("gondola_renderable_paths") or [])
+    gondola_visible_renderable_paths = list(scene_after.get("gondola_visible_renderable_paths") or [])
+    gondola_hidden_paths = list(scene_after.get("gondola_hidden_paths") or [])
+    gondola_renderable_debug = list(scene_after.get("gondola_renderable_debug") or [])
+    gondola_renderable_counts = dict(scene_after.get("gondola_renderable_counts") or {})
     result = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "diaolan_candidates": diaolan_candidates_result,
@@ -10253,6 +12349,8 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         "selected_target_path": selected_target_path,
         "lookat_target_prim_path": eff_lookat_prim,
         "active_lookat_target_prim_path": eff_lookat_prim,
+        "lookat_building_context_prim_path": building_context.get("prim_path"),
+        "lookat_building_context_selection": building_context,
         "all_worker_paths": list(scene_after["all_worker_paths"]),
         "visible_worker_paths": list(scene_after["visible_worker_paths"]),
         "worker_paths": list(scene_after["all_worker_paths"]),
@@ -10270,10 +12368,11 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         "workers_visible_count_by_diaolan_path": dict(
             scene_after.get("workers_visible_count_by_diaolan_path") or {}
         ),
-        "gondola_renderable_paths": list(scene_after["gondola_renderable_paths"]),
-        "gondola_visible_renderable_paths": list(scene_after["gondola_visible_renderable_paths"]),
-        "gondola_hidden_paths": list(scene_after["gondola_hidden_paths"]),
-        "gondola_renderable_debug": list(scene_after["gondola_renderable_debug"]),
+        "gondola_renderable_paths": gondola_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_visible_renderable_paths": gondola_visible_renderable_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_hidden_paths": gondola_hidden_paths[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_debug": gondola_renderable_debug[:_GONDOLA_RENDERABLE_DETAIL_LIMIT],
+        "gondola_renderable_counts": gondola_renderable_counts,
         "height_debug": dict(scene_after["height_debug"]),
         "camera_xyz": final_camera_xyz,
         "camera_previous_xyz": [float(v) for v in previous_camera_xyz],
@@ -10309,6 +12408,18 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
             "selected_hdri_basename": hdri_apply_result.get("current_hdri_basename") if isinstance(hdri_apply_result, dict) else hdri_state.get("current_hdri_basename"),
         },
         "camera_meta": camera_meta,
+        "wall_sampling_target_context": wall_target_context,
+        "render_stabilization": render_stabilization,
+        "render_commit_status": render_stabilization.get("render_commit_status"),
+        "randomize_stream_freeze_used": bool(guard_info.get("freeze_active")),
+        "randomize_stream_commit_source": render_stabilization.get("commit_source"),
+        "randomize_stream_black_frames_blocked": max(
+            0,
+            int((_STREAM_DIAG.get("randomize_black_frames_blocked_total") if isinstance(_STREAM_DIAG, dict) else 0) or 0)
+            - int(guard_info.get("black_frames_blocked_start") or 0),
+        ),
+        "randomize_stream_stable_wait_s": render_stabilization.get("elapsed_s"),
+        "randomize_stream_recovery_attempted": bool(render_stabilization.get("recovery_attempted")),
         "startup_view_visible": startup_visible,
         "visibility_check": visibility_check,
         "preset_visibility": visibility_check["preset_visibility"],
@@ -10321,15 +12432,37 @@ def _randomize_scene_runtime(request_meta: dict | None = None, annotator=None) -
         "rule11_explicit_request": bool(rule11_explicit_request),
         "rule11_camera_exposure_adjustment": rule11_camera_exposure_adjustment,
     }
+    _mark_timing("result_build")
     _annotate_randomize_result_for_api(result, effective_request_meta)
+    _mark_timing("hazard_annotate")
+    timing["total_s"] = round(float(time.monotonic() - randomize_started), 4)
+    result["timing"] = timing
+    result["state_deferred"] = bool(_RANDOMIZE_FAST_RESPONSE)
+    result["full_state_endpoint"] = "/scene/state"
     with _scene_lock:
         _scene_state["last_random_result"] = result
     _set_randomize_last_api_cache_from_lr(result)
     _invalidate_hdri_state_http_cache()
     _invalidate_scene_state_http_cache()
     _invalidate_status_http_cache()
-    print("[scene-randomize] " + json.dumps(result, ensure_ascii=False))
-    return result
+    result_summary = {
+        "timestamp": result.get("timestamp"),
+        "request_id": result.get("request_id"),
+        "selected_diaolan_path": result.get("selected_diaolan_path"),
+        "camera_xyz": result.get("camera_xyz"),
+        "camera_randomization_status": result.get("camera_randomization_status"),
+        "startup_view_visible": result.get("startup_view_visible"),
+        "wall_constraint_status": result.get("wall_constraint_status"),
+        "gondola_renderable_counts": result.get("gondola_renderable_counts"),
+        "hazard": result.get("hazard"),
+        "rule_id": result.get("rule_id"),
+    }
+    print("[scene-randomize] " + json.dumps(result_summary, ensure_ascii=False))
+    _randomize_stream_guard_finish(
+        commit_source=str(render_stabilization.get("commit_source") or ""),
+        mode="idle",
+    )
+    return result, rp_obj, annotator
 
 
 def _init_gondola_paths_camera_and_random_height_once(stage) -> None:
@@ -10474,6 +12607,7 @@ def _init_gondola_paths_camera_and_random_height_once(stage) -> None:
     startup_lookat_target_xyz = _resolve_startup_lookat_target_xyz(
         stage, _effective_lookat_target_prim_path(stage)
     )
+    startup_wall_target_context = _wall_sampling_target_context(stage, active_diaolan)
 
     if not sampling_on:
         _set_camera_rig_fixed_translate(stage, _CAMERA_RIG_PRIM)
@@ -10530,9 +12664,13 @@ def _init_gondola_paths_camera_and_random_height_once(stage) -> None:
                 wall_prim_path=_CAMERA_WALL_CONSTRAINT_PRIM,
                 wall_constraint_xy_margin=_CAMERA_WALL_CONSTRAINT_XY_MARGIN,
                 wall_constraint_z_margin=_CAMERA_WALL_CONSTRAINT_Z_MARGIN,
+                wall_mount_inset_m=_CAMERA_WALL_MOUNT_INSET_M,
+                wall_mount_inset_mode=_CAMERA_WALL_MOUNT_INSET_MODE,
                 target_world_xyz=startup_lookat_target_xyz,
                 wall_collection_mode=_WALL_COLLECTION_MODE,
                 wall_collection_root_path=_WALL_COLLECTION_ROOT_PATH,
+                target_context_bbox=startup_wall_target_context.get("bbox"),
+                wall_candidate_region=_WALL_CANDIDATE_REGION,
             )
             last_seed = seed
             last_box_meta = box_meta
@@ -11030,8 +13168,10 @@ class _PTZHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/scene/dynamic-sky-presets":
-            st = omni.usd.get_context().get_stage()
-            body = json.dumps(_http_dynamic_sky_presets_payload(st), ensure_ascii=False).encode("utf-8")
+            body = json.dumps(
+                _http_dynamic_sky_presets_payload(include_stage_status=False),
+                ensure_ascii=False,
+            ).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self._cors()
@@ -11086,6 +13226,14 @@ class _PTZHandler(BaseHTTPRequestHandler):
             cap_seq = None
             pixel_src_hdr = None
             snap_viewport_align_diag = None
+            snapshot_meta: dict = {}
+            rtsp_jpg, rtsp_meta = _rtsp_latest_snapshot_jpeg()
+            if rtsp_jpg is not None:
+                jpg = rtsp_jpg
+                snapshot_meta = dict(rtsp_meta or {})
+                frame_id = int(snapshot_meta.get("frame_id") or 0)
+                cap_seq = snapshot_meta.get("capture_seq")
+                pixel_src_hdr = str(snapshot_meta.get("pixel_source") or "rtsp_latest")
             serve_last_good, serve_last_good_reason = _snapshot_should_prefer_last_good(
                 _t_snap
             )
@@ -11098,41 +13246,42 @@ class _PTZHandler(BaseHTTPRequestHandler):
                 )
             bypass_last_good_hdr = False
             # 优先：主线程 viewport_delegate（与 /diagnostics/snapshot-live-once 同源；不写 last_good/MJPEG/RTSP）
-            ev_lv = threading.Event()
-            holder_lv: dict = {"event": ev_lv, "response": None}
-            deadline_lv = time.monotonic() + float(_SNAPSHOT_JPG_LIVE_VP_QUEUE_WAIT_S)
-            queued_lv = False
-            while time.monotonic() < deadline_lv:
-                with _snapshot_jpg_live_vp_lock:
-                    if _snapshot_jpg_live_vp_holder is None:
-                        _snapshot_jpg_live_vp_holder = holder_lv
-                        queued_lv = True
-                        break
-                time.sleep(0.02)
-            if queued_lv:
-                _snapshot_jpg_live_vp_dirty.set()
-                if not ev_lv.wait(4.0):
+            if jpg is None:
+                ev_lv = threading.Event()
+                holder_lv: dict = {"event": ev_lv, "response": None}
+                deadline_lv = time.monotonic() + float(_SNAPSHOT_JPG_LIVE_VP_QUEUE_WAIT_S)
+                queued_lv = False
+                while time.monotonic() < deadline_lv:
                     with _snapshot_jpg_live_vp_lock:
-                        if _snapshot_jpg_live_vp_holder is holder_lv:
-                            _snapshot_jpg_live_vp_holder = None
-                else:
-                    resp_lv = holder_lv.get("response")
-                    if (
-                        isinstance(resp_lv, dict)
-                        and resp_lv.get("ok")
-                        and resp_lv.get("source") == "viewport_delegate"
-                    ):
-                        _jb = resp_lv.get("jpg")
-                        if isinstance(_jb, (bytes, bytearray)) and len(_jb) > 0:
-                            jpg = bytes(_jb)
-                            _snapshot_live_viewport_http_frame_id += 1
-                            frame_id = int(_snapshot_live_viewport_http_frame_id)
-                            cap_seq = None
-                            pixel_src_hdr = "live_viewport_delegate"
-                            bypass_last_good_hdr = True
-                            _ad = resp_lv.get("align_diag")
-                            if isinstance(_ad, dict):
-                                snap_viewport_align_diag = _ad
+                        if _snapshot_jpg_live_vp_holder is None:
+                            _snapshot_jpg_live_vp_holder = holder_lv
+                            queued_lv = True
+                            break
+                    time.sleep(0.02)
+                if queued_lv:
+                    _snapshot_jpg_live_vp_dirty.set()
+                    if not ev_lv.wait(4.0):
+                        with _snapshot_jpg_live_vp_lock:
+                            if _snapshot_jpg_live_vp_holder is holder_lv:
+                                _snapshot_jpg_live_vp_holder = None
+                    else:
+                        resp_lv = holder_lv.get("response")
+                        if (
+                            isinstance(resp_lv, dict)
+                            and resp_lv.get("ok")
+                            and resp_lv.get("source") == "viewport_delegate"
+                        ):
+                            _jb = resp_lv.get("jpg")
+                            if isinstance(_jb, (bytes, bytearray)) and len(_jb) > 0:
+                                jpg = bytes(_jb)
+                                _snapshot_live_viewport_http_frame_id += 1
+                                frame_id = int(_snapshot_live_viewport_http_frame_id)
+                                cap_seq = None
+                                pixel_src_hdr = "live_viewport_delegate"
+                                bypass_last_good_hdr = True
+                                _ad = resp_lv.get("align_diag")
+                                if isinstance(_ad, dict):
+                                    snap_viewport_align_diag = _ad
             if jpg is None:
                 jpg, frame_id, cap_seq = _get_last_good_snapshot_jpeg()
                 if jpg is not None:
@@ -11165,6 +13314,16 @@ class _PTZHandler(BaseHTTPRequestHandler):
                 self.send_header("X-PTZ-Snapshot-Capture-Seq", str(cap_seq))
             if pixel_src_hdr is not None:
                 self.send_header("X-PTZ-Snapshot-Pixel-Source", pixel_src_hdr)
+            if snapshot_meta.get("capture_epoch_ms") is not None:
+                self.send_header("X-PTZ-Snapshot-Capture-Epoch-Ms", str(snapshot_meta.get("capture_epoch_ms")))
+            if snapshot_meta.get("capture_iso"):
+                self.send_header("X-PTZ-Snapshot-Capture-Iso", str(snapshot_meta.get("capture_iso")))
+            if snapshot_meta.get("osd_text"):
+                self.send_header("X-PTZ-Snapshot-OSD-Text", str(snapshot_meta.get("osd_text")))
+            if snapshot_meta.get("frame_age_ms") is not None:
+                self.send_header("X-PTZ-Snapshot-Frame-Age-Ms", str(snapshot_meta.get("frame_age_ms")))
+            if snapshot_meta.get("randomize_mode"):
+                self.send_header("X-PTZ-Snapshot-Randomize-Mode", str(snapshot_meta.get("randomize_mode")))
             if bypass_last_good_hdr:
                 self.send_header("X-PTZ-Snapshot-Bypass-Last-Good", "1")
             if isinstance(snap_viewport_align_diag, dict):
@@ -11614,24 +13773,14 @@ class _PTZHandler(BaseHTTPRequestHandler):
         if self.path == "/scene/random-config":
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
+            _t_rc_post = time.monotonic()
+            _log_ctrl_http("enter", "/scene/random-config:POST", _t_rc_post)
             try:
                 req = json.loads(body) if body else {}
-                stage = None
-                rc_new = None
                 with _scene_lock:
                     _scene_state["random_config"] = _sanitize_random_config(req)
-                    rc_new = dict(_scene_state["random_config"] or {})
                     resp = json.dumps({"ok": True, "random_config": _scene_state["random_config"]}, ensure_ascii=False)
                     _invalidate_scene_state_http_cache()
-                try:
-                    stage = omni.usd.get_context().get_stage()
-                except Exception:
-                    stage = None
-                if stage is not None:
-                    try:
-                        _clear_rule11_overexposure_residue_if_disabled(stage, rc_new)
-                    except Exception as exc:
-                        print(f"[rule11-overexposure-restore] unexpected_error {exc}", flush=True)
             except Exception as exc:
                 resp = json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False)
             self.send_response(200)
@@ -11639,6 +13788,7 @@ class _PTZHandler(BaseHTTPRequestHandler):
             self._cors()
             self.end_headers()
             self.wfile.write(resp.encode("utf-8"))
+            _log_ctrl_http("exit", "/scene/random-config:POST", _t_rc_post, extra=f"bytes={len(resp)}")
             return
 
         if self.path in ("/scene/randomize", "/api/scene/randomize"):
@@ -12037,7 +14187,7 @@ def _build_osd_filter() -> str | None:
     使用 expansion=strftime 模式：% 由 ffmpeg 解释为 strftime 指令，
     冒号需转义为 \\: 以避免被 drawtext 解析为选项分隔符。
     """
-    if not osd_enabled:
+    if not osd_enabled or _OSD_FRAME_CAPTURE_ENABLED:
         return None
     fmt      = _osd_cfg.get("fmt",  "%Y-%m-%d %H:%M:%S")
     x        = _osd_cfg.get("x",    10)
@@ -12058,52 +14208,70 @@ def _build_osd_filter() -> str | None:
 
 def _build_nvenc_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
     """构造 h264_nvenc 低延迟参数列表。"""
-    gop = fps * 2  # GOP = 2 秒
+    gop = max(1, int(round(float(fps) * _RTSP_GOP_SECONDS)))
     osd = _build_osd_filter()
     # nvenc 需要 yuv420p，OSD 存在时拼接 drawtext，再做 format 转换
     vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
     return [
         "ffmpeg",
         "-loglevel", "warning",
+        "-fflags", "nobuffer",
+        "-flags", "low_delay",
         "-f", "rawvideo",
         "-pix_fmt", "rgba",
         "-s", f"{width}x{height}",
-        "-r", str(fps),
+        "-framerate", str(fps),
         "-i", "pipe:0",
         "-an",
         "-vf", vf,
         "-c:v", "h264_nvenc",
         "-preset", "p1",       # 最快预设（ffmpeg 5.x/6.x+）
-        "-tune", "ll",         # low-latency 模式
+        "-tune", "ull",        # ultra-low-latency 模式
         "-rc", "cbr",          # 固定码率，避免 VBR 帧率波动
+        "-rc-lookahead", "0",
+        "-surfaces", "2",
         "-bf", "0",            # 禁用 B 帧，降延迟
         "-g", str(gop),        # GOP 大小
         "-delay", "0",
+        "-zerolatency", "1",
+        "-forced-idr", "1",
         "-b:v", bitrate,
+        "-flush_packets", "1",
+        "-muxdelay", "0",
+        "-muxpreload", "0",
         "-f", "rtsp",
+        "-rtsp_transport", _RTSP_PUBLISH_TRANSPORT,
         rtsp_url,
     ]
 
 
 def _build_x264_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
     """构造 libx264 低延迟参数列表（NVENC 不可用时的回退方案）。"""
+    gop = max(1, int(round(float(fps) * _RTSP_GOP_SECONDS)))
     osd = _build_osd_filter()
     vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
     return [
         "ffmpeg",
         "-loglevel", "warning",
+        "-fflags", "nobuffer",
+        "-flags", "low_delay",
         "-f", "rawvideo",
         "-pix_fmt", "rgba",
         "-s", f"{width}x{height}",
-        "-r", str(fps),
+        "-framerate", str(fps),
         "-i", "pipe:0",
         "-an",
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-tune", "zerolatency",
+        "-x264-params", f"keyint={gop}:min-keyint={gop}:scenecut=0",
         "-b:v", bitrate,
         "-vf", vf,
+        "-flush_packets", "1",
+        "-muxdelay", "0",
+        "-muxpreload", "0",
         "-f", "rtsp",
+        "-rtsp_transport", _RTSP_PUBLISH_TRANSPORT,
         rtsp_url,
     ]
 
@@ -12270,6 +14438,18 @@ _mediamtx_proc = None
 # 帧队列：主线程生产，写入线程消费。maxsize=2 保证实时性，满时丢旧帧。
 _frame_queue: queue.Queue = queue.Queue(maxsize=2)
 _c_local_frame_saved = False
+_rtsp_latest_lock = threading.Lock()
+_rtsp_latest_cond = threading.Condition(_rtsp_latest_lock)
+_rtsp_latest_frame: bytes | None = None
+_rtsp_latest_source = "none"
+_rtsp_latest_seq = 0
+_rtsp_latest_mono = 0.0
+_rtsp_latest_capture_epoch_ms: int | None = None
+_rtsp_latest_capture_iso: str | None = None
+_rtsp_latest_osd_text: str | None = None
+_rtsp_latest_osd_draw_ms: float | None = None
+_rtsp_latest_randomize_mode: str | None = None
+_rtsp_snapshot_jpeg_cache: dict = {"seq": None, "jpeg": None, "meta": None, "encoded_mono": 0.0}
 # RTSP 入队来源（供 _pipe_writer 摘要日志；主线程与 randomize 帧服务写入前更新）
 _rtsp_last_enqueued_source = "none"
 # 队列空时重复写 last_frame 的上限（与 get timeout≈0.5s 配合，避免无限垫旧帧）
@@ -12281,13 +14461,48 @@ _rtsp_main_last_enqueue_mono = 0.0
 _rtsp_writer_last_ok_mono: float | None = None
 
 
-def _rtsp_put_frame_bytes(raw: bytes, source_tag: str) -> bool:
+def _rtsp_put_frame_bytes(raw: bytes, source_tag: str, frame_meta: dict | None = None) -> bool:
     """
     将一帧 RGBA raw 字节入 RTSP 队列（与 ffmpeg -f rawvideo -pix_fmt rgba 一致）。
     返回 True 表示曾触发“丢旧帧再入队”路径。
     """
     global _rtsp_last_enqueued_source, _rtsp_main_last_enqueue_mono
+    global _rtsp_latest_frame, _rtsp_latest_source, _rtsp_latest_seq, _rtsp_latest_mono
+    global _rtsp_latest_capture_epoch_ms, _rtsp_latest_capture_iso, _rtsp_latest_osd_text, _rtsp_latest_osd_draw_ms
+    global _rtsp_latest_randomize_mode
     _rtsp_last_enqueued_source = source_tag
+    now = time.monotonic()
+    meta = dict(frame_meta) if isinstance(frame_meta, dict) else _capture_time_meta()
+    if _RTSP_LOW_LATENCY_MODE:
+        with _rtsp_latest_cond:
+            _rtsp_latest_frame = raw
+            _rtsp_latest_source = source_tag
+            _rtsp_latest_seq += 1
+            _rtsp_latest_mono = now
+            _rtsp_latest_capture_epoch_ms = meta.get("capture_epoch_ms")
+            _rtsp_latest_capture_iso = meta.get("capture_iso")
+            _rtsp_latest_osd_text = meta.get("osd_text")
+            try:
+                _rtsp_latest_osd_draw_ms = float(meta.get("osd_draw_ms"))
+            except Exception:
+                _rtsp_latest_osd_draw_ms = None
+            _rtsp_latest_randomize_mode = (
+                str(meta.get("randomize_mode"))
+                if meta.get("randomize_mode") is not None
+                else None
+            )
+            _rtsp_latest_cond.notify_all()
+        _stream_diag_update(
+            rtsp_latest_capture_epoch_ms=_rtsp_latest_capture_epoch_ms,
+            rtsp_latest_capture_iso=_rtsp_latest_capture_iso,
+            rtsp_latest_osd_text=_rtsp_latest_osd_text,
+            osd_draw_ms=_rtsp_latest_osd_draw_ms,
+            osd_draw_method=meta.get("osd_draw_method"),
+            osd_applied=bool(meta.get("osd_applied", False)),
+            randomize_stream_mode=_rtsp_latest_randomize_mode or "idle",
+        )
+        _rtsp_main_last_enqueue_mono = now
+        return False
     dropped = False
     try:
         _frame_queue.put_nowait(raw)
@@ -12301,8 +14516,75 @@ def _rtsp_put_frame_bytes(raw: bytes, source_tag: str) -> bool:
         except queue.Full:
             pass
         dropped = True
-    _rtsp_main_last_enqueue_mono = time.monotonic()
+    _rtsp_main_last_enqueue_mono = now
     return dropped
+
+
+def _rtsp_put_rgba_frame(
+    rgba_u8,
+    source_tag: str,
+    *,
+    capture_epoch_s: float | None = None,
+) -> tuple[bool, dict]:
+    raw, meta = _prepare_rtsp_rgba_frame(rgba_u8, capture_epoch_s=capture_epoch_s)
+    dropped = _rtsp_put_frame_bytes(raw, source_tag, meta)
+    return dropped, meta
+
+
+def _rtsp_latest_snapshot_jpeg() -> tuple[bytes | None, dict | None]:
+    if not _cfg_capture_prefer_rtsp_latest_for_snapshot() or _jpeg_encode_fn is None:
+        return None, None
+    with _rtsp_latest_cond:
+        frame = _rtsp_latest_frame
+        seq = int(_rtsp_latest_seq)
+        source = str(_rtsp_latest_source or "rtsp_latest")
+        mono_ts = float(_rtsp_latest_mono or 0.0)
+        meta = {
+            "frame_id": seq,
+            "capture_seq": None,
+            "capture_epoch_ms": _rtsp_latest_capture_epoch_ms,
+            "capture_iso": _rtsp_latest_capture_iso,
+            "osd_text": _rtsp_latest_osd_text,
+            "pixel_source": f"rtsp_latest:{source}",
+            "mono_ts": mono_ts,
+            "randomize_mode": _rtsp_latest_randomize_mode,
+        }
+    if not isinstance(frame, (bytes, bytearray)) or len(frame) <= 0 or seq <= 0:
+        return None, None
+    if len(frame) != int(W) * int(H) * 4:
+        return None, None
+    with _rtsp_latest_lock:
+        cache_seq = _rtsp_snapshot_jpeg_cache.get("seq")
+        cached = _rtsp_snapshot_jpeg_cache.get("jpeg")
+        cached_meta = _rtsp_snapshot_jpeg_cache.get("meta")
+        if cache_seq == seq and isinstance(cached, (bytes, bytearray)) and cached_meta:
+            out_meta = dict(cached_meta)
+            out_meta["frame_age_ms"] = round(max(0.0, (time.monotonic() - mono_ts) * 1000.0), 1) if mono_ts > 0 else None
+            return bytes(cached), out_meta
+    try:
+        rgba = np.frombuffer(frame, dtype=np.uint8).reshape((int(H), int(W), 4))
+        jpg = _jpeg_encode_fn(rgba)
+    except Exception as exc:
+        _stream_diag_update(snapshot_rtsp_latest_error=f"jpeg_encode:{type(exc).__name__}:{exc}")
+        return None, None
+    if not isinstance(jpg, (bytes, bytearray)) or len(jpg) <= 0:
+        _stream_diag_update(snapshot_rtsp_latest_error="jpeg_encode_empty")
+        return None, None
+    meta["frame_age_ms"] = round(max(0.0, (time.monotonic() - mono_ts) * 1000.0), 1) if mono_ts > 0 else None
+    meta["snapshot_source"] = "rtsp_latest"
+    blob = bytes(jpg)
+    with _rtsp_latest_lock:
+        _rtsp_snapshot_jpeg_cache["seq"] = seq
+        _rtsp_snapshot_jpeg_cache["jpeg"] = blob
+        _rtsp_snapshot_jpeg_cache["meta"] = dict(meta)
+        _rtsp_snapshot_jpeg_cache["encoded_mono"] = time.monotonic()
+    _stream_diag_update(
+        snapshot_last_source="rtsp_latest",
+        snapshot_last_rtsp_seq=seq,
+        snapshot_last_capture_epoch_ms=meta.get("capture_epoch_ms"),
+        snapshot_last_osd_text=meta.get("osd_text"),
+    )
+    return blob, meta
 
 
 def _shutdown(signum=None, frame=None):
@@ -12320,6 +14602,11 @@ def _cleanup():
     # 放 None 哨兵让写入线程退出
     try:
         _frame_queue.put_nowait(None)
+    except Exception:
+        pass
+    try:
+        with _rtsp_latest_cond:
+            _rtsp_latest_cond.notify_all()
     except Exception:
         pass
 
@@ -12361,6 +14648,8 @@ def _pipe_writer(proc: subprocess.Popen) -> None:
     last_new_frame_mono = time.monotonic()
 
     while True:
+        if _RTSP_LOW_LATENCY_MODE:
+            break
         from_queue = True
         try:
             frame = _frame_queue.get(timeout=0.5)
@@ -12438,6 +14727,117 @@ def _pipe_writer(proc: subprocess.Popen) -> None:
             last_stat_t = now
 
 
+def _pipe_writer_low_latency(proc: subprocess.Popen, target_fps: int) -> None:
+    """按固定 fps 将最新帧写入 ffmpeg，避免旧帧在 RTSP/NVR 侧排队。"""
+    global _rtsp_writer_last_ok_mono
+    period_s = 1.0 / max(1, int(target_fps))
+    next_deadline = time.monotonic()
+    last_seq = -1
+    last_frame = None
+    last_source = "none"
+    last_new_frame_mono = time.monotonic()
+    repeat_count = 0
+    new_count = 0
+    max_gap_ms = 0.0
+    write_count = 0
+    t_write_total = 0.0
+    last_stat_t = time.monotonic()
+
+    while _running:
+        if proc.poll() is not None:
+            break
+        now = time.monotonic()
+        wait_s = next_deadline - now
+        if wait_s > 0:
+            time.sleep(min(wait_s, period_s))
+        with _rtsp_latest_cond:
+            if _rtsp_latest_frame is None and _running and proc.poll() is None:
+                _rtsp_latest_cond.wait(timeout=0.5)
+            frame = _rtsp_latest_frame
+            seq = _rtsp_latest_seq
+            source = _rtsp_latest_source
+            frame_mono = _rtsp_latest_mono
+
+        if frame is None:
+            continue
+        repeated = seq == last_seq
+        if repeated and not _RTSP_REPEAT_LATEST_FRAME:
+            next_deadline += period_s
+            continue
+
+        t0 = time.monotonic()
+        try:
+            proc.stdin.write(frame)
+            proc.stdin.flush()
+        except (BrokenPipeError, OSError):
+            print("[PTZ-RTSP] ffmpeg 管道已断开（低延时写入线程退出）", flush=True)
+            break
+        _rtsp_writer_last_ok_mono = time.monotonic()
+        t_write_total += _rtsp_writer_last_ok_mono - t0
+        write_count += 1
+        if repeated:
+            repeat_count += 1
+        else:
+            if last_seq >= 0 and frame_mono:
+                try:
+                    gap_ms = max(0.0, (float(frame_mono) - float(last_new_frame_mono)) * 1000.0)
+                    max_gap_ms = max(max_gap_ms, gap_ms)
+                except Exception:
+                    pass
+            new_count += 1
+            last_seq = seq
+            last_frame = frame
+            last_source = source
+            last_new_frame_mono = frame_mono or _rtsp_writer_last_ok_mono
+
+        age_ms = (_rtsp_writer_last_ok_mono - float(frame_mono or last_new_frame_mono)) * 1000.0
+        _stream_diag_update(
+            rtsp_writer_push_fps=None,
+            rtsp_writer_repeated_frame=bool(repeated),
+            rtsp_writer_frame_age_ms=round(age_ms, 1),
+            rtsp_writer_last_source=str(source or last_source),
+            rtsp_writer_latest_seq=int(seq),
+        )
+
+        now = time.monotonic()
+        if now - last_stat_t >= 5.0:
+            elapsed = now - last_stat_t
+            push_fps = write_count / elapsed if elapsed > 0 else 0.0
+            source_new_fps = new_count / elapsed if elapsed > 0 else 0.0
+            repeat_ratio = (repeat_count / write_count) if write_count else 0.0
+            avg_write_ms = (t_write_total / write_count * 1000.0) if write_count else 0.0
+            latest_age_ms = (now - float(_rtsp_latest_mono or last_new_frame_mono)) * 1000.0
+            _stream_diag_update(
+                rtsp_writer_push_fps=round(push_fps, 2),
+                rtsp_writer_frame_age_ms=round(latest_age_ms, 1),
+                rtsp_writer_last_source=str(_rtsp_latest_source or last_source),
+                rtsp_writer_new_frames=int(new_count),
+                rtsp_writer_repeated_frames=int(repeat_count),
+                rtsp_source_new_fps=round(source_new_fps, 2),
+                rtsp_source_repeat_ratio=round(repeat_ratio, 3),
+                rtsp_source_max_gap_ms=round(max_gap_ms, 1),
+            )
+            print(
+                f"[PTZ-RTSP][write] mode=low_latency source={_rtsp_latest_source} "
+                f"new={new_count} repeat={repeat_count} latest_age_ms={latest_age_ms:.0f} "
+                f"push_fps={push_fps:.1f}/{target_fps} source_new_fps={source_new_fps:.1f} "
+                f"repeat_ratio={repeat_ratio:.2f} max_gap_ms={max_gap_ms:.0f} "
+                f"avg_write_ms={avg_write_ms:.1f}",
+                flush=True,
+            )
+            write_count = 0
+            repeat_count = 0
+            new_count = 0
+            max_gap_ms = 0.0
+            t_write_total = 0.0
+            last_stat_t = now
+
+        next_deadline += period_s
+        lag_s = time.monotonic() - next_deadline
+        if lag_s > period_s:
+            next_deadline = time.monotonic() + period_s
+
+
 # ============================================================
 # 主流程
 # ============================================================
@@ -12481,11 +14881,18 @@ def main():
         _mediamtx_proc = _start_mediamtx(mtx_bin)
         _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
         # 启动帧队列写入线程，与渲染主线程解耦
+        _writer_target = _pipe_writer_low_latency if _RTSP_LOW_LATENCY_MODE else _pipe_writer
+        _writer_args = (_ffmpeg_proc, fps) if _RTSP_LOW_LATENCY_MODE else (_ffmpeg_proc,)
         _writer = threading.Thread(
-            target=_pipe_writer, args=(_ffmpeg_proc,),
-            daemon=True, name="frame-writer"
+            target=_writer_target, args=_writer_args,
+            daemon=True, name="frame-writer-low-latency" if _RTSP_LOW_LATENCY_MODE else "frame-writer"
         )
         _writer.start()
+        print(
+            f"[PTZ-RTSP] writer_mode={'low_latency' if _RTSP_LOW_LATENCY_MODE else 'queue'} "
+            f"target_fps={fps} repeat_latest={_RTSP_REPEAT_LATEST_FRAME}",
+            flush=True,
+        )
     else:
         print(f"[PTZ-RTSP] RTSP 已禁用，仅 MJPEG 预览")
         print(f"[PTZ-RTSP] 预览地址：http://localhost:{_CTRL_PORT}/stream.mjpeg")
@@ -12553,6 +14960,8 @@ def main():
 
     # --- 固定相机 rig、解析吊篮 prim、启动时随机一次吊篮高度并写入 stage ---
     _init_gondola_paths_camera_and_random_height_once(usd_context.get_stage())
+    clear_wall_mount_candidate_cache()
+    _clear_building_context_selection_cache()
     _repair_broken_texture_paths(usd_context.get_stage())
     _sync_hdri_environment_dome_repairs(usd_context.get_stage())
     _ensure_hdri_render_consistency(usd_context.get_stage())
@@ -12771,7 +15180,101 @@ def main():
                 )
             raise
         t_step_total += time.monotonic() - t0
-        if do_render:
+        _now_loop = time.monotonic()
+        _rtsp_age_ms, _rtsp_recovery_mode = _rtsp_update_stale_recovery(_now_loop)
+        rtsp_stale_warn_now = _rtsp_age_ms is not None and _rtsp_age_ms > _RTSP_STALE_WARN_MS
+        rtsp_recovery_now = _rtsp_recovery_mode == "viewport_only_recovery"
+        rtsp_probe_replicator_this_tick = (
+            _rtsp_should_probe_replicator()
+            if do_render and not rtsp_stale_warn_now and not rtsp_recovery_now
+            else False
+        )
+        global _RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO
+        rtsp_fast_capture_due = (
+            rtsp_enabled
+            and _RTSP_LOW_LATENCY_MODE
+            and _rtsp_viewport_primary_enabled()
+            and _ffmpeg_proc is not None
+            and _ffmpeg_proc.poll() is None
+            and (
+                _now_loop >= float(_RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO)
+                or rtsp_stale_warn_now
+            )
+        )
+        rtsp_fast_viewport_only = (
+            rtsp_fast_capture_due
+            and rtsp_enabled
+            and _RTSP_LOW_LATENCY_MODE
+            and _rtsp_viewport_primary_enabled()
+            and _ffmpeg_proc is not None
+            and _ffmpeg_proc.poll() is None
+            and (
+                rtsp_stale_warn_now
+                or rtsp_recovery_now
+                or not (
+                _render_capture_probe_dirty.is_set()
+                or _render_capture_ab_probe_dirty.is_set()
+                or _snapshot_http_viewport_dirty.is_set()
+                or _diag_live_once_dirty.is_set()
+                or _snapshot_jpg_live_vp_dirty.is_set()
+                )
+            )
+        )
+        if rtsp_fast_viewport_only:
+            try:
+                _t0_fast_vp = time.monotonic()
+                _vp_fast, _vp_fast_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
+                if _vp_fast is not None:
+                    _cap_epoch_s = None
+                    if isinstance(_vp_fast_meta, dict):
+                        try:
+                            _cap_epoch_s = float(_vp_fast_meta.get("capture_epoch_s"))
+                        except Exception:
+                            _cap_epoch_s = None
+                    _randomize_publish_block_active = _randomize_stream_guard_publish_block_active()
+                    if _randomize_publish_block_active and _randomize_stream_guard_should_block_publish(
+                        _render_capture_rgb_frame_health(_vp_fast)
+                    ):
+                        _stream_diag_update(randomize_stream_mode="frozen_last_good")
+                    else:
+                        if _rtsp_put_rgba_frame(
+                            _vp_fast,
+                            "viewport_delegate_primary_fast" if not rtsp_recovery_now else "viewport_only_recovery",
+                            capture_epoch_s=_cap_epoch_s,
+                        )[0]:
+                            drop_count += 1
+                    capture_count += 1
+                    t_tobytes_total += time.monotonic() - _t0_fast_vp
+                    _stream_diag_update(
+                        render_capture_last_frame_source="viewport_only_recovery" if rtsp_recovery_now else "viewport_delegate_primary_fast",
+                        render_capture_last_fallback_reason="replicator_probe_deferred",
+                    )
+                    _period = 1.0 / max(1, int(fps))
+                    _RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO = max(
+                        _t0_fast_vp + _period,
+                        float(_RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO) + _period,
+                    )
+                else:
+                    if not rtsp_recovery_now:
+                        _rtsp_set_viewport_primary(False, "viewport_primary_fast_capture_failed")
+                    _retry_s = 0.05 if rtsp_recovery_now else 0.5
+                    _RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO = time.monotonic() + _retry_s
+            except Exception as _fast_vp_exc:
+                if not rtsp_recovery_now:
+                    _rtsp_set_viewport_primary(False, f"viewport_primary_fast_exception:{type(_fast_vp_exc).__name__}")
+                _retry_s = 0.05 if rtsp_recovery_now else 0.5
+                _RTSP_VIEWPORT_PRIMARY_NEXT_CAPTURE_MONO = time.monotonic() + _retry_s
+                print(f"[PTZ-RTSP][capture-mode] viewport_primary_fast failed: {_fast_vp_exc}", flush=True)
+
+        rtsp_primary_fast_source_active = (
+            rtsp_enabled
+            and _RTSP_LOW_LATENCY_MODE
+            and _rtsp_viewport_primary_enabled()
+            and _ffmpeg_proc is not None
+            and _ffmpeg_proc.poll() is None
+        )
+
+        if do_render and not rtsp_fast_viewport_only:
             render_count += 1
 
         # 应用来自 Web UI 的 PTZ 指令（检测到脏标志时写入 USD Stage）
@@ -12817,7 +15320,12 @@ def main():
                 request_meta = pending_randomize.get("request") if isinstance(pending_randomize.get("request"), dict) else {}
                 try:
                     _rtsp_randomize_keepalive_active = True
-                    randomize_result = _randomize_scene_runtime(request_meta, annotator=annotator)
+                    randomize_result, rp, annotator = _randomize_scene_runtime(
+                        request_meta,
+                        annotator=annotator,
+                        world_obj=world,
+                        rp_obj=rp,
+                    )
                     _mark_randomize_render_apply()
                     if isinstance(request_meta, dict):
                         trigger = str(request_meta.get("trigger") or "").strip()
@@ -12833,13 +15341,48 @@ def main():
                     pending_randomize["response"] = {
                         "ok": True,
                         "result": randomize_result,
-                        "state": _scene_state_snapshot(),
+                        "state": _scene_state_lightweight_snapshot(result=randomize_result)
+                            if _RANDOMIZE_FAST_RESPONSE
+                            else _scene_state_snapshot(),
+                        "state_deferred": bool(_RANDOMIZE_FAST_RESPONSE),
+                        "full_state_endpoint": "/scene/state",
+                        "timing": randomize_result.get("timing"),
                     }
                 except Exception as exc:
+                    exc_fields = getattr(exc, "randomize_response_fields", None)
+                    exc_fields = dict(exc_fields) if isinstance(exc_fields, dict) else {}
+                    _randomize_err_diag = _randomize_stream_guard_diag_snapshot()
+                    _randomize_stream_guard_finish(mode="frozen_last_good")
                     pending_randomize["response"] = {
                         "ok": False,
                         "error": str(exc),
-                        "state": _scene_state_snapshot(),
+                        **({"render_stabilization": exc_fields.get("render_stabilization")} if isinstance(exc_fields.get("render_stabilization"), dict) else {}),
+                        "render_commit_status": exc_fields.get("render_commit_status") or "failed",
+                        "randomize_stream_freeze_used": bool(
+                            exc_fields.get("randomize_stream_freeze_used")
+                            if "randomize_stream_freeze_used" in exc_fields
+                            else _randomize_err_diag.get("randomize_freeze_active")
+                        ),
+                        "randomize_stream_commit_source": (
+                            exc_fields.get("randomize_stream_commit_source")
+                            if "randomize_stream_commit_source" in exc_fields
+                            else _randomize_err_diag.get("randomize_last_commit_source")
+                        ),
+                        "randomize_stream_black_frames_blocked": int(
+                            (
+                                exc_fields.get("randomize_stream_black_frames_blocked")
+                                if "randomize_stream_black_frames_blocked" in exc_fields
+                                else _randomize_err_diag.get("randomize_black_frames_blocked_total")
+                            )
+                            or 0
+                        ),
+                        "randomize_stream_stable_wait_s": exc_fields.get("randomize_stream_stable_wait_s"),
+                        "randomize_stream_recovery_attempted": exc_fields.get("randomize_stream_recovery_attempted"),
+                        "state": _scene_state_lightweight_snapshot()
+                            if _RANDOMIZE_FAST_RESPONSE
+                            else _scene_state_snapshot(),
+                        "state_deferred": bool(_RANDOMIZE_FAST_RESPONSE),
+                        "full_state_endpoint": "/scene/state",
                     }
                 finally:
                     _rtsp_randomize_keepalive_active = False
@@ -12855,7 +15398,8 @@ def main():
                         )
                     if isinstance(randomize_event, threading.Event):
                         randomize_event.set()
-                    _refresh_status_http_scene_cache_main_thread(force=True)
+                    if not _RANDOMIZE_FAST_RESPONSE:
+                        _refresh_status_http_scene_cache_main_thread(force=True)
 
         # 推流帧：采集并输出
         if _scene_hdri_dirty.is_set():
@@ -13106,8 +15650,10 @@ def main():
                 _rep_frame_health = _render_capture_rgb_frame_health(rgba)
                 _rep_rgb_mean = _rep_frame_health.get("full_mean")
                 _vp_rgb_mean = None
-                _frame_source = "replicator"
+                _rtsp_viewport_primary_now = _rtsp_viewport_primary_enabled()
+                _frame_source = "viewport_delegate_primary" if _rtsp_viewport_primary_now else "replicator"
                 _fallback_reason = None
+                _probe_replicator_this_tick = rtsp_probe_replicator_this_tick
 
                 # OOM / RTX 分叉后 annotator 可能长期返回近纯 0；连续多帧则最小自愈（重绑 render product，不暴露新 HTTP 接口）
                 try:
@@ -13185,9 +15731,15 @@ def main():
                 except Exception as _bf_exc:
                     print(f"[snapshot-chain] black-burst-detect skipped: {_bf_exc}", flush=True)
 
-                if bool(_rep_frame_health.get("should_try_viewport_fallback")):
-                    _vp_diag: dict = {}
-                    _vp_np, _vp_path, _vp_err = _try_read_viewport_delegate_rgba_uint8(_vp_diag)
+                if _probe_replicator_this_tick and not bool(_rep_frame_health.get("should_try_viewport_fallback")):
+                    _rtsp_set_viewport_primary(False, "replicator_recovered")
+
+                if (
+                    (not _rtsp_viewport_primary_now)
+                    and bool(_rep_frame_health.get("should_try_viewport_fallback"))
+                    and not rtsp_recovery_now
+                ):
+                    _vp_np, _vp_path, _vp_err = _try_read_viewport_delegate_rgba_uint8_for_rtsp_camera_aligned()
                     _vp_u8 = _normalize_replicator_rgba_for_output(_vp_np) if _vp_np is not None else None
                     if _vp_u8 is not None and getattr(_vp_u8, "size", 0) > 0 and _vp_u8.shape[:2] != (H, W):
                         _vp_u8 = np.ascontiguousarray(
@@ -13200,6 +15752,7 @@ def main():
                         rgba = _vp_u8
                         _frame_source = "viewport_delegate_fallback"
                         _fallback_reason = "replicator_black_viewport_healthy"
+                        _rtsp_set_viewport_primary(True, "replicator_black_viewport_healthy")
                         print(
                             "[render-capture-diag] VIEWPORT_FALLBACK_USED "
                             f"reason=replicator_black rep_reason={_rep_frame_health.get('black_reason')} "
@@ -13233,6 +15786,7 @@ def main():
                     render_capture_last_viewport_rgb_mean=_vp_rgb_mean,
                 )
 
+                _randomize_publish_block_active = _randomize_stream_guard_publish_block_active()
                 if rgba is not None and getattr(rgba, "size", 0) > 0:
                     # ① snapshot 快照缓存与 MJPEG 预览共享同一张 JPEG。
                     # preview_enabled=false 时只按较低频率刷新 snapshot，避免恢复高频预览开销。
@@ -13272,39 +15826,79 @@ def main():
 
                     # ② RTSP 推流（可选，供 VLC / NVR 外部接入）
                     # 优先 live viewport_delegate（与 HTTP snapshot 视口一致），失败再用 Replicator rgba。
-                    if rtsp_enabled and _ffmpeg_proc is not None \
+                    if (not rtsp_primary_fast_source_active) and rtsp_enabled and _ffmpeg_proc is not None \
                             and _ffmpeg_proc.poll() is None:
                         t0 = time.monotonic()
                         rgba_for_rtsp = rgba
                         rtsp_src = "replicator"
-                        if str(_frame_source) == "viewport_delegate_fallback":
+                        rtsp_capture_epoch_s = None
+                        if _rtsp_viewport_primary_enabled():
+                            _vp_rtsp, _vp_rtsp_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
+                            if _vp_rtsp is not None:
+                                rgba_for_rtsp = _vp_rtsp
+                                rtsp_src = "viewport_delegate_primary"
+                                try:
+                                    rtsp_capture_epoch_s = float((_vp_rtsp_meta or {}).get("capture_epoch_s"))
+                                except Exception:
+                                    rtsp_capture_epoch_s = None
+                            elif str(_frame_source) == "viewport_delegate_fallback":
+                                rgba_for_rtsp = rgba
+                                rtsp_src = "viewport_delegate"
+                        elif str(_frame_source) == "viewport_delegate_fallback":
                             rgba_for_rtsp = rgba
                             rtsp_src = "viewport_delegate"
                         else:
-                            _vp_rtsp = _try_rtsp_rgba_from_viewport_delegate_safe()
+                            _vp_rtsp, _vp_rtsp_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
                             if _vp_rtsp is not None:
                                 rgba_for_rtsp = _vp_rtsp
                                 rtsp_src = "viewport_delegate"
-                        raw = rgba_for_rtsp.tobytes()
+                                try:
+                                    rtsp_capture_epoch_s = float((_vp_rtsp_meta or {}).get("capture_epoch_s"))
+                                except Exception:
+                                    rtsp_capture_epoch_s = None
+                        if _randomize_publish_block_active and _randomize_stream_guard_should_block_publish(
+                            _render_capture_rgb_frame_health(rgba_for_rtsp)
+                        ):
+                            _stream_diag_update(randomize_stream_mode="frozen_last_good")
+                        else:
+                            if _rtsp_put_rgba_frame(
+                                rgba_for_rtsp,
+                                rtsp_src,
+                                capture_epoch_s=rtsp_capture_epoch_s,
+                            )[0]:
+                                drop_count += 1
                         t_tobytes_total += time.monotonic() - t0
-                        if _rtsp_put_frame_bytes(raw, rtsp_src):
-                            drop_count += 1
 
             else:
                 # Replicator 无可用 rgba：RTSP 在主循环内独立回退 viewport（与 HTTP /snapshot 同源取帧能力，不经 HTTP 队列）
                 if (
                     rtsp_enabled
+                    and not rtsp_primary_fast_source_active
                     and _ffmpeg_proc is not None
                     and _ffmpeg_proc.poll() is None
                 ):
-                    _vp_sb = _try_rtsp_rgba_from_viewport_delegate_safe()
+                    _vp_sb, _vp_sb_meta = _try_rtsp_rgba_from_viewport_delegate_safe(return_meta=True)
                     if _vp_sb is not None:
                         try:
                             _t0sb = time.monotonic()
-                            raw_sb = _vp_sb.tobytes()
+                            _randomize_publish_block_active = _randomize_stream_guard_publish_block_active()
+                            _cap_epoch_s = None
+                            try:
+                                _cap_epoch_s = float((_vp_sb_meta or {}).get("capture_epoch_s"))
+                            except Exception:
+                                _cap_epoch_s = None
+                            if _randomize_publish_block_active and _randomize_stream_guard_should_block_publish(
+                                _render_capture_rgb_frame_health(_vp_sb)
+                            ):
+                                _stream_diag_update(randomize_stream_mode="frozen_last_good")
+                            else:
+                                if _rtsp_put_rgba_frame(
+                                    _vp_sb,
+                                    "viewport_delegate_standalone",
+                                    capture_epoch_s=_cap_epoch_s,
+                                )[0]:
+                                    drop_count += 1
                             t_tobytes_total += time.monotonic() - _t0sb
-                            if _rtsp_put_frame_bytes(raw_sb, "viewport_delegate_standalone"):
-                                drop_count += 1
                         except Exception:
                             pass
 
@@ -13379,11 +15973,13 @@ def main():
                                 except queue.Empty:
                                     break
                             _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+                            _writer_target = _pipe_writer_low_latency if _RTSP_LOW_LATENCY_MODE else _pipe_writer
+                            _writer_args = (_ffmpeg_proc, fps) if _RTSP_LOW_LATENCY_MODE else (_ffmpeg_proc,)
                             threading.Thread(
-                                target=_pipe_writer,
-                                args=(_ffmpeg_proc,),
+                                target=_writer_target,
+                                args=_writer_args,
                                 daemon=True,
-                                name="frame-writer",
+                                name="frame-writer-low-latency" if _RTSP_LOW_LATENCY_MODE else "frame-writer",
                             ).start()
                         except Exception as _ff_ex:
                             print(f"[PTZ-RTSP] ffmpeg 重启失败：{_ff_ex}", flush=True)
@@ -13399,7 +15995,23 @@ def main():
 
         _update_ctrl_plane_degraded_main_thread_hint()
         if frame_idx % 30 == 0:
-            _refresh_status_http_scene_cache_main_thread(force=False)
+            _status_refresh_age_ms, _status_refresh_mode = _rtsp_update_stale_recovery()
+            _status_refresh_skip = (
+                _status_refresh_mode == "viewport_only_recovery"
+                or (
+                    _status_refresh_age_ms is not None
+                    and _status_refresh_age_ms > _RTSP_STALE_WARN_MS
+                )
+            )
+            if not _status_refresh_skip:
+                try:
+                    if (
+                        time.monotonic() - float(_LAST_STATUS_SCENE_MAIN_REFRESH_MONO or 0.0)
+                        >= _STATUS_SCENE_REFRESH_INTERVAL_S
+                    ):
+                        _refresh_status_http_scene_cache_main_thread(force=False)
+                except Exception:
+                    pass
 
         frame_idx += 1
 

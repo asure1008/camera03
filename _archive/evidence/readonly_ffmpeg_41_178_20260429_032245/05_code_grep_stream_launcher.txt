@@ -1,0 +1,105 @@
+=== ptz_stream.py ===
+584:    "frame_pipeline": "Replicator rgb annotator → MJPEG buffer / ffmpeg stdin(RTSP)",
+585:    "ffmpeg_alive": False,
+3479:# RTSP：主线程执行 scene randomize 期间为 True；供 _pipe_writer 放宽 repeat_blocked 停写，避免 ffmpeg stdin 长时间零写入。
+4399:            "ffmpeg_alive": bool(_STREAM_DIAG.get("ffmpeg_alive")),
+9655:        ffmpeg_alive = bool(
+9656:            rtsp_enabled and _ffmpeg_proc is not None and _ffmpeg_proc.poll() is None
+9660:        if ffmpeg_alive:
+9681:            f"ffmpeg_alive={ffmpeg_alive} queue={queue_status}",
+12020:# ffmpeg 管道管理（NVENC 优先，自动回退 libx264）
+12023:def _get_ffmpeg_version() -> str:
+12024:    """获取 ffmpeg 版本字符串，失败时返回空字符串。"""
+12027:            ["ffmpeg", "-version"], stderr=subprocess.STDOUT, timeout=5
+12036:    """根据配置生成 ffmpeg drawtext 滤镜字符串，不启用时返回 None。
+12037:    使用 expansion=strftime 模式：% 由 ffmpeg 解释为 strftime 指令，
+12066:        "ffmpeg",
+12076:        "-preset", "p1",       # 最快预设（ffmpeg 5.x/6.x+）
+12093:        "ffmpeg",
+12111:def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+12113:    启动 ffmpeg 进程，通过 stdin 接受 rawvideo RGBA 帧，编码为 H.264 并推流。
+12117:    # 打印 ffmpeg 版本，方便排查参数兼容性
+12118:    ver = _get_ffmpeg_version()
+12119:    print(f"[PTZ-RTSP] {ver or 'ffmpeg 版本未知'}")
+12127:        # 异步打印 ffmpeg 错误输出，不阻塞主线程
+12132:                    print(f"[ffmpeg/{label}] {txt}")
+12151:        raise RuntimeError("ffmpeg 进程意外退出（libx264），请检查 rtsp_url 和 mediamtx 是否正常运行。")
+12267:_ffmpeg_proc = None
+12286:    将一帧 RGBA raw 字节入 RTSP 队列（与 ffmpeg -f rawvideo -pix_fmt rgba 一致）。
+12319:    """关闭写入线程（通过哨兵），再关闭 ffmpeg 和 mediamtx 子进程。"""
+12326:    if _ffmpeg_proc and _ffmpeg_proc.poll() is None:
+12328:            _ffmpeg_proc.stdin.close()
+12332:            _ffmpeg_proc.wait(timeout=5)
+12334:            _ffmpeg_proc.kill()
+12335:        print("[PTZ-RTSP] ffmpeg 进程已退出。")
+12349:    后台写入线程：从 _frame_queue 取帧写入 ffmpeg stdin。
+12350:    与渲染主线程解耦，阻塞在 ffmpeg 消费速度上，不影响 Isaac 渲染循环。
+12388:                # randomize 主线程占用期间：避免完全停写 stdin（ffmpeg 断链 / VLC 需重开）
+12401:                print("[PTZ-RTSP] ffmpeg 管道已断开（写入线程退出）")
+12446:    global _ffmpeg_proc, _mediamtx_proc, _jpeg_encode_fn, _c_local_frame_saved, _post_recover_first_capture_pending
+12482:        _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+12485:            target=_pipe_writer, args=(_ffmpeg_proc,),
+12638:        f"RGB→{'ffmpeg→RTSP' if rtsp_enabled else '仅MJPEG'}"
+12727:    if rtsp_enabled and _ffmpeg_proc is not None:
+12728:        ff_ok = _ffmpeg_proc.poll() is None
+12733:        ffmpeg_alive=ff_ok,
+13275:                    if rtsp_enabled and _ffmpeg_proc is not None \
+13276:                            and _ffmpeg_proc.poll() is None:
+13297:                    and _ffmpeg_proc is not None
+13298:                    and _ffmpeg_proc.poll() is None
+13358:                    ff_live = _ffmpeg_proc is not None and _ffmpeg_proc.poll() is None
+13360:                        ffmpeg_alive=ff_live,
+13370:                                "ffmpeg 可能仍在运行但 mediamtx publisher 可能已失效",
+13373:                    if _ffmpeg_proc is not None and _ffmpeg_proc.poll() is not None:
+13374:                        print("[PTZ-RTSP] 检测到 ffmpeg 已退出，尝试重启 RTSP 推流...", flush=True)
+13381:                            _ffmpeg_proc = _start_ffmpeg(rtsp_url, W, H, fps, bitrate)
+13384:                                args=(_ffmpeg_proc,),
+13389:                            print(f"[PTZ-RTSP] ffmpeg 重启失败：{_ff_ex}", flush=True)
+11986:def _start_mediamtx(mtx_path: str) -> subprocess.Popen:
+11990:    返回 Popen 对象（复用时返回 None）。
+12006:    proc = subprocess.Popen(
+12111:def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+12121:    def _launch(cmd: list, label: str) -> subprocess.Popen:
+12125:        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+12347:def _pipe_writer(proc: subprocess.Popen) -> None:
+291:import subprocess
+11986:def _start_mediamtx(mtx_path: str) -> subprocess.Popen:
+12006:    proc = subprocess.Popen(
+12008:        stdout=subprocess.DEVNULL,
+12009:        stderr=subprocess.PIPE,
+12026:        out = subprocess.check_output(
+12027:            ["ffmpeg", "-version"], stderr=subprocess.STDOUT, timeout=5
+12111:def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+12121:    def _launch(cmd: list, label: str) -> subprocess.Popen:
+12125:        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+12333:        except subprocess.TimeoutExpired:
+12342:        except subprocess.TimeoutExpired:
+12347:def _pipe_writer(proc: subprocess.Popen) -> None:
+=== ptz_launcher.py ===
+2069:    """后台线程：Isaac Sim 运行时启动 ffmpeg 读 RTSP，解析 FLV tag 并广播给客户端。"""
+2082:            "ffmpeg", "-loglevel", "quiet",
+388:_isaac_proc: subprocess.Popen | None = None
+555:def _isaac_child_operational_truth(proc: subprocess.Popen) -> tuple[bool, str]:
+831:def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
+857:    proc: subprocess.Popen | None, preview_enabled: bool
+882:def _watch_isaac(proc: subprocess.Popen) -> None:
+904:    spawned_proc: subprocess.Popen | None = None
+919:    stale_to_kill: subprocess.Popen | None = None
+1091:            spawned_proc = subprocess.Popen(
+2093:        proc = subprocess.Popen(
+43:import subprocess
+150:def _env_for_ptz_stream_subprocess() -> dict:
+388:_isaac_proc: subprocess.Popen | None = None
+555:def _isaac_child_operational_truth(proc: subprocess.Popen) -> tuple[bool, str]:
+831:def _terminate_isaac_spawn(proc: subprocess.Popen | None) -> None:
+857:    proc: subprocess.Popen | None, preview_enabled: bool
+882:def _watch_isaac(proc: subprocess.Popen) -> None:
+904:    spawned_proc: subprocess.Popen | None = None
+919:    stale_to_kill: subprocess.Popen | None = None
+1091:            spawned_proc = subprocess.Popen(
+1097:                env=_env_for_ptz_stream_subprocess(),
+1301:        except (subprocess.TimeoutExpired, ChildProcessError) as e:
+1891:        out = subprocess.check_output(
+1893:            stderr=subprocess.DEVNULL,
+2093:        proc = subprocess.Popen(
+2094:            cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0

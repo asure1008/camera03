@@ -1,0 +1,725 @@
+{
+  "manifest_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_conservative/manifests/dataset_manifest_full.jsonl",
+  "stats_path": "/home/uniubi/xuanyuan/camera05/camera03/dataset_run_100_camcheck_conservative/stats/dataset_stats_full.json",
+  "total_samples": 100,
+  "scene_pattern_counts": {
+    "single_airborne": 34,
+    "double_airborne": 33,
+    "all_ground": 33
+  },
+  "basket_state_counts": {
+    "ground_empty": 100,
+    "air_with_person": 100,
+    "ground_with_person": 0,
+    "unknown": 0
+  },
+  "visibility_status_counts": {
+    "ok": 14,
+    "fail": 86,
+    "skip": 0
+  },
+  "visibility_failed_samples": [
+    {
+      "sample_id": "single_airborne_0001",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0002",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_75.1deg",
+        "basket2_offaxis_79.5deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0003",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0004",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0005",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0006",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0007",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket2_offaxis_81.8deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0008",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0009",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0010",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_79.3deg",
+        "basket2_offaxis_77.9deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0011",
+      "failed_rules": [
+        "basket1_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0012",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_90.2deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0013",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_76.7deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0014",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0015",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0016",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_75.3deg",
+        "basket2_offaxis_81.4deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0017",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0018",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0020",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0022",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0023",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0025",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0027",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0028",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0029",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0030",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0031",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0032",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0033",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_77.4deg",
+        "basket2_offaxis_77.0deg"
+      ]
+    },
+    {
+      "sample_id": "single_airborne_0034",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_95.6deg",
+        "basket2_offaxis_93.0deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0001",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0002",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0003",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0004",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0005",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_76.1deg",
+        "basket2_offaxis_77.4deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0006",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0007",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0008",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0009",
+      "failed_rules": [
+        "basket1_too_far",
+        "basket2_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0010",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0011",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0012",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0013",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0014",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0015",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket2_offaxis_76.2deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0017",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0019",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0020",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0021",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0022",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_80.3deg",
+        "basket2_offaxis_76.7deg"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0023",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0024",
+      "failed_rules": [
+        "basket1_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0025",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0026",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0027",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0028",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0029",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0030",
+      "failed_rules": [
+        "basket1_too_far",
+        "basket2_too_far",
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0032",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "double_airborne_0033",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0002",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0004",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0005",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_126.5deg",
+        "basket2_offaxis_126.5deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0007",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0009",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_81.0deg",
+        "basket2_offaxis_81.0deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0010",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0011",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0012",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0013",
+      "failed_rules": [
+        "target_far_from_basket_center",
+        "basket1_offaxis_80.2deg",
+        "basket2_offaxis_80.2deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0014",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0015",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0017",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0018",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0019",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0020",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0022",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0023",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0024",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0025",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0026",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0027",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0028",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0029",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0031",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0032",
+      "failed_rules": [
+        "basket1_offaxis_118.5deg",
+        "basket2_offaxis_118.5deg"
+      ]
+    },
+    {
+      "sample_id": "all_ground_0033",
+      "failed_rules": [
+        "target_far_from_basket_center"
+      ]
+    }
+  ],
+  "failed_rule_counts": {
+    "target_far_from_basket_center": 85,
+    "basket1_too_far": 4,
+    "basket2_too_far": 2,
+    "basket1_offaxis_118.5deg": 1,
+    "basket1_offaxis_126.5deg": 1,
+    "basket1_offaxis_75.1deg": 1,
+    "basket1_offaxis_75.3deg": 1,
+    "basket1_offaxis_76.1deg": 1,
+    "basket1_offaxis_76.7deg": 1,
+    "basket1_offaxis_77.4deg": 1,
+    "basket1_offaxis_79.3deg": 1,
+    "basket1_offaxis_80.2deg": 1,
+    "basket1_offaxis_80.3deg": 1,
+    "basket1_offaxis_81.0deg": 1,
+    "basket1_offaxis_90.2deg": 1,
+    "basket1_offaxis_95.6deg": 1,
+    "basket2_offaxis_118.5deg": 1,
+    "basket2_offaxis_126.5deg": 1,
+    "basket2_offaxis_76.2deg": 1,
+    "basket2_offaxis_76.7deg": 1,
+    "basket2_offaxis_77.0deg": 1,
+    "basket2_offaxis_77.4deg": 1,
+    "basket2_offaxis_77.9deg": 1,
+    "basket2_offaxis_79.5deg": 1,
+    "basket2_offaxis_80.2deg": 1,
+    "basket2_offaxis_81.0deg": 1,
+    "basket2_offaxis_81.4deg": 1,
+    "basket2_offaxis_81.8deg": 1,
+    "basket2_offaxis_93.0deg": 1
+  },
+  "failed_rule_sample_ids": {
+    "basket1_offaxis_118.5deg": [
+      "all_ground_0032"
+    ],
+    "basket1_offaxis_126.5deg": [
+      "all_ground_0005"
+    ],
+    "basket1_offaxis_75.1deg": [
+      "single_airborne_0002"
+    ],
+    "basket1_offaxis_75.3deg": [
+      "single_airborne_0016"
+    ],
+    "basket1_offaxis_76.1deg": [
+      "double_airborne_0005"
+    ],
+    "basket1_offaxis_76.7deg": [
+      "single_airborne_0013"
+    ],
+    "basket1_offaxis_77.4deg": [
+      "single_airborne_0033"
+    ],
+    "basket1_offaxis_79.3deg": [
+      "single_airborne_0010"
+    ],
+    "basket1_offaxis_80.2deg": [
+      "all_ground_0013"
+    ],
+    "basket1_offaxis_80.3deg": [
+      "double_airborne_0022"
+    ],
+    "basket1_offaxis_81.0deg": [
+      "all_ground_0009"
+    ],
+    "basket1_offaxis_90.2deg": [
+      "single_airborne_0012"
+    ],
+    "basket1_offaxis_95.6deg": [
+      "single_airborne_0034"
+    ],
+    "basket1_too_far": [
+      "single_airborne_0011",
+      "double_airborne_0009",
+      "double_airborne_0024",
+      "double_airborne_0030"
+    ],
+    "basket2_offaxis_118.5deg": [
+      "all_ground_0032"
+    ],
+    "basket2_offaxis_126.5deg": [
+      "all_ground_0005"
+    ],
+    "basket2_offaxis_76.2deg": [
+      "double_airborne_0015"
+    ],
+    "basket2_offaxis_76.7deg": [
+      "double_airborne_0022"
+    ],
+    "basket2_offaxis_77.0deg": [
+      "single_airborne_0033"
+    ],
+    "basket2_offaxis_77.4deg": [
+      "double_airborne_0005"
+    ],
+    "basket2_offaxis_77.9deg": [
+      "single_airborne_0010"
+    ],
+    "basket2_offaxis_79.5deg": [
+      "single_airborne_0002"
+    ],
+    "basket2_offaxis_80.2deg": [
+      "all_ground_0013"
+    ],
+    "basket2_offaxis_81.0deg": [
+      "all_ground_0009"
+    ],
+    "basket2_offaxis_81.4deg": [
+      "single_airborne_0016"
+    ],
+    "basket2_offaxis_81.8deg": [
+      "single_airborne_0007"
+    ],
+    "basket2_offaxis_93.0deg": [
+      "single_airborne_0034"
+    ],
+    "basket2_too_far": [
+      "double_airborne_0009",
+      "double_airborne_0030"
+    ],
+    "target_far_from_basket_center": [
+      "single_airborne_0001",
+      "single_airborne_0002",
+      "single_airborne_0003",
+      "single_airborne_0004",
+      "single_airborne_0005",
+      "single_airborne_0006",
+      "single_airborne_0007",
+      "single_airborne_0008",
+      "single_airborne_0009",
+      "single_airborne_0010",
+      "single_airborne_0011",
+      "single_airborne_0012",
+      "single_airborne_0013",
+      "single_airborne_0014",
+      "single_airborne_0015",
+      "single_airborne_0016",
+      "single_airborne_0017",
+      "single_airborne_0018",
+      "single_airborne_0020",
+      "single_airborne_0022",
+      "single_airborne_0023",
+      "single_airborne_0025",
+      "single_airborne_0027",
+      "single_airborne_0028",
+      "single_airborne_0029",
+      "single_airborne_0030",
+      "single_airborne_0031",
+      "single_airborne_0032",
+      "single_airborne_0033",
+      "single_airborne_0034"
+    ]
+  },
+  "failed_samples": 0,
+  "failures": []
+}

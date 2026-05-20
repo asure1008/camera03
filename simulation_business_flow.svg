@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1880" viewBox="0 0 1600 1880" role="img" aria-labelledby="title desc">
+  <title id="title">camera03 simulation dual business flow</title>
+  <desc id="desc">Dual flow diagram for camera03: virtual IPC platform access and algorithm evaluation with RTSP, YOLO, PTZ, Qwen, MCP and reference answer POST.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#15803d"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#b45309"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 42px; font-weight: 800; fill: #0f172a; }
+      .subtitle { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 22px; fill: #475569; }
+      .panel-title { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 28px; font-weight: 800; fill: #0f172a; }
+      .panel-note { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 18px; fill: #475569; }
+      .box-title { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 23px; font-weight: 800; fill: #0f172a; }
+      .box-text { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 18px; fill: #334155; }
+      .small { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 16px; fill: #475569; }
+      .tag { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 16px; font-weight: 800; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 8; }
+      .box { stroke-width: 2.4; rx: 8; }
+      .done { fill: #ecfdf5; stroke: #16a34a; }
+      .partial { fill: #fff7ed; stroke: #f59e0b; }
+      .info { fill: #eff6ff; stroke: #2563eb; }
+      .neutral { fill: #f1f5f9; stroke: #64748b; }
+      .blocked { fill: #fef2f2; stroke: #ef4444; }
+      .line-blue { stroke: #2563eb; stroke-width: 3.4; fill: none; marker-end: url(#arrow-blue); }
+      .line-green { stroke: #15803d; stroke-width: 3.4; fill: none; marker-end: url(#arrow-green); }
+      .line-orange { stroke: #b45309; stroke-width: 3.4; fill: none; marker-end: url(#arrow-orange); stroke-dasharray: 9 7; }
+      .icon { font-family: "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 23px; font-weight: 800; fill: #0f172a; }
+      .ok { fill: #15803d; }
+      .warn { fill: #b45309; }
+      .bad { fill: #dc2626; }
+      .blue { fill: #2563eb; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1880"/>
+  <text class="title" x="800" y="62" text-anchor="middle">camera03 仿真业务链路与能力边界图</text>
+  <text class="subtitle" x="800" y="100" text-anchor="middle">双链路：设备/平台接入链路 + 算法判定/准确率评测链路</text>
+
+  <rect class="panel" x="50" y="135" width="1500" height="420"/>
+  <text class="panel-title" x="82" y="180">一、设备/平台接入链路</text>
+  <text class="panel-note" x="82" y="212">目标：让 Isaac Sim 虚拟相机像真实 IPC 一样提供 RTSP、ONVIF 和抓图能力，并接入平台。</text>
+
+  <rect class="box done" x="85" y="250" width="250" height="170"/>
+  <text class="icon" x="112" y="288">CAM</text>
+  <text class="box-title" x="210" y="288" text-anchor="middle">Isaac Sim</text>
+  <text class="box-text" x="112" y="326">虚拟工地场景</text>
+  <text class="box-text" x="112" y="356">吊篮 / 工人 / 光照</text>
+  <text class="box-text" x="112" y="386">PTZ 相机画面</text>
+  <text class="tag ok" x="112" y="410">已完成基础闭环</text>
+
+  <rect class="box done" x="392" y="250" width="250" height="170"/>
+  <text class="icon" x="419" y="288">IPC</text>
+  <text class="box-title" x="517" y="288" text-anchor="middle">虚拟 IPC</text>
+  <text class="box-text" x="419" y="326">摄像机设备能力</text>
+  <text class="box-text" x="419" y="356">RTSP / ONVIF</text>
+  <text class="box-text" x="419" y="386">抓图接口</text>
+  <text class="tag ok" x="419" y="410">已完成基础能力</text>
+
+  <rect class="box info" x="699" y="250" width="250" height="170"/>
+  <text class="icon" x="726" y="288">I/O</text>
+  <text class="box-title" x="824" y="288" text-anchor="middle">视频与抓图</text>
+  <text class="box-text" x="726" y="326">RTSP 视频流</text>
+  <text class="box-text" x="726" y="356">ONVIF Snapshot</text>
+  <text class="box-text" x="726" y="386">JPEG 抓图</text>
+  <text class="tag blue" x="726" y="410">平台接入入口</text>
+
+  <rect class="box partial" x="1006" y="250" width="250" height="170"/>
+  <text class="icon" x="1033" y="288">NVR</text>
+  <text class="box-title" x="1131" y="288" text-anchor="middle">NVR / 海康 IS</text>
+  <text class="box-text" x="1033" y="326">设备发现</text>
+  <text class="box-text" x="1033" y="356">平台拉流</text>
+  <text class="box-text" x="1033" y="386">抓图调用</text>
+  <text class="tag warn" x="1033" y="410">依赖现场联调</text>
+
+  <rect class="box partial" x="1313" y="250" width="200" height="170"/>
+  <text class="icon" x="1338" y="288">SaaS</text>
+  <text class="box-title" x="1413" y="288" text-anchor="middle">SaaS</text>
+  <text class="box-text" x="1338" y="326">设备数据</text>
+  <text class="box-text" x="1338" y="356">画面展示</text>
+  <text class="box-text" x="1338" y="386">平台联调</text>
+  <text class="tag warn" x="1338" y="410">部分实现</text>
+
+  <path class="line-blue" d="M335 335 L392 335"/>
+  <path class="line-blue" d="M642 335 L699 335"/>
+  <path class="line-blue" d="M949 335 L1006 335"/>
+  <path class="line-blue" d="M1256 335 L1313 335"/>
+  <text class="small" x="365" y="315" text-anchor="middle">画面</text>
+  <text class="small" x="671" y="315" text-anchor="middle">输出</text>
+  <text class="small" x="978" y="315" text-anchor="middle">接入</text>
+  <text class="small" x="1284" y="315" text-anchor="middle">展示</text>
+
+  <rect class="box neutral" x="85" y="455" width="1428" height="62"/>
+  <text class="box-text" x="112" y="493">这条链路说明“仿真相机如何接入平台”，不是完整的算法判断链路。</text>
+
+  <rect class="panel" x="50" y="600" width="1500" height="600"/>
+  <text class="panel-title" x="82" y="645">二、算法判定/准确率评测链路</text>
+  <text class="panel-note" x="82" y="677">目标：从 RTSP 画面进入算法判断，输出 MCP 结果，并与仿真参考答案 POST 对比得到真实准确率。</text>
+
+  <rect class="box info" x="85" y="720" width="220" height="150"/>
+  <text class="icon" x="112" y="758">RTSP</text>
+  <text class="box-title" x="195" y="758" text-anchor="middle">视频输入</text>
+  <text class="box-text" x="112" y="796">虚拟 IPC 推流</text>
+  <text class="box-text" x="112" y="826">算法侧取流</text>
+  <text class="tag blue" x="112" y="852">输入源</text>
+
+  <rect class="box done" x="360" y="720" width="220" height="150"/>
+  <text class="icon" x="387" y="758">YOLO</text>
+  <text class="box-title" x="470" y="758" text-anchor="middle">目标识别</text>
+  <text class="box-text" x="387" y="796">定位吊篮 / 工人</text>
+  <text class="box-text" x="387" y="826">生成目标区域</text>
+  <text class="tag ok" x="387" y="852">核心流程</text>
+
+  <rect class="box done" x="635" y="720" width="220" height="150"/>
+  <text class="icon" x="662" y="758">PTZ</text>
+  <text class="box-title" x="745" y="758" text-anchor="middle">放大/截图</text>
+  <text class="box-text" x="662" y="796">调整视角</text>
+  <text class="box-text" x="662" y="826">放大目标图像</text>
+  <text class="tag ok" x="662" y="852">基础能力</text>
+
+  <rect class="box done" x="910" y="720" width="220" height="150"/>
+  <text class="icon" x="937" y="758">LLM</text>
+  <text class="box-title" x="1020" y="758" text-anchor="middle">Qwen 判断</text>
+  <text class="box-text" x="937" y="796">读取放大图片</text>
+  <text class="box-text" x="937" y="826">判断规则结果</text>
+  <text class="tag ok" x="937" y="852">核心流程</text>
+
+  <rect class="box done" x="1185" y="720" width="260" height="150"/>
+  <text class="icon" x="1212" y="758">MCP</text>
+  <text class="box-title" x="1315" y="758" text-anchor="middle">检测结果</text>
+  <text class="box-text" x="1212" y="796">输出 rule_id / hazard</text>
+  <text class="box-text" x="1212" y="826">供平台与评测使用</text>
+  <text class="tag ok" x="1212" y="852">结果出口</text>
+
+  <path class="line-green" d="M305 795 L360 795"/>
+  <path class="line-green" d="M580 795 L635 795"/>
+  <path class="line-green" d="M855 795 L910 795"/>
+  <path class="line-green" d="M1130 795 L1185 795"/>
+
+  <rect class="box info" x="135" y="990" width="300" height="150"/>
+  <text class="icon" x="162" y="1028">POST</text>
+  <text class="box-title" x="285" y="1028" text-anchor="middle">仿真参考答案</text>
+  <text class="box-text" x="162" y="1066">由场景状态生成</text>
+  <text class="box-text" x="162" y="1096">作为评测真值</text>
+  <text class="tag blue" x="162" y="1122">参考答案 POST</text>
+
+  <rect class="box partial" x="545" y="990" width="300" height="150"/>
+  <text class="icon" x="572" y="1028">CMP</text>
+  <text class="box-title" x="695" y="1028" text-anchor="middle">结果比对</text>
+  <text class="box-text" x="572" y="1066">MCP 结果</text>
+  <text class="box-text" x="572" y="1096">对比参考答案 POST</text>
+  <text class="tag warn" x="572" y="1122">准确率来源</text>
+
+  <rect class="box partial" x="955" y="990" width="300" height="150"/>
+  <text class="icon" x="982" y="1028">ACC</text>
+  <text class="box-title" x="1105" y="1028" text-anchor="middle">准确率/一致性</text>
+  <text class="box-text" x="982" y="1066">没有真实比对前</text>
+  <text class="box-text" x="982" y="1096">只写待统计</text>
+  <text class="tag warn" x="982" y="1122">不得填推测值</text>
+
+  <rect class="box partial" x="1365" y="990" width="140" height="150"/>
+  <text class="icon" x="1388" y="1028">SaaS</text>
+  <text class="box-title" x="1435" y="1028" text-anchor="middle">展示</text>
+  <text class="box-text" x="1388" y="1066">结果</text>
+  <text class="box-text" x="1388" y="1096">统计</text>
+  <text class="tag warn" x="1388" y="1122">联调</text>
+
+  <path class="line-orange" d="M1315 870 C1315 930, 770 930, 695 990"/>
+  <path class="line-blue" d="M435 1065 L545 1065"/>
+  <path class="line-orange" d="M845 1065 L955 1065"/>
+  <path class="line-orange" d="M1255 1065 L1365 1065"/>
+  <text class="small" x="804" y="942" text-anchor="middle">MCP 检测结果进入比对</text>
+  <text class="small" x="490" y="1044" text-anchor="middle">真值</text>
+  <text class="small" x="900" y="1044" text-anchor="middle">统计</text>
+  <text class="small" x="1310" y="1044" text-anchor="middle">回传</text>
+
+  <rect class="box neutral" x="85" y="1162" width="1428" height="70"/>
+  <text class="box-text" x="112" y="1195">注意：100 样本、50% 可视性、72 秒 RTSP 稳定性都是阶段性验证指标。</text>
+  <text class="box-text" x="112" y="1221">YOLO/Qwen/MCP 端到端准确率只能由 MCP 结果与参考答案 POST 的真实比对得到。</text>
+
+  <rect class="panel" x="50" y="1280" width="1500" height="440"/>
+  <text class="panel-title" x="82" y="1325">三、规则能力边界</text>
+  <text class="panel-note" x="82" y="1357">规则状态按当前汇报口径说明，避免把场景真值、画面效果和视觉识别能力混为一类。</text>
+
+  <rect class="box done" x="85" y="1400" width="330" height="190"/>
+  <text class="box-title" x="250" y="1438" text-anchor="middle">相机可观测规则</text>
+  <text class="box-text" x="112" y="1476">rule 2：超过 2 人</text>
+  <text class="box-text" x="112" y="1506">rule 3：单人作业</text>
+  <text class="box-text" x="112" y="1536">rule 4：作业后未落地</text>
+  <text class="tag ok" x="112" y="1570">可结合 PTZ 画面证据</text>
+
+  <rect class="box partial" x="455" y="1400" width="330" height="190"/>
+  <text class="box-title" x="620" y="1438" text-anchor="middle">USD 场景状态规则</text>
+  <text class="box-text" x="482" y="1476">rule 1：护栏/挡脚板</text>
+  <text class="box-text" x="482" y="1506">rule 5：安全绳数量</text>
+  <text class="box-text" x="482" y="1536">rule 12：限位装置</text>
+  <text class="tag warn" x="482" y="1570">不是相机视觉识别</text>
+
+  <rect class="box partial" x="825" y="1400" width="330" height="190"/>
+  <text class="box-title" x="990" y="1438" text-anchor="middle">环境/图像效果规则</text>
+  <text class="box-text" x="852" y="1476">rule 8：雾气效果可实现</text>
+  <text class="box-text" x="852" y="1506">rule 10：过曝规则</text>
+  <text class="box-text" x="852" y="1536">准确率需比对统计</text>
+  <text class="tag warn" x="852" y="1570">rule_id=10 对外口径</text>
+
+  <rect class="box blocked" x="1195" y="1400" width="300" height="190"/>
+  <text class="box-title" x="1345" y="1438" text-anchor="middle">待接入/不承诺</text>
+  <text class="box-text" x="1222" y="1476">rule 9：雨水规则</text>
+  <text class="box-text" x="1222" y="1506">rule 13：防坠安全锁</text>
+  <text class="box-text" x="1222" y="1536">模型或闭环未确认</text>
+  <text class="tag bad" x="1222" y="1570">不写成已交付</text>
+
+  <rect class="box neutral" x="85" y="1630" width="1428" height="58"/>
+  <text class="box-text" x="112" y="1666">汇报口径：rule 8 按双层口径描述，写“雾气效果可实现，端到端检测准确率待统计”。</text>
+
+  <rect class="panel" x="50" y="1760" width="1500" height="76"/>
+  <rect class="box done" x="82" y="1784" width="28" height="20"/>
+  <text class="small" x="122" y="1801">已完成 / 可实现</text>
+  <rect class="box partial" x="280" y="1784" width="28" height="20"/>
+  <text class="small" x="320" y="1801">部分实现 / 有限制 / 待统计</text>
+  <rect class="box blocked" x="585" y="1784" width="28" height="20"/>
+  <text class="small" x="625" y="1801">待接入 / 不对外承诺</text>
+  <text class="small" x="1010" y="1801">真实效果截图不放入本图，统一在汇报文档中留空补图。</text>
+</svg>

@@ -1,0 +1,123 @@
+
+# ============================================================
+# ffmpeg 管道管理（NVENC 优先，自动回退 libx264）
+# ============================================================
+
+def _get_ffmpeg_version() -> str:
+    """获取 ffmpeg 版本字符串，失败时返回空字符串。"""
+    try:
+        out = subprocess.check_output(
+            ["ffmpeg", "-version"], stderr=subprocess.STDOUT, timeout=5
+        ).decode(errors="replace")
+        first_line = out.splitlines()[0] if out else ""
+        return first_line
+    except Exception:
+        return ""
+
+
+def _build_osd_filter() -> str | None:
+    """根据配置生成 ffmpeg drawtext 滤镜字符串，不启用时返回 None。
+    使用 expansion=strftime 模式：% 由 ffmpeg 解释为 strftime 指令，
+    冒号需转义为 \\: 以避免被 drawtext 解析为选项分隔符。
+    """
+    if not osd_enabled:
+        return None
+    fmt      = _osd_cfg.get("fmt",  "%Y-%m-%d %H:%M:%S")
+    x        = _osd_cfg.get("x",    10)
+    y        = _osd_cfg.get("y",    10)
+    size     = _osd_cfg.get("size", 28)
+    fontfile = _osd_cfg.get("font", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    # expansion=strftime 模式：% 直接作为 strftime 指令；冒号转义为 \:
+    escaped_fmt = fmt.replace(":", "\\:")
+    return (
+        f"drawtext=fontfile={fontfile}"
+        f":text='{escaped_fmt}'"
+        f":expansion=strftime"
+        f":fontcolor=white:fontsize={size}"
+        f":box=1:boxcolor=black@0.5:boxborderw=4"
+        f":x={x}:y={y}"
+    )
+
+
+def _build_nvenc_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 h264_nvenc 低延迟参数列表。"""
+    gop = fps * 2  # GOP = 2 秒
+    osd = _build_osd_filter()
+    # nvenc 需要 yuv420p，OSD 存在时拼接 drawtext，再做 format 转换
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
+        "ffmpeg",
+        "-loglevel", "warning",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{width}x{height}",
+        "-r", str(fps),
+        "-i", "pipe:0",
+        "-an",
+        "-vf", vf,
+        "-c:v", "h264_nvenc",
+        "-preset", "p1",       # 最快预设（ffmpeg 5.x/6.x+）
+        "-tune", "ll",         # low-latency 模式
+        "-rc", "cbr",          # 固定码率，避免 VBR 帧率波动
+        "-bf", "0",            # 禁用 B 帧，降延迟
+        "-g", str(gop),        # GOP 大小
+        "-delay", "0",
+        "-b:v", bitrate,
+        "-f", "rtsp",
+        rtsp_url,
+    ]
+
+
+def _build_x264_cmd(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> list:
+    """构造 libx264 低延迟参数列表（NVENC 不可用时的回退方案）。"""
+    osd = _build_osd_filter()
+    vf = f"{osd},format=yuv420p" if osd else "format=yuv420p"
+    return [
+        "ffmpeg",
+        "-loglevel", "warning",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{width}x{height}",
+        "-r", str(fps),
+        "-i", "pipe:0",
+        "-an",
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-tune", "zerolatency",
+        "-b:v", bitrate,
+        "-vf", vf,
+        "-f", "rtsp",
+        rtsp_url,
+    ]
+
+
+def _start_ffmpeg(rtsp_url: str, width: int, height: int, fps: int, bitrate: str) -> subprocess.Popen:
+    """
+    启动 ffmpeg 进程，通过 stdin 接受 rawvideo RGBA 帧，编码为 H.264 并推流。
+    策略：优先尝试 h264_nvenc；若 2 秒内进程退出说明 NVENC 不可用，自动回退 libx264。
+    bufsize=0：跳过 Python 内部 BufferedWriter 层，大帧写入直通 OS pipe fd。
+    """
+    # 打印 ffmpeg 版本，方便排查参数兼容性
+    ver = _get_ffmpeg_version()
+    print(f"[PTZ-RTSP] {ver or 'ffmpeg 版本未知'}")
+
+    def _launch(cmd: list, label: str) -> subprocess.Popen:
+        import os as _os
+        _env = _os.environ.copy()
+        _env.setdefault("TZ", "Asia/Shanghai")  # OSD strftime 时区，系统未配置时兜底
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                bufsize=0, env=_env)
+        # 异步打印 ffmpeg 错误输出，不阻塞主线程
+        def _log_stderr():
+            for line in proc.stderr:
+                txt = line.decode(errors="replace").rstrip()
+                if txt:
+                    print(f"[ffmpeg/{label}] {txt}")
+        threading.Thread(target=_log_stderr, daemon=True).start()
+        return proc
+
+    # 先试 NVENC
+    nvenc_cmd = _build_nvenc_cmd(rtsp_url, width, height, fps, bitrate)
+    print(f"[PTZ-RTSP] 尝试 h264_nvenc 编码器...")
+    proc = _launch(nvenc_cmd, "nvenc")
+    time.sleep(2.0)

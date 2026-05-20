@@ -1,0 +1,11 @@
+--- /home/uniubi/xuanyuan/camera03/backup_cursor/fix_python_sh_20260429_110652/ptz_config.yaml	2026-04-29 10:56:01.950352525 +0800
++++ /home/uniubi/xuanyuan/camera03/ptz_config.yaml	2026-04-29 11:07:01.623278337 +0800
+@@ -24,7 +24,7 @@
+ osd_time:
+   enabled: false
+ preview_enabled: false
+-python_sh: /home/uniubi/miniconda3/envs/env_isaaclab/bin/python3
++python_sh: /home/uniubi/xuanyuan/python.sh
+ renderer: RTXRealTime
+ hdri_fill_exposure_nominal: 1.0
+ hdri_whitelist:

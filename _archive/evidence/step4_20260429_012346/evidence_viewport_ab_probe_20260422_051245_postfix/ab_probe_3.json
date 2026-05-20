@@ -1,0 +1,134 @@
+{
+  "ok": true,
+  "camera_prim": "/World/CameraRig/CamTilt/Camera",
+  "renderer_mode": "RTXRealTime",
+  "ab_capture_seq": 45,
+  "replicator_source": {
+    "source_name": "replicator",
+    "render_product_path": "/Render/OmniverseKit/HydraTextures/Replicator",
+    "camera_prim": "/World/CameraRig/CamTilt/Camera",
+    "raw_rgba_stats": {
+      "shape": [
+        540,
+        960,
+        4
+      ],
+      "dtype": "uint8",
+      "channels": {
+        "channel_count": 4,
+        "rgb_min": 0.0,
+        "rgb_max": 0.0,
+        "rgb_mean": 0.0,
+        "rgb_nonzero_ratio": 0.0,
+        "alpha_min": 160.0,
+        "alpha_max": 255.0,
+        "alpha_mean": 254.88322145061727,
+        "alpha_nonzero_ratio": 1.0
+      }
+    },
+    "normalized_rgb_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 0,
+      "mean": 0.0,
+      "nonzero_ratio": 0.0
+    },
+    "jpeg_input_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 0,
+      "mean": 0.0,
+      "nonzero_ratio": 0.0
+    },
+    "capture_seq": 45,
+    "source_seq": 0,
+    "frame_ok": true,
+    "jpeg_encoded_ok": true,
+    "jpeg_byte_len": 8787,
+    "error": null
+  },
+  "viewport_delegate_source": {
+    "source_name": "viewport_delegate",
+    "render_product_path": "/Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0",
+    "camera_prim": "/World/CameraRig/CamTilt/Camera",
+    "raw_rgba_stats": {
+      "shape": [
+        540,
+        960,
+        4
+      ],
+      "dtype": "uint8",
+      "channels": {
+        "channel_count": 4,
+        "rgb_min": 3.0,
+        "rgb_max": 251.0,
+        "rgb_mean": 184.5624112654321,
+        "rgb_nonzero_ratio": 1.0,
+        "alpha_min": 255.0,
+        "alpha_max": 255.0,
+        "alpha_mean": 255.0,
+        "alpha_nonzero_ratio": 1.0
+      }
+    },
+    "normalized_rgb_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 3,
+      "max": 251,
+      "mean": 184.5624112654321,
+      "nonzero_ratio": 1.0
+    },
+    "jpeg_input_stats": {
+      "shape": [
+        540,
+        960,
+        3
+      ],
+      "dtype": "uint8",
+      "min": 3,
+      "max": 251,
+      "mean": 184.5624112654321,
+      "nonzero_ratio": 1.0
+    },
+    "capture_seq": 45,
+    "source_seq": 1,
+    "frame_ok": true,
+    "jpeg_encoded_ok": true,
+    "jpeg_byte_len": 96515,
+    "error": null,
+    "capture_method": "byte_capture_LdrColor+sim_app.run_coroutine(wait_for_result)",
+    "callback_fired": true,
+    "wait_ms": 63.05,
+    "retry_count": 0,
+    "viewport_delegate_id": "Viewport/Viewport0",
+    "viewport_window_title": "Viewport",
+    "ab_probe_sim_app_update_count": 1,
+    "ab_probe_capture_attempts": 1,
+    "ab_probe_viewport_phase_wait_ms": 71.44
+  },
+  "comparison": {
+    "same_camera_assumed": true,
+    "replicator_rgb_mean": 0.0,
+    "viewport_rgb_mean": 184.5624112654321,
+    "replicator_nonzero_ratio": 0.0,
+    "viewport_nonzero_ratio": 1.0,
+    "which_source_is_healthier": "viewport_delegate",
+    "replicator_frame_ok": true,
+    "viewport_delegate_frame_ok": true
+  },
+  "elapsed_monotonic_s": 0.11854951689019799
+}

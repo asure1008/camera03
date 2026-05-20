@@ -1,0 +1,14 @@
+=== C.1 which python3 ===
+/usr/bin/python3
+=== C.2 python3 --version ===
+Python 3.12.3
+=== C.3 miniconda python3 ===
+Python 3.13.12
+=== C.4 conda env list ===
+
+# conda environments:
+#
+# * -> active
+# + -> frozen
+base                     /home/uniubi/miniconda3
+

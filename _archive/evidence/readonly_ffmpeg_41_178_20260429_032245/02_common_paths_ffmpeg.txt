@@ -1,0 +1,8 @@
+/usr/bin/ffmpeg: MISSING
+/usr/local/bin/ffmpeg: MISSING
+/bin/ffmpeg: MISSING
+/snap/bin/ffmpeg: MISSING
+/home/uniubi/miniconda3/bin/ffmpeg: -rwxrwxr-x 1 uniubi uniubi 432240 Mar 30 18:44 /home/uniubi/miniconda3/bin/ffmpeg
+/home/uniubi/anaconda3/bin/ffmpeg: MISSING
+/home/uniubi/xuanyuan/ffmpeg: MISSING
+/home/uniubi/xuanyuan/camera03/ffmpeg: MISSING
